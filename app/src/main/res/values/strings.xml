@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">AgroSys</string>
+    <string name="saludo_buenos_dias">Buenos días,</string>
+    <string name="nombre_usuario_placeholder">Nombre Usuario</string>
+    <string name="user_info_placeholder">Agricultor / Fundo El Edén · Hoy</string>
+    <string name="notif_count_placeholder">3</string>
+    <string name="stat_zero">0</string>
+    <string name="label_cultivos">Cultivos</string>
+    <string name="label_terrenos">Terrenos</string>
+    <string name="stat_currency_zero">S/0</string>
+    <string name="label_ganancia">Ganancia</string>
+    <string name="label_resumen_financiero">Resumen financiero</string>
+    <string name="label_ingresos">INGRESOS</string>
+    <string name="label_costos">COSTOS</string>
+    <string name="label_neto">NETO</string>
+    <string name="label_mensaje_reciente">Mensaje más reciente</string>
+    <string name="msg_bienvenida">¡Bienvenido a AgroSys! Comienza registrando tus parcelas.</string>
+    <string name="label_cultivos_en_curso">Cultivos en curso</string>
+    <string name="label_ver_todos">Ver todos</string>
+    <string name="label_acciones_rapidas">Acciones rápidas</string>
+    <string name="label_terreno">Terreno</string>
+    <string name="label_cultivo">Cultivo</string>
+    <string name="label_labor">Labor</string>
+    <string name="label_cosecha">Cosecha</string>
+    <string name="label_inicio">Inicio</string>
+    <string name="label_labores">Labores</string>
+    <string name="label_reportes">Reportes</string>
+</resources>

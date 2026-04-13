@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#eef2ee">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="32dp">
+
+            <!-- Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/header_gradient_bg"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="32dp"
+                android:paddingBottom="24dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/btnBack"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/direccion_derecha"
+                        app:tint="#ffffff"
+                        android:rotation="180"/>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_toEndOf="@id/btnBack"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nuevo Cultivo"
+                            android:textColor="#ffffff"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Registra un ciclo productivo"
+                            android:textColor="#dcfce7"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/circle_bg_green_light"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_planta_buena"
+                        app:tint="#15803d" />
+                </RelativeLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- Info Box / Terreno Info -->
+                <LinearLayout
+                    android:id="@+id/terrenoInfoContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/rounded_background"
+                    android:backgroundTint="#f0fdf4"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_ubicacion_terreno"
+                            app:tint="#166534" />
+
+                        <TextView
+                            android:id="@+id/tvSelectedTerrenoName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Cargando terreno..."
+                            android:textColor="#166534"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvSelectedTerrenoDetail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Área total: 0.00 ha"
+                        android:textColor="#166534"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/selectorTerrenoContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="Terreno *"
+                        android:textColor="#374151"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/spinnerTerrenos"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/edit_text_elegant" />
+                </LinearLayout>
+
+                <!-- Tipo de cultivo -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Tipo de cultivo *"
+                    android:textColor="#374151"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    app:boxBackgroundColor="#ffffff"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxStrokeColor="#15803d"
+                    app:hintEnabled="false">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/autoCompleteCultivo"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:hint="Busca o selecciona un cultivo..."
+                        android:inputType="text"
+                        android:paddingHorizontal="16dp"
+                        android:textSize="13sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Sugerencias Rápidas (8 botones, 4 por fila) -->
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:columnCount="4"
+                    android:alignmentMode="alignMargins">
+
+                    <Button
+                        android:id="@+id/btnSugMaiz"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="2dp"
+                        android:backgroundTint="#f0fdf4"
+                        android:text="Maíz"
+                        android:textAllCaps="false"
+                        android:textColor="#166534"
+                        android:textSize="10sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="#166534"
+                        app:strokeWidth="0.5dp" />
+
+                    <Button
+                        android:id="@+id/btnSugPapa"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="2dp"
+                        android:backgroundTint="#f0fdf4"
+                        android:text="Papa"
+                        android:textAllCaps="false"
+                        android:textColor="#166534"
+                        android:textSize="10sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="#166534"
+                        app:strokeWidth="0.5dp" />
+
+                    <Button
+                        android:id="@+id/btnSugPalta"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="2dp"
+                        android:backgroundTint="#f0fdf4"
+                        android:text="Palta"
+                        android:textAllCaps="false"
+                        android:textColor="#166534"
+                        android:textSize="10sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="#166534"
+                        app:strokeWidth="0.5dp" />
+
+                    <Button
+                        android:id="@+id/btnSugCafe"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="2dp"
+                        android:backgroundTint="#f0fdf4"
+                        android:text="Café"
+                        android:textAllCaps="false"
+                        android:textColor="#166534"
+                        android:textSize="10sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="#166534"
+                        app:strokeWidth="0.5dp" />
+
+                    <Button
+                        android:id="@+id/btnSugTomate"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="2dp"
+                        android:backgroundTint="#f0fdf4"
+                        android:text="Tomate"
+                        android:textAllCaps="false"
+                        android:textColor="#166534"
+                        android:textSize="10sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="#166534"
+                        app:strokeWidth="0.5dp" />
+
+                    <Button
+                        android:id="@+id/btnSugLimon"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="2dp"
+                        android:backgroundTint="#f0fdf4"
+                        android:text="Limón"
+                        android:textAllCaps="false"
+                        android:textColor="#166534"
+                        android:textSize="10sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="#166534"
+                        app:strokeWidth="0.5dp" />
+
+                    <Button
+                        android:id="@+id/btnSugCacao"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="2dp"
+                        android:backgroundTint="#f0fdf4"
+                        android:text="Cacao"
+                        android:textAllCaps="false"
+                        android:textColor="#166534"
+                        android:textSize="10sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="#166534"
+                        app:strokeWidth="0.5dp" />
+
+                    <Button
+                        android:id="@+id/btnSugArroz"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="2dp"
+                        android:backgroundTint="#f0fdf4"
+                        android:text="Arroz"
+                        android:textAllCaps="false"
+                        android:textColor="#166534"
+                        android:textSize="10sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="#166534"
+                        app:strokeWidth="0.5dp" />
+                </GridLayout>
+
+                <!-- Info Ciclo Cultivo -->
+                <TextView
+                    android:id="@+id/tvCicloInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Ciclo productivo estimado: --"
+                    android:textColor="#166534"
+                    android:textSize="11sp"
+                    android:textStyle="italic"
+                    android:visibility="gone" />
+
+                <!-- Variedad -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Variedad del cultivo *"
+                    android:textColor="#374151"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etVariedad"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/edit_text_elegant"
+                    android:hint="Ej: Yungay, Híbrido, etc."
+                    android:inputType="text"
+                    android:paddingHorizontal="16dp" />
+
+                <!-- Fecha Siembra -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Fecha siembra estimada *"
+                    android:textColor="#374151"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etFechaSiembra"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/edit_text_elegant"
+                    android:clickable="true"
+                    android:focusable="false"
+                    android:hint="Seleccionar fecha"
+                    android:paddingHorizontal="16dp" />
+
+                <!-- Estado -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Estado del cultivo *"
+                    android:textColor="#374151"
+                    android:textStyle="bold" />
+
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:columnCount="2">
+
+                    <Button
+                        android:id="@+id/btnStatusPlanificado"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text="📋 Planificado"
+                        android:textAllCaps="false"
+                        app:cornerRadius="12dp" />
+
+                    <Button
+                        android:id="@+id/btnStatusActivo"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text="🌱 Activo"
+                        android:textAllCaps="false"
+                        app:cornerRadius="12dp" />
+                </GridLayout>
+
+                <!-- Área Destinada -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Área destinada (hectáreas) *"
+                    android:textColor="#374151"
+                    android:textStyle="bold" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/edit_text_elegant">
+
+                    <EditText
+                        android:id="@+id/etAreaDestinada"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@android:color/transparent"
+                        android:hint="0.00"
+                        android:inputType="numberDecimal"
+                        android:paddingHorizontal="16dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="16dp"
+                        android:text="ha"
+                        android:textColor="#6B7280" />
+                </RelativeLayout>
+
+                <!-- Observaciones -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Observaciones / Notas *"
+                    android:textColor="#374151"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etObservaciones"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/edit_text_elegant"
+                    android:gravity="top"
+                    android:hint="Escribe notas sobre este cultivo..."
+                    android:inputType="textMultiLine"
+                    android:minLines="3"
+                    android:padding="16dp" />
+
+                <!-- Save Button -->
+                <Button
+                    android:id="@+id/btnSaveCultivo"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="32dp"
+                    android:backgroundTint="#15803d"
+                    android:text="Registrar Cultivo"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="16dp" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
