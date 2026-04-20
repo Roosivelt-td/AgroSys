@@ -14,6 +14,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,16 +36,36 @@ class LaboresListActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLaboresListBinding
     private val db by lazy { AppDatabase.getDatabase(this) }
     
-    private var hasCultivos = false
+    private var hasTerrenos = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLaboresListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Forzar barra de estado verde y iconos blancos
+        window.statusBarColor = android.graphics.Color.parseColor("#15803D")
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        // SOLUCIÓN: Ajustar el menú inferior para que no lo tapen los botones del sistema
+        val initialBottomPadding = binding.bottomNav.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNav) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, initialBottomPadding + systemBars.bottom)
+            insets
+        }
+
+        // Ajustar el Header para que respete la barra de estado superior
+        val initialHeaderTopPadding = binding.header.paddingTop
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.header.setPadding(binding.header.paddingLeft, initialHeaderTopPadding + systemBars.top, binding.header.paddingRight, binding.header.paddingBottom)
+            insets
+        }
+
         setupRecyclerView()
         setupListeners()
-        loadLabores()
+        loadTerrenosActivos()
     }
 
     private fun setupRecyclerView() {
@@ -51,10 +74,11 @@ class LaboresListActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         val goToRegister = {
-            if (hasCultivos) {
-                startActivity(Intent(this, RegisterLaborActivity::class.java))
+            if (hasTerrenos) {
+                // Ahora la lógica es seleccionar desde el terreno
+                Toast.makeText(this, "Selecciona un terreno para registrar labor", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "⚠️ Registra un cultivo primero", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "⚠️ Registra un terreno primero", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -79,114 +103,123 @@ class LaboresListActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadLabores() {
+    private fun loadTerrenosActivos() {
         val sharedPref = getSharedPreferences("agrosys_prefs", MODE_PRIVATE)
         val userId = sharedPref.getInt("USER_ID", -1)
 
         lifecycleScope.launch {
             val agricultor = db.userDao().getAgricultorByUserId(userId)
             if (agricultor != null) {
-                val cultivos = db.assetDao().getCultivosByAgricultor(agricultor.id)
-                hasCultivos = cultivos.isNotEmpty()
+                val terrenos = db.assetDao().getTerrenosActivosYPlanificados(agricultor.id)
+                hasTerrenos = terrenos.isNotEmpty()
                 
                 // Aplicar bloqueos visuales
-                binding.btnNuevaLabor.alpha = if (hasCultivos) 1.0f else 0.4f
-                binding.navReportes.alpha = if (hasCultivos) 1.0f else 0.4f
+                binding.btnNuevaLabor.alpha = if (hasTerrenos) 1.0f else 0.4f
+                binding.navReportes.alpha = if (hasTerrenos) 1.0f else 0.4f
 
-                val labores = db.assetDao().getLaboresByAgricultor(agricultor.id)
-                
-                // AGRUPACIÓN POR CULTIVO
-                val laboresAgrupadas = labores.groupBy { it.cultivo_id }
-                
-                // Mapear a una lista de pares (Cultivo, Lista de Labores)
-                val data = laboresAgrupadas.mapNotNull { (cultivoId, listaLabores) ->
-                    val cultivo = cultivos.find { it.id == cultivoId }
-                    if (cultivo != null) cultivo to listaLabores else null
-                }
-
-                updateUI(data)
+                updateUI(terrenos)
             } else {
                 updateUI(emptyList())
             }
         }
     }
 
-    private fun updateUI(data: List<Pair<CultivoEntity, List<LaborRealizadaEntity>>>) {
-        if (data.isEmpty()) {
+    private fun updateUI(terrenos: List<com.sigcpa.agrosys.database.entities.TerrenoEntity>) {
+        if (terrenos.isEmpty()) {
             binding.emptyState.visibility = View.VISIBLE
             binding.rvLabores.visibility = View.GONE
         } else {
             binding.emptyState.visibility = View.GONE
             binding.rvLabores.visibility = View.VISIBLE
-            binding.rvLabores.adapter = LaboresGroupAdapter(data)
+            binding.rvLabores.adapter = TerrenosLaboresAdapter(terrenos)
         }
     }
 
     override fun onResume() {
         super.onResume()
-        loadLabores()
+        loadTerrenosActivos()
     }
 
-    inner class LaboresGroupAdapter(private val lista: List<Pair<CultivoEntity, List<LaborRealizadaEntity>>>) 
-        : RecyclerView.Adapter<LaboresGroupAdapter.ViewHolder>() {
+    inner class TerrenosLaboresAdapter(private val terrenos: List<com.sigcpa.agrosys.database.entities.TerrenoEntity>) 
+        : RecyclerView.Adapter<TerrenosLaboresAdapter.ViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = 
-            ViewHolder(ItemLaborGroupBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+            ViewHolder(com.sigcpa.agrosys.databinding.ItemTerrenoLaboresBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val (cultivo, labores) = lista[position]
+            val terreno = terrenos[position]
             
-            holder.binding.tvNombreCultivo.text = cultivo.nombre_lote ?: "Cultivo #${cultivo.id}"
-            holder.binding.tvResumenLabores.text = "${labores.size} labores realizadas"
-
-            // Configurar contenedor expandible
-            holder.binding.layoutHeader.setOnClickListener {
-                val isVisible = holder.binding.layoutExpandible.visibility == View.VISIBLE
-                
-                TransitionManager.beginDelayedTransition(holder.binding.root as ViewGroup, AutoTransition())
-                holder.binding.layoutExpandible.visibility = if (isVisible) View.GONE else View.VISIBLE
-                holder.binding.ivExpand.rotation = if (isVisible) 0f else 180f
-            }
-
-            // Cargar las primeras 3 labores
-            holder.binding.containerLaboresMini.removeAllViews()
-            labores.take(3).forEach { labor ->
-                addMiniLaborView(holder.binding.containerLaboresMini, labor)
-            }
-
-            holder.binding.btnVerDetalles.setOnClickListener {
-                // Ir a la actividad de detalle de labores de este cultivo
-                val intent = Intent(this@LaboresListActivity, DetalleCultivoActivity::class.java)
-                intent.putExtra("CULTIVO_ID", cultivo.id)
-                startActivity(intent)
-            }
-        }
-
-        private fun addMiniLaborView(container: LinearLayout, labor: LaborRealizadaEntity) {
-            val miniBinding = ItemLaborMiniBinding.inflate(LayoutInflater.from(container.context), container, false)
+            holder.binding.tvNombreTerreno.text = terreno.nombre
+            holder.binding.tvUbicacion.text = terreno.direccion_referencia ?: "Sin ubicación"
+            holder.binding.tvAreaTotal.text = "${terreno.area_hectareas} ha"
             
+            holder.binding.chipEstado.text = terreno.estado.uppercase()
+            holder.binding.chipEstado.chipBackgroundColor = ColorStateList.valueOf(
+                if (terreno.estado == "activo") Color.parseColor("#166534") else Color.parseColor("#1d4ed8")
+            )
+
             lifecycleScope.launch {
-                val cat = db.assetDao().getCatalogoLaborById(labor.catalogo_labor_id)
-                miniBinding.tvMiniNombre.text = cat?.nombre ?: "Labor"
+                val cultivos = db.assetDao().getCultivosActivosByTerreno(terreno.id)
+                val areaOcupada = cultivos.sumOf { it.area_destinada ?: 0.0 }
+                val areaDisponible = terreno.area_hectareas - areaOcupada
                 
-                val icono = when {
-                    cat?.nombre?.contains("Preparación", true) == true -> "🚜"
-                    cat?.nombre?.contains("Siembra", true) == true -> "🌱"
-                    cat?.nombre?.contains("Riego", true) == true -> "💧"
-                    cat?.nombre?.contains("Cosecha", true) == true -> "🍂"
-                    else -> "🔧"
+                holder.binding.tvCantCultivos.text = cultivos.size.toString()
+                holder.binding.tvAreaDisponible.text = "${String.format("%.2f", areaDisponible)} ha"
+                
+                holder.itemView.setOnClickListener {
+                    showCultivosModal(terreno, cultivos, areaDisponible)
                 }
-                miniBinding.tvMiniIcono.text = icono
             }
-
-            val sdf = SimpleDateFormat("dd/MM", Locale.getDefault())
-            miniBinding.tvMiniFecha.text = sdf.format(Date(labor.fecha_realizacion * 1000))
-            miniBinding.tvMiniCosto.text = "S/ ${String.format("%.2f", labor.costo_mano_obra_total + labor.costo_maquinaria_total)}"
-            
-            container.addView(miniBinding.root)
         }
 
-        override fun getItemCount() = lista.size
-        inner class ViewHolder(val binding: ItemLaborGroupBinding) : RecyclerView.ViewHolder(binding.root)
+        private fun showCultivosModal(terreno: com.sigcpa.agrosys.database.entities.TerrenoEntity, cultivos: List<CultivoEntity>, disponible: Double) {
+            val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this@LaboresListActivity)
+            val modalBinding = com.sigcpa.agrosys.databinding.DialogTerrenoCultivosBinding.inflate(layoutInflater)
+            dialog.setContentView(modalBinding.root)
+
+            modalBinding.tvTerrenoNombre.text = terreno.nombre
+            modalBinding.tvTerrenoDetalles.text = "${terreno.area_hectareas} ha totales | ${String.format("%.2f", disponible)} ha disponibles"
+
+            if (cultivos.isEmpty()) {
+                modalBinding.tvNoCultivos.visibility = View.VISIBLE
+                modalBinding.rvCultivos.visibility = View.GONE
+            } else {
+                modalBinding.tvNoCultivos.visibility = View.GONE
+                modalBinding.rvCultivos.visibility = View.VISIBLE
+                modalBinding.rvCultivos.layoutManager = LinearLayoutManager(this@LaboresListActivity)
+                modalBinding.rvCultivos.adapter = CultivosModalAdapter(cultivos) { cultivo ->
+                    dialog.dismiss()
+                    val intent = Intent(this@LaboresListActivity, RegisterLaborActivity::class.java)
+                    intent.putExtra("CULTIVO_ID", cultivo.id)
+                    intent.putExtra("TERRENO_NOMBRE", terreno.nombre)
+                    intent.putExtra("CULTIVO_DETALLE", "${cultivo.nombre_lote} (${cultivo.variedad})")
+                    startActivity(intent)
+                }
+            }
+
+            modalBinding.btnCerrar.setOnClickListener { dialog.dismiss() }
+            dialog.show()
+        }
+
+        override fun getItemCount() = terrenos.size
+        inner class ViewHolder(val binding: com.sigcpa.agrosys.databinding.ItemTerrenoLaboresBinding) : RecyclerView.ViewHolder(binding.root)
+    }
+
+    inner class CultivosModalAdapter(private val cultivos: List<CultivoEntity>, private val onClick: (CultivoEntity) -> Unit) 
+        : RecyclerView.Adapter<CultivosModalAdapter.ViewHolder>() {
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = 
+            ViewHolder(com.sigcpa.agrosys.databinding.ItemCultivoModalBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val cultivo = cultivos[position]
+            holder.binding.tvNombreCultivo.text = cultivo.nombre_lote ?: "Lote #${cultivo.id}"
+            holder.binding.tvDetalleCultivo.text = "${cultivo.variedad} | ${cultivo.area_destinada} ha"
+            
+            holder.itemView.setOnClickListener { onClick(cultivo) }
+        }
+
+        override fun getItemCount() = cultivos.size
+        inner class ViewHolder(val binding: com.sigcpa.agrosys.databinding.ItemCultivoModalBinding) : RecyclerView.ViewHolder(binding.root)
     }
 }

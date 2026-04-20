@@ -7,4 +7,5 @@
     <color name="green_light_bg">#e8f5e9</color>
     <color name="gray_bg">#f9fafb</color>
     <color name="red_error">#EF4444</color>
+    <color name="pill_green">#d0ffe8</color>
 </resources>

@@ -21,7 +21,7 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/ic_planta_buena"
+            android:src="@drawable/agro_planta_buena"
             app:tint="#16A34A" />
 
         <TextView

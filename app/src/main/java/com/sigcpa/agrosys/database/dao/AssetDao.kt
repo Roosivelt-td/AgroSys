@@ -14,6 +14,9 @@ interface AssetDao {
     @Delete
     suspend fun deleteTerreno(terreno: TerrenoEntity)
 
+    @Query("SELECT * FROM terrenos WHERE agricultor_id = :agricultorId AND estado IN ('activo', 'planificado') AND deleted_at IS NULL")
+    suspend fun getTerrenosActivosYPlanificados(agricultorId: Int): List<TerrenoEntity>
+
     @Query("SELECT * FROM terrenos WHERE agricultor_id = :agricultorId AND deleted_at IS NULL")
     suspend fun getTerrenosByAgricultor(agricultorId: Int): List<TerrenoEntity>
 
@@ -39,7 +42,7 @@ interface AssetDao {
     @Query("SELECT * FROM cultivos WHERE id = :id")
     suspend fun getCultivoById(id: Int): CultivoEntity?
 
-    @Query("SELECT * FROM cultivos WHERE terreno_id = :terrenoId AND deleted_at IS NULL")
+    @Query("SELECT * FROM cultivos WHERE terreno_id = :terrenoId AND deleted_at IS NULL ORDER BY fecha_siembra DESC")
     suspend fun getCultivosByTerreno(terrenoId: Int): List<CultivoEntity>
 
     @Query("SELECT * FROM cultivos WHERE terreno_id = :terrenoId AND estado != 'cosechado' AND deleted_at IS NULL")
@@ -47,7 +50,19 @@ interface AssetDao {
 
     @Query("SELECT * FROM catalogo_cultivos")
     suspend fun getCatalogoCultivos(): List<CatalogoCultivoEntity>
+
+    @Query("""
+        SELECT cc.* FROM catalogo_cultivos cc
+        LEFT JOIN cultivos c ON cc.id = c.catalogo_cultivo_id
+        GROUP BY cc.id
+        ORDER BY COUNT(c.id) DESC
+        LIMIT 8
+    """)
+    suspend fun getMostUsedCatalogoCultivos(): List<CatalogoCultivoEntity>
     
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCatalogoCultivo(catalogo: CatalogoCultivoEntity): Long
+
     @Query("SELECT * FROM catalogo_cultivos WHERE id = :id")
     suspend fun getCatalogoCultivoById(id: Int): CatalogoCultivoEntity?
 
@@ -87,8 +102,14 @@ interface AssetDao {
     @Insert
     suspend fun insertInsumoUsado(insumo: InsumoUsadoEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertCatalogoInsumo(insumo: CatalogoInsumoEntity): Long
+
     @Query("SELECT * FROM catalogo_insumos")
     suspend fun getCatalogoInsumos(): List<CatalogoInsumoEntity>
+
+    @Query("SELECT * FROM catalogo_insumos WHERE id = :id")
+    suspend fun getCatalogoInsumoById(id: Int): CatalogoInsumoEntity?
 
     @Query("""
         SELECT iu.* FROM insumos_usados iu 
@@ -97,6 +118,21 @@ interface AssetDao {
     """)
     suspend fun getInsumosByCultivo(cultivoId: Int): List<InsumoUsadoEntity>
 
+    @Query("SELECT * FROM insumos_usados WHERE labor_id = :laborId")
+    suspend fun getInsumosByLaborId(laborId: Int): List<InsumoUsadoEntity>
+
     @Query("SELECT SUM(cantidad * costo_unitario) FROM insumos_usados WHERE labor_id = :laborId")
     suspend fun getCostoInsumosByLabor(laborId: Int): Double?
+
+    @Insert
+    suspend fun insertManoObra(manoObra: ManoObraEntity): Long
+
+    @Query("SELECT * FROM mano_obra_tipo")
+    suspend fun getManoObraTipos(): List<ManoObraTipoEntity>
+
+    @Query("SELECT * FROM mano_obra WHERE labor_realizada_id = :laborId")
+    suspend fun getManoObraByLabor(laborId: Int): List<ManoObraEntity>
+
+    @Query("SELECT unidad_medida FROM catalogo_insumos WHERE id = :id")
+    suspend fun getUnidadInsumo(id: Int): String?
 }

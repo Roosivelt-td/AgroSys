@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#eef2ee">
+    android:background="#eef2ee"
+    android:fitsSystemWindows="true">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -37,7 +38,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_centerVertical="true"
-                        android:src="@drawable/direccion_derecha"
+                        android:src="@drawable/direccion_izquierda"
                         app:tint="#ffffff"
                         android:rotation="180"/>
 
@@ -71,7 +72,7 @@
                         android:layout_centerVertical="true"
                         android:background="@drawable/circle_bg_green_light"
                         android:padding="8dp"
-                        android:src="@drawable/ic_planta_buena"
+                        android:src="@drawable/agro_planta_buena"
                         app:tint="#15803d" />
                 </RelativeLayout>
             </LinearLayout>
@@ -82,49 +83,152 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <!-- Info Box / Terreno Info -->
-                <LinearLayout
+                <!-- Sección Premium de Terreno Confirmado -->
+                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/terrenoInfoContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/rounded_background"
-                    android:backgroundTint="#f0fdf4"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#dcfce7"
+                    app:strokeWidth="2dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:background="#f0fdf4"
+                        android:orientation="vertical"
+                        android:padding="20dp">
 
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_ubicacion_terreno"
-                            app:tint="#166534" />
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
 
-                        <TextView
-                            android:id="@+id/tvSelectedTerrenoName"
-                            android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:layout_toStartOf="@id/badgeStatus"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Destino de Siembra"
+                                    android:textColor="#16a34a"
+                                    android:textSize="11sp"
+                                    android:textStyle="bold"
+                                    android:textAllCaps="true"
+                                    android:letterSpacing="0.1"/>
+
+                                <TextView
+                                    android:id="@+id/tvSelectedTerrenoName"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Finca La Esperanza"
+                                    android:textColor="#166534"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/badgeStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:background="@drawable/chip_bg_green"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="Propio"
+                                android:textColor="#ffffff"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="12dp"
+                            android:background="#dcfce7" />
+
+                        <GridLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="Cargando terreno..."
-                            android:textColor="#166534"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
+                            android:columnCount="2">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_columnWeight="1"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Área Disponible"
+                                    android:textColor="#166534"
+                                    android:textSize="10sp" />
+                                <TextView
+                                    android:id="@+id/tvSelectedTerrenoArea"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="12.50 Hectáreas"
+                                    android:textColor="#111827"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_columnWeight="1"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Ubicación"
+                                    android:textColor="#166534"
+                                    android:textSize="10sp" />
+                                <TextView
+                                    android:id="@+id/tvSelectedTerrenoUbicacion"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Sector Norte, Km 12"
+                                    android:textColor="#111827"
+                                    android:textStyle="bold"
+                                    android:singleLine="true"
+                                    android:ellipsize="end"/>
+                            </LinearLayout>
+                        </GridLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:background="@drawable/edit_text_elegant"
+                            android:backgroundTint="#ffffff"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="10dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_ubicacion_terreno"
+                                app:tint="#16a34a" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="Tierra lista para un nuevo ciclo productivo"
+                                android:textColor="#166534"
+                                android:textSize="11sp"
+                                android:fontStyle="italic" />
+                        </LinearLayout>
+
                     </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
-                    <TextView
-                        android:id="@+id/tvSelectedTerrenoDetail"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Área total: 0.00 ha"
-                        android:textColor="#166534"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
+                <!-- El selector queda oculto ya que la decisión se tomó antes -->
                 <LinearLayout
                     android:id="@+id/selectorTerrenoContainer"
                     android:layout_width="match_parent"
@@ -179,142 +283,14 @@
                         android:textSize="13sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Sugerencias Rápidas (8 botones, 4 por fila) -->
+                <!-- Sugerencias Rápidas -->
                 <GridLayout
+                    android:id="@+id/gridSugerencias"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:columnCount="4"
-                    android:alignmentMode="alignMargins">
-
-                    <Button
-                        android:id="@+id/btnSugMaiz"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#f0fdf4"
-                        android:text="Maíz"
-                        android:textAllCaps="false"
-                        android:textColor="#166534"
-                        android:textSize="10sp"
-                        app:cornerRadius="8dp"
-                        app:strokeColor="#166534"
-                        app:strokeWidth="0.5dp" />
-
-                    <Button
-                        android:id="@+id/btnSugPapa"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#f0fdf4"
-                        android:text="Papa"
-                        android:textAllCaps="false"
-                        android:textColor="#166534"
-                        android:textSize="10sp"
-                        app:cornerRadius="8dp"
-                        app:strokeColor="#166534"
-                        app:strokeWidth="0.5dp" />
-
-                    <Button
-                        android:id="@+id/btnSugPalta"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#f0fdf4"
-                        android:text="Palta"
-                        android:textAllCaps="false"
-                        android:textColor="#166534"
-                        android:textSize="10sp"
-                        app:cornerRadius="8dp"
-                        app:strokeColor="#166534"
-                        app:strokeWidth="0.5dp" />
-
-                    <Button
-                        android:id="@+id/btnSugCafe"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#f0fdf4"
-                        android:text="Café"
-                        android:textAllCaps="false"
-                        android:textColor="#166534"
-                        android:textSize="10sp"
-                        app:cornerRadius="8dp"
-                        app:strokeColor="#166534"
-                        app:strokeWidth="0.5dp" />
-
-                    <Button
-                        android:id="@+id/btnSugTomate"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#f0fdf4"
-                        android:text="Tomate"
-                        android:textAllCaps="false"
-                        android:textColor="#166534"
-                        android:textSize="10sp"
-                        app:cornerRadius="8dp"
-                        app:strokeColor="#166534"
-                        app:strokeWidth="0.5dp" />
-
-                    <Button
-                        android:id="@+id/btnSugLimon"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#f0fdf4"
-                        android:text="Limón"
-                        android:textAllCaps="false"
-                        android:textColor="#166534"
-                        android:textSize="10sp"
-                        app:cornerRadius="8dp"
-                        app:strokeColor="#166534"
-                        app:strokeWidth="0.5dp" />
-
-                    <Button
-                        android:id="@+id/btnSugCacao"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#f0fdf4"
-                        android:text="Cacao"
-                        android:textAllCaps="false"
-                        android:textColor="#166534"
-                        android:textSize="10sp"
-                        app:cornerRadius="8dp"
-                        app:strokeColor="#166534"
-                        app:strokeWidth="0.5dp" />
-
-                    <Button
-                        android:id="@+id/btnSugArroz"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#f0fdf4"
-                        android:text="Arroz"
-                        android:textAllCaps="false"
-                        android:textColor="#166534"
-                        android:textSize="10sp"
-                        app:cornerRadius="8dp"
-                        app:strokeColor="#166534"
-                        app:strokeWidth="0.5dp" />
-                </GridLayout>
+                    android:alignmentMode="alignMargins" />
 
                 <!-- Info Ciclo Cultivo -->
                 <TextView
@@ -347,12 +323,32 @@
                     android:inputType="text"
                     android:paddingHorizontal="16dp" />
 
+                <!-- Fecha Planificada -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Fecha planificada *"
+                    android:textColor="#374151"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etFechaPlanificada"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/edit_text_elegant"
+                    android:clickable="true"
+                    android:focusable="false"
+                    android:hint="Seleccionar fecha"
+                    android:paddingHorizontal="16dp" />
+
                 <!-- Fecha Siembra -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
-                    android:text="Fecha siembra estimada *"
+                    android:text="Fecha siembra real (si ya sembró)"
                     android:textColor="#374151"
                     android:textStyle="bold" />
 
@@ -364,7 +360,7 @@
                     android:background="@drawable/edit_text_elegant"
                     android:clickable="true"
                     android:focusable="false"
-                    android:hint="Seleccionar fecha"
+                    android:hint="Opcional: Seleccionar fecha"
                     android:paddingHorizontal="16dp" />
 
                 <!-- Estado -->

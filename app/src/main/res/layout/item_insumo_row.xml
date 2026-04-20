@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="8dp"
+    android:paddingHorizontal="4dp"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground">
+
+    <TextView
+        android:id="@+id/tvInsumoNombre"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.2"
+        android:text="Urea"
+        android:textColor="#374151"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/tvInsumoCant"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.8"
+        android:text="2.0 kg"
+        android:gravity="center"
+        android:textColor="#374151"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/tvInsumoSubtotal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="S/ 50.00"
+        android:gravity="end"
+        android:textColor="#111827"
+        android:textStyle="bold"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/btnEditInsumo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="8dp"
+        android:paddingEnd="4dp"
+        android:text="Editar"
+        android:textColor="#15803D"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/btnRemoveInsumo"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:padding="2dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:visibility="gone"
+        app:tint="#EF4444" />
+</LinearLayout>

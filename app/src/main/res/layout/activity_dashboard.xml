@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#f8f5ef"
@@ -22,13 +23,13 @@
 
             <!-- Header Section -->
             <LinearLayout
+                android:id="@+id/header_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/header_gradient_bg"
                 android:elevation="6dp"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp"
-                android:paddingTop="20dp"
                 android:paddingBottom="10dp">
 
                 <RelativeLayout
@@ -144,11 +145,12 @@
                             android:layout_gravity="center_vertical"
                             app:cardCornerRadius="15dp">
                             <ImageView
-                                android:id="@+id/btnProfile"
+                                android:id="@+id/ivUserAvatar"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:src="@drawable/ic_perfil"
                                 android:padding="4dp"
+                                android:scaleType="centerCrop"
                                 app:tint="#15803d" />
                         </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
@@ -270,7 +272,7 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Terreno" android:textSize="10sp" />
                     </LinearLayout>
                     <LinearLayout android:id="@+id/navCultivoQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
-                        <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/ic_planta_buena" app:tint="#16a34a" />
+                        <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/agro_planta_buena" app:tint="#16a34a" />
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cultivo" android:textSize="10sp" />
                     </LinearLayout>
                     <LinearLayout android:id="@+id/navLaborQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
@@ -278,10 +280,79 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Labor" android:textSize="10sp" />
                     </LinearLayout>
                     <LinearLayout android:id="@+id/navCosechaQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
-                        <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/ic_cosecha" app:tint="#16a34a" />
+                        <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/agro_cosecha" app:tint="#16a34a" />
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cosecha" android:textSize="10sp" />
                     </LinearLayout>
                 </GridLayout>
+
+                <!-- Admin/Supervisor Panel (Solo visible para roles altos) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cvAdminPanel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:visibility="gone"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:strokeColor="#dcfce7"
+                    app:strokeWidth="1dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_admin"
+                                app:tint="#15803d" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="Administración de Sistema"
+                                android:textColor="#111827"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnManageCatalogs"
+                                style="@style/Widget.MaterialComponents.Button.TextButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Gestión de Cultivos"
+                                android:textAllCaps="false"
+                                android:textColor="#166534"
+                                android:textSize="11sp"
+                                app:icon="@drawable/agro_planta_buena"
+                                app:iconSize="18dp"
+                                app:iconTint="#166534" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnManageUsers"
+                                style="@style/Widget.MaterialComponents.Button.TextButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Usuarios"
+                                android:textAllCaps="false"
+                                android:textColor="#166534"
+                                android:textSize="11sp"
+                                app:icon="@drawable/ic_perfil"
+                                app:iconSize="18dp"
+                                app:iconTint="#166534" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
                 <!-- Resumen Financiero -->
                 <androidx.cardview.widget.CardView
@@ -335,11 +406,13 @@
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="wrap_content"
         android:background="@android:color/white"
-        android:elevation="16dp"
+        android:elevation="12dp"
         android:gravity="center"
         android:orientation="horizontal"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
@@ -347,10 +420,23 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_casa" app:tint="#166534" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Inicio" android:textSize="10sp" android:textColor="#166534" android:textStyle="bold" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_casa"
+                app:tint="#166534" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inicio"
+                android:textSize="10sp"
+                android:textColor="#166534"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
@@ -358,10 +444,22 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_ubicacion_terreno" app:tint="#9CA3AF" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Terrenos" android:textSize="10sp" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_ubicacion_terreno"
+                app:tint="#9CA3AF" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Terrenos"
+                android:textSize="10sp"
+                android:textColor="#9CA3AF" />
         </LinearLayout>
 
         <LinearLayout
@@ -369,10 +467,22 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_planta_buena" app:tint="#9CA3AF" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cultivos" android:textSize="10sp" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/agro_planta_buena"
+                app:tint="#9CA3AF" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cultivos"
+                android:textSize="10sp"
+                android:textColor="#9CA3AF" />
         </LinearLayout>
 
         <LinearLayout
@@ -380,10 +490,22 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_lista" app:tint="#9CA3AF" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Labores" android:textSize="10sp" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_lista"
+                app:tint="#9CA3AF" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Labores"
+                android:textSize="10sp"
+                android:textColor="#9CA3AF" />
         </LinearLayout>
 
         <LinearLayout
@@ -391,10 +513,22 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_estadistica_01" app:tint="#9CA3AF" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Reportes" android:textSize="10sp" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_estadistica_01"
+                app:tint="#9CA3AF" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reportes"
+                android:textSize="10sp"
+                android:textColor="#9CA3AF" />
         </LinearLayout>
 
     </LinearLayout>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:cardBackgroundColor="#F1F8E9"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="8dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="160dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="4dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="8dp">
+
+        <!-- Foto de Perfil Centrada -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            app:cardCornerRadius="36dp"
+            app:cardElevation="2dp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="2dp">
+
+            <ImageView
+                android:id="@+id/imgMenuProfile"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#00C853"
+                android:padding="12dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_user_modern"
+                app:tint="#FFFFFF"
+                android:contentDescription="Perfil" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Espacio inferior a la foto -->
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="12dp" />
+
+        <!-- Botón Ver Perfil -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnViewProfile"
+            style="@style/Widget.Material3.Button.TextButton.Icon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:text="Ver Perfil"
+            android:textColor="@color/black"
+            android:textSize="13sp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingHorizontal="8dp"
+            app:icon="@drawable/ic_view"
+            app:iconSize="18dp"
+            app:iconPadding="8dp"
+            app:iconTint="@color/green_dark" />
+
+        <!-- Botón Salir -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogout"
+            style="@style/Widget.Material3.Button.TextButton.Icon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:text="Cerrar Sesión"
+            android:textColor="#DC2626"
+            android:textSize="13sp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingHorizontal="8dp"
+            app:icon="@drawable/ic_cerrar_sesion"
+            app:iconSize="18dp"
+            app:iconPadding="8dp"
+            app:iconTint="#DC2626" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

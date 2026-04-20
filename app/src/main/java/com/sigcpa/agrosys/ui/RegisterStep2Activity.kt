@@ -60,7 +60,7 @@ class RegisterStep2Activity : AppCompatActivity() {
         val role = when (binding.toggleRoleGroup.checkedButtonId) {
             binding.btnRoleAgri.id -> "agricultor"
             binding.btnRoleSuper.id -> "supervisor"
-            else -> "administrador"
+            else -> "admin"
         }
 
         val dni = binding.etRegDni.text.toString().trim()

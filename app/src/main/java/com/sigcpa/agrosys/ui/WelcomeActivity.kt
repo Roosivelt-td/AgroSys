@@ -39,7 +39,7 @@ class WelcomeActivity : AppCompatActivity() {
     private fun setupViewPager() {
         val slides = listOf(
             WelcomeSlide(
-                R.drawable.ic_planta_buena,
+                R.drawable.agro_planta_buena,
                 R.drawable.title_02,
                 "¡Bienvenido a AgroSys!", 
                 "Tu aliado inteligente para la gestión agrícola",

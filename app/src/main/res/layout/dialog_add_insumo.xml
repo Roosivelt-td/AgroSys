@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bottom_sheet_bg"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvInsumosTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Insumos (0)"
+            android:textColor="#111827"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btnCancelInsumo"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/circle_bg_green_light"
+            android:padding="8dp"
+            android:src="@drawable/ic_close"
+            app:tint="#047857" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/rounded_soft"
+        android:backgroundTint="#F9FAFB"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nombre del insumo"
+            android:textColor="#6B7280"
+            android:textSize="12sp" />
+
+        <AutoCompleteTextView
+            android:id="@+id/etNombreInsumo"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/edit_text_elegant"
+            android:hint="Ej: Urea, Semilla..."
+            android:paddingHorizontal="12dp"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cantidad" android:textColor="#6B7280" android:textSize="12sp" />
+                <EditText android:id="@+id/etCantidad" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="4dp" android:background="@drawable/edit_text_elegant" android:inputType="numberDecimal" android:hint="0.0" android:paddingHorizontal="12dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Unidad" android:textColor="#6B7280" android:textSize="12sp" />
+                <EditText android:id="@+id/etUnidad" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="4dp" android:background="@drawable/edit_text_elegant" android:hint="kg" android:gravity="center" android:paddingHorizontal="4dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Precio unitario S/" android:textColor="#6B7280" android:textSize="12sp" />
+                <EditText android:id="@+id/etPrecio" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="4dp" android:background="@drawable/edit_text_elegant" android:inputType="numberDecimal" android:hint="0.00" android:paddingHorizontal="12dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Flete S/" android:textColor="#6B7280" android:textSize="12sp" />
+                <EditText android:id="@+id/etFlete" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="4dp" android:background="@drawable/edit_text_elegant" android:inputType="numberDecimal" android:hint="0.00" android:paddingHorizontal="12dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <CheckBox
+            android:id="@+id/cbHasProveedor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Agregar proveedor"
+            android:textColor="#374151"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:id="@+id/llProveedor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Proveedor (opcional)" android:textColor="#6B7280" android:textSize="12sp" />
+            <EditText android:id="@+id/etProveedor" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="4dp" android:background="@drawable/edit_text_elegant" android:hint="Nombre de la empresa" android:paddingHorizontal="12dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvInsumosAgregadosTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Insumos en esta labor:"
+        android:textColor="#374151"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/llInsumosAgregados"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical" />
+
+    <Button
+        android:id="@+id/btnAcceptInsumo"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="#047857"
+        android:text="Agregar insumo"
+        android:textAllCaps="false"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/agro_planta_buena"
+        app:iconGravity="textStart" />
+
+</LinearLayout>

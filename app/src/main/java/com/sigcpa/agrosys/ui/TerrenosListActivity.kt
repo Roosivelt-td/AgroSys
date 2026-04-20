@@ -3,10 +3,15 @@ package com.sigcpa.agrosys.ui
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.database.AppDatabase
 import com.sigcpa.agrosys.databinding.ActivityTerrenosListBinding
 import kotlinx.coroutines.launch
@@ -24,6 +29,26 @@ class TerrenosListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityTerrenosListBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Forzar barra de estado verde y iconos blancos
+        window.statusBarColor = android.graphics.Color.parseColor("#15803D")
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        // SOLUCIÓN: Ajustar el menú inferior para que no lo tapen los botones del sistema
+        val initialBottomPadding = binding.bottomNav.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNav) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, initialBottomPadding + systemBars.bottom)
+            insets
+        }
+
+        // Ajustar el Header para que respete la barra de estado superior
+        val initialHeaderTopPadding = binding.header.paddingTop
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.header.setPadding(binding.header.paddingLeft, initialHeaderTopPadding + systemBars.top, binding.header.paddingRight, binding.header.paddingBottom)
+            insets
+        }
 
         setupRecyclerView()
         setupListeners()

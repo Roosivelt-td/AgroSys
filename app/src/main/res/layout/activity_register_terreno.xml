@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EEF2EE">
+    android:background="#EEF2EE"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -222,7 +223,7 @@
                     android:layout_height="54dp"
                     android:layout_marginTop="6dp"
                     android:background="@drawable/edit_text_elegant"
-                    android:hint="Ej: Franco arcilloso"
+                    android:hint="Ej: buena, regular, mala, intermedia, otro... "
                     android:paddingHorizontal="16dp"
                     android:textSize="14sp" />
 
@@ -241,7 +242,7 @@
                     android:layout_height="54dp"
                     android:layout_marginTop="6dp"
                     android:background="@drawable/edit_text_elegant"
-                    android:hint="Ej: Canal de riego, Pozo"
+                    android:hint="Ej: Canal de riego, Aspersion, Goteo"
                     android:paddingHorizontal="16dp"
                     android:textSize="14sp" />
 

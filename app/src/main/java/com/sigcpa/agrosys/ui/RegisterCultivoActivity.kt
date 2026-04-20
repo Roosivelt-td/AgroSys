@@ -8,7 +8,10 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.sigcpa.agrosys.ui.adapters.TerrenoSelectorAdapter
 import com.sigcpa.agrosys.database.AppDatabase
 import com.sigcpa.agrosys.database.entities.CatalogoCultivoEntity
 import com.sigcpa.agrosys.database.entities.CultivoEntity
@@ -26,7 +29,10 @@ class RegisterCultivoActivity : AppCompatActivity() {
     private var selectedTerreno: TerrenoEntity? = null
     private var selectedCatalogo: CatalogoCultivoEntity? = null
     private var selectedStatus: String = "activo"
-    private val calendar = Calendar.getInstance()
+    private val calendarSiembra = Calendar.getInstance()
+    private val calendarPlanificada = Calendar.getInstance()
+    private var hasSelectedSiembra = false
+    private var hasSelectedPlanificada = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,43 +45,65 @@ class RegisterCultivoActivity : AppCompatActivity() {
 
     private fun setupUI() {
         binding.btnBack.setOnClickListener { finish() }
-        binding.etFechaSiembra.setOnClickListener { showDatePicker() }
+        binding.etFechaPlanificada.setOnClickListener { showDatePicker(true) }
+        binding.etFechaSiembra.setOnClickListener { showDatePicker(false) }
         
         binding.btnStatusPlanificado.setOnClickListener { updateStatus("planificado") }
         binding.btnStatusActivo.setOnClickListener { updateStatus("activo") }
         updateStatus("activo")
 
         binding.btnSaveCultivo.setOnClickListener { saveCultivo() }
+    }
 
-        // Configurar clics en sugerencias rápidas
-        val sugerencias = mapOf(
-            binding.btnSugMaiz to "Maíz",
-            binding.btnSugPapa to "Papa",
-            binding.btnSugPalta to "Palta",
-            binding.btnSugCafe to "Café",
-            binding.btnSugTomate to "Tomate",
-            binding.btnSugLimon to "Limón",
-            binding.btnSugCacao to "Cacao",
-            binding.btnSugArroz to "Arroz"
-        )
-
-        sugerencias.forEach { (btn, nombre) ->
-            btn.setOnClickListener {
-                binding.autoCompleteCultivo.setText(nombre, false)
-                seleccionarCultivoPorNombre(nombre)
+    private fun setupSugerencias(cultivos: List<CatalogoCultivoEntity>) {
+        binding.gridSugerencias.removeAllViews()
+        cultivos.forEach { cultivo ->
+            val button = com.google.android.material.button.MaterialButton(
+                this,
+                null,
+                com.google.android.material.R.attr.materialButtonOutlinedStyle
+            ).apply {
+                layoutParams = android.widget.GridLayout.LayoutParams().apply {
+                    width = 0
+                    height = (40 * resources.displayMetrics.density).toInt()
+                    columnSpec = android.widget.GridLayout.spec(android.widget.GridLayout.UNDEFINED, 1f)
+                    setMargins(
+                        (2 * resources.displayMetrics.density).toInt(),
+                        (2 * resources.displayMetrics.density).toInt(),
+                        (2 * resources.displayMetrics.density).toInt(),
+                        (2 * resources.displayMetrics.density).toInt()
+                    )
+                }
+                text = cultivo.nombre
+                textSize = 10f
+                isAllCaps = false
+                setTextColor("#166534".toColorInt())
+                backgroundTintList = android.content.res.ColorStateList.valueOf("#f0fdf4".toColorInt())
+                strokeColor = android.content.res.ColorStateList.valueOf("#166534".toColorInt())
+                strokeWidth = (0.5 * resources.displayMetrics.density).toInt()
+                cornerRadius = (8 * resources.displayMetrics.density).toInt()
+                
+                setOnClickListener {
+                    binding.autoCompleteCultivo.setText(cultivo.nombre, false)
+                    selectedCatalogo = cultivo
+                    updateCicloInfo(cultivo)
+                }
             }
+            binding.gridSugerencias.addView(button)
         }
+    }
+
+    private fun updateCicloInfo(it: CatalogoCultivoEntity) {
+        binding.tvCicloInfo.visibility = View.VISIBLE
+        val ciclo = if (it.tipo_ciclo == "perenne") "Perenne" else "${it.dias_a_cosecha_promedio ?: "--"} días"
+        binding.tvCicloInfo.text = "Ciclo productivo estimado: $ciclo"
     }
 
     private fun seleccionarCultivoPorNombre(nombre: String) {
         lifecycleScope.launch {
             val catalogo = db.assetDao().getCatalogoCultivos()
             selectedCatalogo = catalogo.find { it.nombre.equals(nombre, ignoreCase = true) }
-            selectedCatalogo?.let {
-                binding.tvCicloInfo.visibility = View.VISIBLE
-                val ciclo = if (it.tipo_ciclo == "perenne") "Perenne" else "${it.dias_a_cosecha_promedio ?: "--"} días"
-                binding.tvCicloInfo.text = "Ciclo productivo estimado: $ciclo"
-            }
+            selectedCatalogo?.let { updateCicloInfo(it) }
         }
     }
 
@@ -90,42 +118,16 @@ class RegisterCultivoActivity : AppCompatActivity() {
             if (preSelectedTerrenoId != -1) {
                 val terreno = db.assetDao().getTerrenoById(preSelectedTerrenoId)
                 if (terreno != null) {
-                    selectedTerreno = terreno
-                    binding.terrenoInfoContainer.visibility = View.VISIBLE
-                    binding.selectorTerrenoContainer.visibility = View.GONE
-                    
-                    val cultivosActivos = db.assetDao().getCultivosActivosByTerreno(terreno.id)
-                    val areaOcupada = cultivosActivos.sumOf { it.area_destinada ?: 0.0 }
-                    val areaDisponible = terreno.area_hectareas - areaOcupada
-
-                    binding.tvSelectedTerrenoName.text = terreno.nombre
-                    binding.tvSelectedTerrenoDetail.text = "Área Total: ${terreno.area_hectareas} ha · Disponible: ${String.format("%.2f", areaDisponible)} ha"
+                    displaySelectedTerreno(terreno)
                 }
             } else {
-                val terrenos = db.assetDao().getTerrenosByAgricultor(agricultor.id)
-                if (terrenos.isEmpty()) {
-                    binding.btnSaveCultivo.isEnabled = false
-                    binding.btnSaveCultivo.alpha = 0.5f
-                    binding.tvSelectedTerrenoName.text = "Sin terrenos registrados"
-                    binding.tvSelectedTerrenoDetail.text = "Debes registrar un terreno primero."
-                } else {
-                    binding.terrenoInfoContainer.visibility = View.GONE
-                    binding.selectorTerrenoContainer.visibility = View.VISIBLE
-                    
-                    val adapter = ArrayAdapter(this@RegisterCultivoActivity, android.R.layout.simple_spinner_item, terrenos.map { it.nombre })
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                    binding.spinnerTerrenos.adapter = adapter
-                    
-                    binding.spinnerTerrenos.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                        override fun onItemSelected(p0: AdapterView<*>?, p1: View?, pos: Int, p3: Long) {
-                            selectedTerreno = terrenos[pos]
-                        }
-                        override fun onNothingSelected(p0: AdapterView<*>?) {}
-                    }
-                }
+                showTerrenoSelectionDialog()
             }
 
             val catalogo = db.assetDao().getCatalogoCultivos()
+            val sugerencias = db.assetDao().getMostUsedCatalogoCultivos()
+            setupSugerencias(sugerencias)
+
             val nombresCultivos = catalogo.map { it.nombre }
             val adapterCultivo = ArrayAdapter(this@RegisterCultivoActivity, android.R.layout.simple_dropdown_item_1line, nombresCultivos)
             binding.autoCompleteCultivo.setAdapter(adapterCultivo)
@@ -137,12 +139,89 @@ class RegisterCultivoActivity : AppCompatActivity() {
         }
     }
 
-    private fun showDatePicker() {
+    private fun displaySelectedTerreno(terreno: TerrenoEntity) {
+        selectedTerreno = terreno
+        binding.terrenoInfoContainer.visibility = View.VISIBLE
+        binding.selectorTerrenoContainer.visibility = View.GONE
+
+        lifecycleScope.launch {
+            val cultivosActivos = db.assetDao().getCultivosActivosByTerreno(terreno.id)
+            val areaOcupada = cultivosActivos.sumOf { it.area_destinada ?: 0.0 }
+            val areaDisponible = terreno.area_hectareas - areaOcupada
+
+            binding.tvSelectedTerrenoName.text = terreno.nombre
+            binding.tvSelectedTerrenoArea.text = "${String.format("%.2f", areaDisponible)} Hectáreas Libres"
+            binding.tvSelectedTerrenoUbicacion.text = terreno.direccion_referencia ?: terreno.ubicacion_geo ?: "Ubicación no especificada"
+            binding.badgeStatus.text = terreno.tipo_tenencia.replaceFirstChar { it.uppercase() }
+        }
+    }
+
+    private fun showDatePicker(isPlanificada: Boolean) {
+        val cal = if (isPlanificada) calendarPlanificada else calendarSiembra
         DatePickerDialog(this, { _, year, month, day ->
-            calendar.set(year, month, day)
+            cal.set(year, month, day)
             val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            binding.etFechaSiembra.setText(format.format(calendar.time))
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+            if (isPlanificada) {
+                binding.etFechaPlanificada.setText(format.format(cal.time))
+                hasSelectedPlanificada = true
+            } else {
+                binding.etFechaSiembra.setText(format.format(cal.time))
+                hasSelectedSiembra = true
+            }
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
+    private fun showTerrenoSelectionDialog() {
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val dialogBinding = com.sigcpa.agrosys.databinding.DialogSelectTerrenoBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
+        dialog.setCancelable(true) 
+
+        dialog.setOnCancelListener {
+            if (selectedTerreno == null) {
+                finish() // Si cancela y no hay terreno, cerramos
+            }
+        }
+
+        lifecycleScope.launch {
+            val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
+            val userId = sharedPref.getInt("USER_ID", -1)
+            val agricultor = db.userDao().getAgricultorByUserId(userId) ?: return@launch
+            val terrenos = db.assetDao().getTerrenosByAgricultor(agricultor.id)
+
+            if (terrenos.isEmpty()) {
+                Toast.makeText(this@RegisterCultivoActivity, "No tienes terrenos. Registra uno primero.", Toast.LENGTH_LONG).show()
+                finish()
+                return@launch
+            }
+
+            var tempSelected: TerrenoEntity? = null
+            
+            val adapter = TerrenoSelectorAdapter(terrenos) { terreno ->
+                tempSelected = terreno
+                dialogBinding.btnConfirmarSeleccion.isEnabled = true
+            }
+            
+            dialogBinding.rvTerrenosSelector.layoutManager = LinearLayoutManager(this@RegisterCultivoActivity)
+            dialogBinding.rvTerrenosSelector.adapter = adapter
+
+            dialogBinding.btnConfirmarSeleccion.setOnClickListener {
+                tempSelected?.let {
+                    displaySelectedTerreno(it)
+                    dialog.dismiss()
+                }
+            }
+
+            dialogBinding.btnCloseDialog.setOnClickListener {
+                dialog.cancel()
+            }
+
+            dialogBinding.btnCancelarSeleccion.setOnClickListener {
+                dialog.cancel()
+            }
+        }
+
+        dialog.show()
     }
 
     private fun updateStatus(status: String) {
@@ -154,7 +233,8 @@ class RegisterCultivoActivity : AppCompatActivity() {
     private fun saveCultivo() {
         val variedad = binding.etVariedad.text.toString().trim()
         val areaStr = binding.etAreaDestinada.text.toString().trim()
-        val fechaStr = binding.etFechaSiembra.text.toString().trim()
+        val fechaSiembraStr = binding.etFechaSiembra.text.toString().trim()
+        val fechaPlanificadaStr = binding.etFechaPlanificada.text.toString().trim()
         val observaciones = binding.etObservaciones.text.toString().trim()
         
         if (selectedTerreno == null) {
@@ -169,16 +249,12 @@ class RegisterCultivoActivity : AppCompatActivity() {
             Toast.makeText(this, "⚠️ La variedad es obligatoria", Toast.LENGTH_SHORT).show()
             return
         }
-        if (fechaStr.isEmpty()) {
-            Toast.makeText(this, "⚠️ La fecha es obligatoria", Toast.LENGTH_SHORT).show()
+        if (fechaPlanificadaStr.isEmpty()) {
+            Toast.makeText(this, "⚠️ La fecha planificada es obligatoria", Toast.LENGTH_SHORT).show()
             return
         }
         if (areaStr.isEmpty()) {
             Toast.makeText(this, "⚠️ El área es obligatoria", Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (observaciones.isEmpty()) {
-            Toast.makeText(this, "⚠️ Las observaciones son obligatorias", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -199,14 +275,20 @@ class RegisterCultivoActivity : AppCompatActivity() {
                 return@launch
             }
 
+            // Si no se seleccionó fecha de siembra real, usamos la planificada o el momento actual para evitar nulos si el esquema lo requiere
+            // pero según el pedido, la de siembra es la que manda el orden.
+            val finalFechaSiembra = if (hasSelectedSiembra) calendarSiembra.timeInMillis / 1000 else calendarPlanificada.timeInMillis / 1000
+
             val nuevoCultivo = CultivoEntity(
                 terreno_id = terreno.id,
                 catalogo_cultivo_id = selectedCatalogo!!.id,
                 nombre_lote = "${selectedCatalogo?.nombre} - $variedad",
-                fecha_siembra = calendar.timeInMillis / 1000,
+                fecha_planificada = calendarPlanificada.timeInMillis / 1000,
+                fecha_siembra = finalFechaSiembra,
                 fecha_finalizacion = null,
                 estado = selectedStatus,
                 area_destinada = areaNueva,
+                variedad = variedad,
                 plantas_estimadas = 0,
                 observaciones = observaciones
             )

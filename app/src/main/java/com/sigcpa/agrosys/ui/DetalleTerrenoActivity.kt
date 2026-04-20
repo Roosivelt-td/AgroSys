@@ -38,6 +38,32 @@ class DetalleTerrenoActivity : AppCompatActivity() {
         }
 
         setupUI()
+        
+        // Forzar barra de estado verde y iconos blancos
+        window.statusBarColor = android.graphics.Color.parseColor("#15803D")
+        androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        // SOLUCIÓN: Ajustar el menú inferior para que no lo tapen los botones del sistema
+        val initialBottomPadding = binding.bottomNav.paddingBottom
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNav) { v, insets ->
+            val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, initialBottomPadding + systemBars.bottom)
+            insets
+        }
+
+        // También ajustamos el Header para que respete la barra de estado superior
+        val initialHeaderTopPadding = binding.headerContainer.paddingTop
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
+            val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            binding.headerContainer.setPadding(
+                binding.headerContainer.paddingLeft,
+                initialHeaderTopPadding + systemBars.top,
+                binding.headerContainer.paddingRight,
+                binding.headerContainer.paddingBottom
+            )
+            insets
+        }
+
         loadData()
     }
 
@@ -153,7 +179,17 @@ class DetalleTerrenoActivity : AppCompatActivity() {
             holder.binding.tvArea.text = "${item.area_destinada ?: 0.0} ha"
             
             val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            holder.binding.tvFecha.text = sdf.format(Date(item.fecha_siembra * 1000))
+            
+            val fechaSiembraStr = sdf.format(Date(item.fecha_siembra * 1000))
+            holder.binding.tvFecha.text = "S: $fechaSiembraStr"
+
+            if (item.fecha_planificada != null) {
+                val fechaPlanificadaStr = sdf.format(Date(item.fecha_planificada * 1000))
+                holder.binding.tvFechaPlanificada.text = "P: $fechaPlanificadaStr"
+                holder.binding.tvFechaPlanificada.visibility = android.view.View.VISIBLE
+            } else {
+                holder.binding.tvFechaPlanificada.visibility = android.view.View.GONE
+            }
             
             holder.binding.tvEstado.text = when(item.estado) {
                 "activo" -> "🌱 Activo"

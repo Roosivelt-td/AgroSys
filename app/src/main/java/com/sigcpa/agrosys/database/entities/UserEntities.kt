@@ -41,7 +41,9 @@ data class UsuarioEntity(
     val password: String,
     val rol: String, // administrador, supervisor, agricultor
     val telefono: String? = null,
+    val ubicacion: String? = null,
     val foto_perfil_url: String? = null,
+    val foto_portada_url: String? = null,
     @ColumnInfo(defaultValue = "1") val is_activo: Int = 1,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val updated_at: Long = System.currentTimeMillis() / 1000,
@@ -99,4 +101,38 @@ data class AsignacionSupervisorEntity(
     val agricultor_id: Int,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val fecha_asignacion: Long = System.currentTimeMillis() / 1000,
     @ColumnInfo(defaultValue = "1") val activo: Int = 1
+)
+
+@Entity(tableName = "tipos_red_social")
+data class TipoRedSocialEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val nombre: String, // Instagram, TikTok, Facebook, YouTube, LinkedIn, etc.
+    val icono_url: String? = null,
+    val color_hex: String? = null
+)
+
+@Entity(
+    tableName = "redes_sociales",
+    foreignKeys = [
+        ForeignKey(
+            entity = UsuarioEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["usuario_id"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = TipoRedSocialEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["tipo_red_id"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class RedSocialEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val usuario_id: Int,
+    val tipo_red_id: Int,
+    val link: String,
+    val usuario_social: String, // @usuario
+    val descripcion: String? = null
 )

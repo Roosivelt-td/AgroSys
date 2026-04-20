@@ -87,4 +87,7 @@ dependencies {
 
     // Google Play Services para ubicación
     implementation("com.google.android.gms:play-services-location:21.3.0")
+
+    // recorte de img
+    implementation(libs.android.image.cropper)
 }

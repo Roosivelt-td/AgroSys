@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bottom_sheet_bg"
+    android:padding="20dp">
+
+    <!-- Header Fijo -->
+    <LinearLayout
+        android:id="@+id/dialogHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent">
+        <TextView
+            android:id="@+id/tvDialogTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Detalles de la Labor"
+            android:textColor="#111827"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tvDialogSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Ingresa la información detallada de la labor"
+            android:textColor="#6B7280"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- Contenido con Scroll (Asegurando visibilidad de inputs) -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/dialogFooter"
+        app:layout_constraintTop_toBottomOf="@id/dialogHeader">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Fecha de realización"
+                android:textColor="#374151"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etFecha"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/edit_text_elegant"
+                android:clickable="true"
+                android:focusable="false"
+                android:hint="dd/mm/aaaa"
+                android:paddingHorizontal="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Descripción / Notas"
+                android:textColor="#374151"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etDescripcion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/edit_text_elegant"
+                android:hint="Ej. Se aplicó abono foliar..."
+                android:minLines="2"
+                android:padding="12dp"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Costos de mano de obra (Peones)"
+                android:textColor="#111827"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <!-- Sección Varones -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/rounded_soft"
+                android:backgroundTint="#F0F9FF"
+                android:orientation="vertical"
+                android:padding="12dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="VARONES" android:textColor="#0369A1" android:textStyle="bold" android:textSize="11sp"/>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cant. Personas" android:textSize="10sp"/>
+                        <EditText android:id="@+id/etVaronCant" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/edit_text_elegant" android:inputType="number" android:text="0" android:gravity="center" />
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="N° Días" android:textSize="10sp"/>
+                        <EditText android:id="@+id/etVaronDias" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/edit_text_elegant" android:inputType="number" android:text="0" android:gravity="center" />
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.2" android:layout_marginStart="8dp" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pago/Día" android:textSize="10sp"/>
+                        <EditText android:id="@+id/etVaronCosto" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/edit_text_elegant" android:inputType="numberDecimal" android:text="0.00" android:gravity="center" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Sección Mujeres -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_soft"
+                android:backgroundTint="#FDF2F8"
+                android:orientation="vertical"
+                android:padding="12dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="MUJERES" android:textColor="#BE185D" android:textStyle="bold" android:textSize="11sp"/>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cant. Personas" android:textSize="10sp"/>
+                        <EditText android:id="@+id/etMujerCant" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/edit_text_elegant" android:inputType="number" android:text="0" android:gravity="center" />
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="N° Días" android:textSize="10sp"/>
+                        <EditText android:id="@+id/etMujerDias" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/edit_text_elegant" android:inputType="number" android:text="0" android:gravity="center" />
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.2" android:layout_marginStart="8dp" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pago/Día" android:textSize="10sp"/>
+                        <EditText android:id="@+id/etMujerCosto" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/edit_text_elegant" android:inputType="numberDecimal" android:text="0.00" android:gravity="center" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Maquinaria -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Gasto en Maquinaria / Otros (S/)" android:textColor="#374151" android:textSize="13sp" android:textStyle="bold" />
+                <EditText android:id="@+id/etCostoMaq" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="6dp" android:background="@drawable/edit_text_elegant" android:inputType="numberDecimal" android:text="0.00" android:paddingHorizontal="16dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Footer Fijo -->
+    <LinearLayout
+        android:id="@+id/dialogFooter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Subtotal Labor:" android:textColor="#374151" android:textSize="14sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tvLaborSubtotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="S/ 0.00" android:textColor="#15803D" android:textSize="18sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/btnCancel"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:text="CANCELAR"
+                android:textColor="#6B7280" />
+            <Button
+                android:id="@+id/btnAccept"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:backgroundTint="#15803D"
+                android:text="ACEPTAR"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

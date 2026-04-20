@@ -2,13 +2,14 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#eef2ee">
 
     <!-- Header -->
     <LinearLayout
-        android:id="@+id/header"
+        android:id="@+id/header_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/header_gradient_bg"
@@ -61,7 +62,7 @@
                 android:layout_height="36dp"
                 android:background="@drawable/circle_bg_green_light"
                 android:padding="8dp"
-                android:src="@drawable/ic_planta_buena"
+                android:src="@drawable/agro_planta_buena"
                 app:tint="#15803d" />
         </LinearLayout>
     </LinearLayout>
@@ -249,51 +250,128 @@
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
                 app:strokeWidth="1dp"
-                app:strokeColor="#f3f4f6">
+                app:strokeColor="#e5e7eb">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Resumen financiero"
                         android:textColor="#374151"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="16dp"
                         android:orientation="vertical">
 
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Costos totales" android:textColor="#6b7280" android:textSize="13sp"/>
-                            <TextView android:id="@+id/tvCostosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0.00" android:textColor="#1f2937" android:textSize="13sp"/>
-                        </RelativeLayout>
-
+                        <!-- Costos totales -->
                         <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ingresos" android:textColor="#6b7280" android:textSize="13sp"/>
-                            <TextView android:id="@+id/tvIngresosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0.00" android:textColor="#1f2937" android:textSize="13sp"/>
+                            android:layout_marginBottom="12dp">
+                            <View android:id="@+id/dotCostos" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_red" android:layout_centerVertical="true"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotCostos" android:layout_marginStart="8dp" android:text="Costos totales" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:id="@+id/tvCostosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#ef4444" android:textStyle="bold" android:textSize="14sp"/>
                         </RelativeLayout>
 
-                        <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginVertical="8dp" android:background="#f3f4f6"/>
+                        <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#f3f4f6" android:layout_marginBottom="12dp"/>
 
+                        <!-- Ingresos -->
                         <RelativeLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ganancia neta" android:textColor="#1f2937" android:textStyle="bold" android:textSize="14sp"/>
-                            <TextView android:id="@+id/tvGananciaNeta" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0.00" android:textColor="#15803d" android:textStyle="bold" android:textSize="14sp"/>
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp">
+                            <View android:id="@+id/dotIngresos" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_green" android:layout_centerVertical="true"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotIngresos" android:layout_marginStart="8dp" android:text="Ingresos" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:id="@+id/tvIngresosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#22c55e" android:textStyle="bold" android:textSize="14sp"/>
                         </RelativeLayout>
+
+                        <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#f3f4f6" android:layout_marginBottom="12dp"/>
+
+                        <!-- Preparación -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp">
+                            <View android:id="@+id/dotPrep" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_purple" android:layout_centerVertical="true"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotPrep" android:layout_marginStart="8dp" android:text="Preparación" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:id="@+id/tvCostoPreparacion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#a855f7" android:textStyle="bold" android:textSize="14sp"/>
+                        </RelativeLayout>
+
+                        <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#f3f4f6" android:layout_marginBottom="12dp"/>
+
+                        <!-- Siembra -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp">
+                            <View android:id="@+id/dotSiembra" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_green_light" android:layout_centerVertical="true"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotSiembra" android:layout_marginStart="8dp" android:text="Siembra" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:id="@+id/tvCostoSiembra" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#4ade80" android:textStyle="bold" android:textSize="14sp"/>
+                        </RelativeLayout>
+
+                        <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#f3f4f6" android:layout_marginBottom="12dp"/>
+
+                        <!-- Mantenimiento -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp">
+                            <View android:id="@+id/dotMant" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_blue" android:layout_centerVertical="true"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotMant" android:layout_marginStart="8dp" android:text="Mantenimiento" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:id="@+id/tvCostoMantenimiento" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#3b82f6" android:textStyle="bold" android:textSize="14sp"/>
+                        </RelativeLayout>
+
+                        <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#f3f4f6" android:layout_marginBottom="12dp"/>
+
+                        <!-- Cosecha/Venta -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="20dp">
+                            <View android:id="@+id/dotCosecha" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_orange" android:layout_centerVertical="true"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotCosecha" android:layout_marginStart="8dp" android:text="Cosecha/Venta" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:id="@+id/tvCostoCosecha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#f59e0b" android:textStyle="bold" android:textSize="14sp"/>
+                        </RelativeLayout>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="#f0fdf4"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp"
+                            app:strokeColor="#d1fae5"
+                            app:strokeWidth="1dp">
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="16dp">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Ganancia neta"
+                                    android:textColor="#166534"
+                                    android:textStyle="bold"
+                                    android:textSize="16sp"/>
+                                <TextView
+                                    android:id="@+id/tvGananciaNeta"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    android:text="+S/ 0.00"
+                                    android:textColor="#166534"
+                                    android:textStyle="bold"
+                                    android:textSize="16sp"/>
+                            </RelativeLayout>
+                        </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -385,11 +463,13 @@
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:elevation="8dp"
         android:gravity="center"
         android:orientation="horizontal"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
@@ -442,7 +522,7 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_planta_buena"
+                android:src="@drawable/agro_planta_buena"
                 app:tint="#166534" />
             <TextView
                 android:layout_width="wrap_content"

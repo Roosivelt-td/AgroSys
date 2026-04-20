@@ -2,43 +2,21 @@ package com.sigcpa.agrosys.ui
 
 import android.app.DatePickerDialog
 import android.content.Context
-import android.content.res.ColorStateList
-import android.graphics.Color
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.database.AppDatabase
 import com.sigcpa.agrosys.database.entities.*
-import com.sigcpa.agrosys.databinding.ActivityRegisterLaborBinding
-import com.sigcpa.agrosys.databinding.ItemInsumoFormBinding
-import com.google.android.material.card.MaterialCardView
-import androidx.core.widget.doOnTextChanged
+import com.sigcpa.agrosys.databinding.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-
-data class LaborTempRecord(
-    val laborId: Int,
-    val laborName: String,
-    val fecha: Long,
-    val costoMO: Double,
-    val costoMaq: Double,
-    val observaciones: String,
-    val insumos: List<InsumoTempRecord> = emptyList()
-)
-
-data class InsumoTempRecord(
-    val categoria: String,
-    val nombre: String,
-    val cantidad: Double,
-    val unidad: String,
-    val precioUnitario: Double,
-    val proveedor: String
-)
 
 class RegisterLaborActivity : AppCompatActivity() {
 
@@ -46,13 +24,13 @@ class RegisterLaborActivity : AppCompatActivity() {
     private val db by lazy { AppDatabase.getDatabase(this) }
     
     private var selectedCultivoId: Int = -1
-    private var selectedLaborId: Int = -1
-    private var selectedLaborName: String = ""
+    private var currentLabor: LaborSessionItem? = null
     private val calendar = Calendar.getInstance()
-    private val insumoViews = mutableListOf<ItemInsumoFormBinding>()
-    
-    private val categoriasInsumos = listOf("Semillas", "Fertilizantes", "Pesticidas", "Herbicidas", "Comida", "Herramientas", "Otros")
-    private val laboresAgregadas = mutableListOf<LaborTempRecord>()
+    private var laborsHistory: List<LaborRealizadaEntity> = emptyList()
+
+    // Estado de la secuencia
+    private var yaPreparo = false
+    private var yaSembro = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,359 +38,631 @@ class RegisterLaborActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         selectedCultivoId = intent.getIntExtra("CULTIVO_ID", -1)
+        binding.tvHeaderTitle.text = intent.getStringExtra("TERRENO_NOMBRE") ?: "Terreno"
+        binding.tvHeaderSubtitle.text = intent.getStringExtra("CULTIVO_DETALLE") ?: "Detalle del cultivo"
 
-        setupUI()
-        loadData()
+        setupListeners()
+        loadInitialState()
+        refreshLaboresList()
     }
 
-    private fun setupUI() {
+    private fun setupListeners() {
         binding.btnBack.setOnClickListener { finish() }
         
-        binding.etFechaRealizacion.setOnClickListener { showDatePicker() }
-        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        binding.etFechaRealizacion.setText(sdf.format(calendar.time))
+        // Listeners para las tarjetas de labor
+        binding.cardPreparacion.setOnClickListener { handleLaborClick(1, "Preparación") }
+        binding.cardSiembra.setOnClickListener { handleLaborClick(2, "Siembra") }
+        binding.cardRiego.setOnClickListener { handleLaborClick(3, "Riego") }
+        binding.cardFumigacion.setOnClickListener { handleLaborClick(4, "Fumigación") }
+        binding.cardAporque.setOnClickListener { handleLaborClick(5, "Aporque") }
+        binding.cardDeshierbe.setOnClickListener { handleLaborClick(6, "Deshierbe") }
+        binding.cardFertilizacion.setOnClickListener { handleLaborClick(7, "Abonado / Fertilización") }
+        binding.cardPoda.setOnClickListener { handleLaborClick(8, "Poda") }
+        binding.cardCosecha.setOnClickListener { handleLaborClick(9, "Cosecha") }
 
-        binding.rgTipoJornal.setOnCheckedChangeListener { _, checkedId ->
-            if (checkedId == R.id.rbUnificado) {
-                binding.llManoObraUnificado.visibility = View.VISIBLE
-                binding.llManoObraDiferenciado.visibility = View.GONE
-            } else {
-                binding.llManoObraUnificado.visibility = View.GONE
-                binding.llManoObraDiferenciado.visibility = View.VISIBLE
-            }
-            calculateSessionTotal()
-        }
-
-        binding.btnAgregarInsumo.setOnClickListener { addInsumoRow() }
-        
-        binding.btnSaveLabor.setOnClickListener {
-            if (validateCurrentLabor()) {
-                addToTempList()
-                saveAllToDatabase()
-            }
-        }
-
-        val updateListener = { _: CharSequence?, _: Int, _: Int, _: Int -> calculateSessionTotal() }
-        binding.etPeonesUnif.doOnTextChanged(updateListener)
-        binding.etDiasUnif.doOnTextChanged(updateListener)
-        binding.etCostoJornalUnif.doOnTextChanged(updateListener)
-        binding.etHombresCant.doOnTextChanged(updateListener)
-        binding.etHombresDias.doOnTextChanged(updateListener)
-        binding.etMujeresCant.doOnTextChanged(updateListener)
-        binding.etMujeresDias.doOnTextChanged(updateListener)
-        binding.etJornalHombre.doOnTextChanged(updateListener)
-        binding.etJornalMujer.doOnTextChanged(updateListener)
-        binding.etCostoMaquinaria.doOnTextChanged(updateListener)
+        binding.btnFinalizarRegistro.setOnClickListener { showConfirmationDialog() }
     }
 
-    private fun validateCurrentLabor(): Boolean {
-        if (selectedLaborId == -1) {
-            Toast.makeText(this, "⚠️ Selecciona un tipo de labor", Toast.LENGTH_SHORT).show()
-            return false
+    private fun loadInitialState() {
+        lifecycleScope.launch {
+            laborsHistory = db.assetDao().getLaboresByCultivo(selectedCultivoId)
+            yaPreparo = laborsHistory.any { it.catalogo_labor_id == 1 }
+            yaSembro = laborsHistory.any { it.catalogo_labor_id == 2 }
+            updateLaborGridState()
+            updateCounts()
+        }
+    }
+
+    private fun updateCounts() {
+        val counts = laborsHistory.groupBy { it.catalogo_labor_id }.mapValues { it.value.size }
+        binding.tvCountPreparacion.text = (counts[1] ?: 0).toString()
+        binding.tvCountSiembra.text = (counts[2] ?: 0).toString()
+        binding.tvCountRiego.text = (counts[3] ?: 0).toString()
+        binding.tvCountFumigacion.text = (counts[4] ?: 0).toString()
+        binding.tvCountAporque.text = (counts[5] ?: 0).toString()
+        binding.tvCountDeshierbe.text = (counts[6] ?: 0).toString()
+        binding.tvCountFertilizacion.text = (counts[7] ?: 0).toString()
+        binding.tvCountOtros.text = (counts[8] ?: 0).toString()
+        binding.tvCountCosecha.text = (counts[9] ?: 0).toString()
+    }
+
+    private fun handleLaborClick(laborId: Int, laborName: String) {
+        val history = laborsHistory.filter { it.catalogo_labor_id == laborId }
+        if (history.isNotEmpty()) {
+            showHistoryModal(laborId, laborName, history)
+        } else {
+            openLaborDialog(laborId, laborName)
+        }
+    }
+
+    private fun showHistoryModal(laborId: Int, laborName: String, history: List<LaborRealizadaEntity>) {
+        val last = history.maxByOrNull { it.fecha_realizacion } ?: return
+        val dialog = BottomSheetDialog(this)
+        val hBinding = DialogLaborHistoryBriefBinding.inflate(layoutInflater)
+        dialog.setContentView(hBinding.root)
+
+        hBinding.tvTitle.text = "$laborName (${history.size})"
+        hBinding.tvLastDate.text = "Última vez: " + SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(last.fecha_realizacion * 1000))
+        
+        lifecycleScope.launch {
+            val mo = db.assetDao().getManoObraByLabor(last.id)
+            val totalMO = mo.sumOf { it.subtotal }
+            val cantMO = mo.sumOf { it.cantidad_trabajadores }
+            val insumosCosto = db.assetDao().getCostoInsumosByLabor(last.id) ?: 0.0
+            
+            hBinding.tvSummary.text = "Gasto: S/ ${String.format("%.2f", totalMO + last.costo_maquinaria_total + insumosCosto)}\nMano de obra: $cantMO peones"
         }
 
-        // Validación según tipo de labor
-        when (selectedLaborId) {
-            1 -> { // Preparación: Requiere costo maquinaria > 0
-                val costMaq = binding.etCostoMaquinaria.text.toString().toDoubleOrNull() ?: 0.0
-                if (costMaq <= 0) {
-                    Toast.makeText(this, "⚠️ La preparación requiere ingresar un costo de maquinaria", Toast.LENGTH_SHORT).show()
-                    binding.etCostoMaquinaria.requestFocus()
-                    return false
+        hBinding.btnVerDetalles.setOnClickListener {
+            val intent = Intent(this, LaborTypeDetailActivity::class.java)
+            intent.putExtra("CULTIVO_ID", selectedCultivoId)
+            intent.putExtra("LABOR_ID", laborId)
+            intent.putExtra("LABOR_NOMBRE", laborName)
+            startActivity(intent)
+            dialog.dismiss()
+        }
+
+        hBinding.btnNuevaLabor.setOnClickListener {
+            openLaborDialog(laborId, laborName)
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun updateLaborGridState() {
+        // Bloqueos visuales según la secuencia agrícola
+        binding.cardSiembra.alpha = if (yaPreparo) 1.0f else 0.4f
+        val maintenanceEnabled = yaSembro
+        binding.cardRiego.alpha = if (maintenanceEnabled) 1.0f else 0.4f
+        binding.cardFumigacion.alpha = if (maintenanceEnabled) 1.0f else 0.4f
+        binding.cardAporque.alpha = if (maintenanceEnabled) 1.0f else 0.4f
+        binding.cardDeshierbe.alpha = if (maintenanceEnabled) 1.0f else 0.4f
+        binding.cardFertilizacion.alpha = if (maintenanceEnabled) 1.0f else 0.4f
+        binding.cardPoda.alpha = if (maintenanceEnabled) 1.0f else 0.4f
+        binding.cardCosecha.alpha = if (maintenanceEnabled) 1.0f else 0.4f
+    }
+
+    private fun openLaborDialog(laborId: Int, laborName: String) {
+        if (currentLabor != null) {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Labor en curso")
+                .setMessage("¿Estás seguro de registrar otra labor sin antes guardar la actual?")
+                .setPositiveButton("Sí, descartar y nueva") { _, _ ->
+                    currentLabor = null
+                    showLaborDialog(laborId, laborName)
+                }
+                .setNegativeButton("No", null)
+                .show()
+        } else {
+            showLaborDialog(laborId, laborName)
+        }
+    }
+
+    private fun showLaborDialog(laborId: Int, laborName: String, existingLabor: LaborSessionItem? = null) {
+        // Validar secuencia antes de abrir (solo si es nueva labor)
+        if (existingLabor == null) {
+            if (laborId == 1 && yaPreparo) {
+                Toast.makeText(this, "La preparación ya ha sido registrada anteriormente.", Toast.LENGTH_SHORT).show()
+            }
+            if (laborId == 2 && !yaPreparo) {
+                Toast.makeText(this, "⚠️ Primero debes registrar la Preparación del terreno", Toast.LENGTH_SHORT).show()
+                return
+            }
+            if (laborId > 2 && !yaSembro) {
+                Toast.makeText(this, "⚠️ Primero debes registrar la Siembra", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+
+        val dialog = BottomSheetDialog(this)
+        val dBinding = DialogAddLaborBinding.inflate(layoutInflater)
+        dialog.setContentView(dBinding.root)
+
+        dBinding.tvDialogTitle.text = laborName
+        
+        // Si estamos editando, cargar datos previos
+        existingLabor?.let { labor ->
+            calendar.timeInMillis = labor.timestamp * 1000
+            dBinding.etFecha.setText(SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time))
+            dBinding.etDescripcion.setText(labor.desc)
+            dBinding.etCostoMaq.setText(labor.costoMaq.toString())
+            
+            labor.manoObra.forEach { mo ->
+                if (mo.tipoId == 1) {
+                    dBinding.etVaronCant.setText(mo.cantidad.toString())
+                    dBinding.etVaronDias.setText(mo.dias.toString())
+                    dBinding.etVaronCosto.setText(mo.costoDia.toString())
+                } else if (mo.tipoId == 2) {
+                    dBinding.etMujerCant.setText(mo.cantidad.toString())
+                    dBinding.etMujerDias.setText(mo.dias.toString())
+                    dBinding.etMujerCosto.setText(mo.costoDia.toString())
                 }
             }
-            2 -> { // Siembra: Requiere insumos (Semillas)
-                if (insumoViews.isEmpty()) {
-                    Toast.makeText(this, "⚠️ La siembra requiere registrar insumos (Semillas)", Toast.LENGTH_SHORT).show()
-                    return false
-                }
-                for (b in insumoViews) {
-                    if (b.etNombreInsumo.text.isEmpty() || (b.etInsumoCantidad.text.toString().toDoubleOrNull() ?: 0.0) <= 0) {
-                        Toast.makeText(this, "⚠️ Completa los datos de los insumos", Toast.LENGTH_SHORT).show()
-                        return false
+        }
+
+        val updateSubtotal = {
+            val varonSub = (dBinding.etVaronCant.text.toString().toDoubleOrNull() ?: 0.0) * 
+                           (dBinding.etVaronDias.text.toString().toDoubleOrNull() ?: 0.0) * 
+                           (dBinding.etVaronCosto.text.toString().toDoubleOrNull() ?: 0.0)
+            
+            val mujerSub = (dBinding.etMujerCant.text.toString().toDoubleOrNull() ?: 0.0) * 
+                            (dBinding.etMujerDias.text.toString().toDoubleOrNull() ?: 0.0) * 
+                            (dBinding.etMujerCosto.text.toString().toDoubleOrNull() ?: 0.0)
+
+            val maq = dBinding.etCostoMaq.text.toString().toDoubleOrNull() ?: 0.0
+            
+            dBinding.tvLaborSubtotal.text = "S/ ${String.format("%.2f", varonSub + mujerSub + maq)}"
+        }
+
+        val textWatcher = object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { updateSubtotal() }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        }
+        
+        dBinding.etVaronCant.addTextChangedListener(textWatcher)
+        dBinding.etVaronDias.addTextChangedListener(textWatcher)
+        dBinding.etVaronCosto.addTextChangedListener(textWatcher)
+        dBinding.etMujerCant.addTextChangedListener(textWatcher)
+        dBinding.etMujerDias.addTextChangedListener(textWatcher)
+        dBinding.etMujerCosto.addTextChangedListener(textWatcher)
+        dBinding.etCostoMaq.addTextChangedListener(textWatcher)
+
+        dBinding.etFecha.setOnClickListener {
+            DatePickerDialog(this, { _, y, m, d ->
+                calendar.set(y, m, d)
+                dBinding.etFecha.setText(SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time))
+            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+        }
+        dBinding.etFecha.setText(SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time))
+
+        dBinding.btnAccept.setOnClickListener {
+            val fechaSeleccionada = calendar.timeInMillis / 1000
+            
+            lifecycleScope.launch {
+                // Validación de fecha: Siembra (ID 2) >= Preparación (ID 1)
+                if (laborId == 2) {
+                    val prepLabor = db.assetDao().getLaboresByCultivo(selectedCultivoId).find { it.catalogo_labor_id == 1 }
+                    if (prepLabor != null && fechaSeleccionada < prepLabor.fecha_realizacion) {
+                        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                        Toast.makeText(this@RegisterLaborActivity, "⚠️ La fecha de siembra no puede ser anterior a la preparación (${sdf.format(Date(prepLabor.fecha_realizacion * 1000))})", Toast.LENGTH_LONG).show()
+                        return@launch
                     }
                 }
-            }
-        }
 
-        // Validación general de Mano de Obra para labores que la requieren (casi todas excepto preparación pura a veces)
-        if (binding.containerManoObra.visibility == View.VISIBLE) {
-            if (binding.rbUnificado.isChecked) {
-                val peones = binding.etPeonesUnif.text.toString().toDoubleOrNull() ?: 0.0
-                val dias = binding.etDiasUnif.text.toString().toDoubleOrNull() ?: 0.0
-                if (peones <= 0 || dias <= 0) {
-                    Toast.makeText(this, "⚠️ Ingresa cantidad de peones y días de trabajo", Toast.LENGTH_SHORT).show()
-                    return false
-                }
-            }
-        }
-
-        return true
-    }
-
-    private fun setupLaboresClickListeners(yaPreparo: Boolean, yaSembro: Boolean) {
-        val laboresMap = mapOf(
-            binding.cardPreparacion to 1,
-            binding.cardSiembra to 2,
-            binding.cardRiego to 3,
-            binding.cardFumigacion to 4,
-            binding.cardAporque to 5,
-            binding.cardDeshierbe to 6,
-            binding.cardFertilizacion to 7,
-            binding.cardCosecha to 8,
-            binding.cardOtro to 9
-        )
-
-        laboresMap.forEach { (card, id) ->
-            val isEnabled = when (id) {
-                1, 9 -> true
-                2 -> yaPreparo
-                else -> yaSembro
-            }
-
-            card.isEnabled = isEnabled
-            card.alpha = if (isEnabled) 1.0f else 0.3f
-
-            card.setOnClickListener {
-                if (!isEnabled) {
-                    val msg = if (id == 2) "debes preparar el terreno" else "debes registrar la siembra"
-                    Toast.makeText(this, "⚠️ Bloqueado: Primero $msg", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-
-                if (selectedLaborId != -1 && selectedLaborId != id) {
-                    if (validateCurrentLabor()) {
-                        addToTempList()
-                    } else {
-                        return@setOnClickListener // No permite cambiar si la actual es inválida
-                    }
-                }
-
-                selectedLaborId = id
-                resetGridSelection()
+                val maq = dBinding.etCostoMaq.text.toString().toDoubleOrNull() ?: 0.0
+                val manoObraItems = mutableListOf<ManoObraSessionItem>()
                 
-                card.setStrokeColor(ColorStateList.valueOf(Color.parseColor("#16a34a")))
-                card.setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#E8F5E9")))
-                
-                selectedLaborName = (card.getChildAt(0) as? LinearLayout)?.let { 
-                    (it.getChildAt(1) as? TextView)?.text.toString() 
-                } ?: ""
-                
-                binding.tvHeaderSubtitle.text = "Configurando: $selectedLaborName"
-                binding.formContainer.visibility = View.VISIBLE
-                updateFormVisibility(id)
-                resetCurrentForm()
-            }
-        }
-    }
+                // ... (resto de la lógica de guardado de peones)
+                val vCant = dBinding.etVaronCant.text.toString().toIntOrNull() ?: 0
+                val vDias = dBinding.etVaronDias.text.toString().toIntOrNull() ?: 0
+                val vCosto = dBinding.etVaronCosto.text.toString().toDoubleOrNull() ?: 0.0
+                if (vCant > 0) manoObraItems.add(ManoObraSessionItem(1, vCant, vDias, vCosto))
 
-    private fun updateFormVisibility(id: Int) {
-        val showMaq = id in listOf(1, 2, 8, 9)
-        binding.containerMaquinaria.visibility = if (showMaq) View.VISIBLE else View.GONE
-        val showMO = id != 1
-        binding.containerManoObra.visibility = if (showMO) View.VISIBLE else View.GONE
-        val showInsumos = id != 1
-        binding.cardInsumos.visibility = if (showInsumos) View.VISIBLE else View.GONE
-    }
+                val mCant = dBinding.etMujerCant.text.toString().toIntOrNull() ?: 0
+                val mDias = dBinding.etMujerDias.text.toString().toIntOrNull() ?: 0
+                val mCosto = dBinding.etMujerCosto.text.toString().toDoubleOrNull() ?: 0.0
+                if (mCant > 0) manoObraItems.add(ManoObraSessionItem(2, mCant, mDias, mCosto))
 
-    private fun resetCurrentForm() {
-        binding.etObservaciones.setText("")
-        binding.etCostoMaquinaria.setText("0")
-        binding.etPeonesUnif.setText("0")
-        binding.etDiasUnif.setText("0")
-        binding.insumosContainer.removeAllViews()
-        insumoViews.clear()
-        binding.tvEmptyInsumos.visibility = View.VISIBLE
-    }
-
-    private fun addToTempList() {
-        if (selectedLaborId == -1) return
-
-        val costMO = calculateCurrentMOCost()
-        val costMaq = if (binding.containerMaquinaria.visibility == View.VISIBLE) 
-            binding.etCostoMaquinaria.text.toString().toDoubleOrNull() ?: 0.0 else 0.0
-        
-        val tempInsumos = insumoViews.map { b ->
-            InsumoTempRecord(
-                categoria = b.spinnerCategoriaInsumo.selectedItem.toString(),
-                nombre = b.etNombreInsumo.text.toString(),
-                cantidad = b.etInsumoCantidad.text.toString().toDoubleOrNull() ?: 0.0,
-                unidad = b.etUnidadMedida.text.toString(),
-                precioUnitario = b.etInsumoPrecio.text.toString().toDoubleOrNull() ?: 0.0,
-                proveedor = if (b.cbTieneProveedor.isChecked) b.etNombreProveedor.text.toString() else "Anónimo"
-            )
-        }.filter { it.nombre.isNotEmpty() && it.cantidad > 0 }
-
-        laboresAgregadas.add(LaborTempRecord(
-            selectedLaborId,
-            selectedLaborName,
-            calendar.timeInMillis / 1000,
-            costMO,
-            costMaq,
-            binding.etObservaciones.text.toString(),
-            tempInsumos
-        ))
-
-        updateResumenUI()
-    }
-
-    private fun updateResumenUI() {
-        val nombres = laboresAgregadas.joinToString(", ") { it.laborName }
-        binding.tvLaboresResumen.text = if (laboresAgregadas.isNotEmpty()) {
-            "Labores listas: $nombres"
-        } else {
-            "No hay labores listas"
-        }
-        calculateSessionTotal()
-    }
-
-    private fun calculateCurrentMOCost(): Double {
-        if (binding.containerManoObra.visibility == View.GONE) return 0.0
-        return if (binding.rbUnificado.isChecked) {
-            val p = binding.etPeonesUnif.text.toString().toDoubleOrNull() ?: 0.0
-            val d = binding.etDiasUnif.text.toString().toDoubleOrNull() ?: 0.0
-            val j = binding.etCostoJornalUnif.text.toString().toDoubleOrNull() ?: 0.0
-            p * d * j
-        } else {
-            val hc = binding.etHombresCant.text.toString().toDoubleOrNull() ?: 0.0
-            val hd = binding.etHombresDias.text.toString().toDoubleOrNull() ?: 0.0
-            val hj = binding.etJornalHombre.text.toString().toDoubleOrNull() ?: 0.0
-            val mc = binding.etMujeresCant.text.toString().toDoubleOrNull() ?: 0.0
-            val md = binding.etMujeresDias.text.toString().toDoubleOrNull() ?: 0.0
-            val mj = binding.etJornalMujer.text.toString().toDoubleOrNull() ?: 0.0
-            (hc * hd * hj) + (mc * md * mj)
-        }
-    }
-
-    private fun calculateSessionTotal() {
-        var total = laboresAgregadas.sumOf { it.costoMO + it.costoMaq + it.insumos.sumOf { ins -> ins.cantidad * ins.precioUnitario } }
-        
-        if (selectedLaborId != -1) {
-            total += calculateCurrentMOCost()
-            total += if (binding.containerMaquinaria.visibility == View.VISIBLE) 
-                binding.etCostoMaquinaria.text.toString().toDoubleOrNull() ?: 0.0 else 0.0
-            insumoViews.forEach { b ->
-                val c = b.etInsumoCantidad.text.toString().toDoubleOrNull() ?: 0.0
-                val p = b.etInsumoPrecio.text.toString().toDoubleOrNull() ?: 0.0
-                total += (c * p)
-            }
-        }
-        
-        binding.tvCostoTotalPreview.text = "S/ ${String.format("%.2f", total)}"
-    }
-
-    private fun resetGridSelection() {
-        val cards = listOf(
-            binding.cardPreparacion, binding.cardSiembra, binding.cardRiego,
-            binding.cardFumigacion, binding.cardAporque, binding.cardDeshierbe,
-            binding.cardFertilizacion, binding.cardCosecha, binding.cardOtro
-        )
-        cards.forEach { card ->
-            card.setStrokeColor(ColorStateList.valueOf(Color.parseColor("#E5E7EB")))
-            card.setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#FFFFFF")))
-        }
-    }
-
-    private fun loadData() {
-        val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
-        val userId = sharedPref.getInt("USER_ID", -1)
-
-        lifecycleScope.launch {
-            val agricultor = db.userDao().getAgricultorByUserId(userId) ?: return@launch
-            val cultivos = db.assetDao().getCultivosByAgricultor(agricultor.id)
-            
-            if (cultivos.isEmpty()) {
-                binding.btnSaveLabor.isEnabled = false
-                binding.btnSaveLabor.alpha = 0.5f
-                binding.btnSaveLabor.text = "Requiere Cultivo Activo"
-                Toast.makeText(this@RegisterLaborActivity, "⚠️ Registra un cultivo primero", Toast.LENGTH_LONG).show()
-                return@launch
-            }
-
-            val adapter = ArrayAdapter(this@RegisterLaborActivity, android.R.layout.simple_spinner_item, cultivos.map { it.nombre_lote ?: "Cultivo #${it.id}" })
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            binding.spinnerCultivos.adapter = adapter
-            
-            binding.spinnerCultivos.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, pos: Int, p3: Long) {
-                    selectedCultivoId = cultivos[pos].id
-                    validateSequence(selectedCultivoId)
-                }
-                override fun onNothingSelected(p0: AdapterView<*>?) {}
-            }
-        }
-    }
-
-    private fun validateSequence(cultivoId: Int) {
-        lifecycleScope.launch {
-            val realizadas = db.assetDao().getLaboresByCultivo(cultivoId)
-            val yaPreparo = realizadas.any { it.catalogo_labor_id == 1 }
-            val yaSembro = realizadas.any { it.catalogo_labor_id == 2 }
-            setupLaboresClickListeners(yaPreparo, yaSembro)
-        }
-    }
-
-    private fun addInsumoRow() {
-        binding.tvEmptyInsumos.visibility = View.GONE
-        val insumoBinding = ItemInsumoFormBinding.inflate(LayoutInflater.from(this), binding.insumosContainer, false)
-        val catAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categoriasInsumos)
-        catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        insumoBinding.spinnerCategoriaInsumo.adapter = catAdapter
-        insumoBinding.cbTieneProveedor.setOnCheckedChangeListener { _, isChecked ->
-            insumoBinding.llProveedorContainer.visibility = if (isChecked) View.VISIBLE else View.GONE
-        }
-        insumoBinding.btnDeleteInsumo.setOnClickListener {
-            binding.insumosContainer.removeView(insumoBinding.root)
-            insumoViews.remove(insumoBinding)
-            if (insumoViews.isEmpty()) binding.tvEmptyInsumos.visibility = View.VISIBLE
-            calculateSessionTotal()
-        }
-        insumoBinding.etInsumoCantidad.doOnTextChanged { _, _, _, _ -> calculateSessionTotal() }
-        insumoBinding.etInsumoPrecio.doOnTextChanged { _, _, _, _ -> calculateSessionTotal() }
-        insumoViews.add(insumoBinding)
-        binding.insumosContainer.addView(insumoBinding.root)
-    }
-
-    private fun showDatePicker() {
-        DatePickerDialog(this, { _, y, m, d ->
-            calendar.set(y, m, d)
-            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            binding.etFechaRealizacion.setText(sdf.format(calendar.time))
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
-    }
-
-    private fun saveAllToDatabase() {
-        val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
-        val userId = sharedPref.getInt("USER_ID", -1)
-
-        lifecycleScope.launch {
-            laboresAgregadas.forEach { record ->
-                val labor = LaborRealizadaEntity(
-                    cultivo_id = selectedCultivoId,
-                    catalogo_labor_id = record.laborId,
-                    fecha_realizacion = record.fecha,
-                    costo_mano_obra_total = record.costoMO,
-                    costo_maquinaria_total = record.costoMaq,
-                    observaciones = record.observaciones,
-                    creado_por_usuario_id = userId
+                currentLabor = LaborSessionItem(
+                    laborId, laborName, fechaSeleccionada, 
+                    dBinding.etDescripcion.text.toString(), maq, manoObraItems, existingLabor?.insumos ?: emptyList()
                 )
-
-                val laborId = db.assetDao().insertLabor(labor).toInt()
                 
-                record.insumos.forEach { ins ->
-                    val catInsumoId = 1 
-                    db.assetDao().insertInsumoUsado(InsumoUsadoEntity(
-                        labor_id = laborId,
-                        catalogo_insumo_id = catInsumoId,
-                        proveedor_id = null,
-                        cantidad = ins.cantidad,
-                        costo_unitario = ins.precioUnitario
-                    ))
+                refreshLaboresList()
+                dialog.dismiss()
+            }
+        }
+
+        dBinding.btnCancel.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private fun openInsumoDialog(editingIndex: Int? = null, onSync: (List<InsumoSessionItem>) -> Unit) {
+        val dialog = BottomSheetDialog(this)
+        val iBinding = DialogAddInsumoBinding.inflate(layoutInflater)
+        dialog.setContentView(iBinding.root)
+
+        val tempInsumosList = currentLabor?.insumos?.toMutableList() ?: mutableListOf()
+        var currentEditingIndex: Int? = editingIndex
+
+        fun loadInsumoToEdit(index: Int) {
+            val ins = tempInsumosList[index]
+            iBinding.etNombreInsumo.setText(ins.nombre)
+            iBinding.etCantidad.setText(ins.cantidad.toString())
+            iBinding.etPrecio.setText(ins.precio.toString())
+            iBinding.etFlete.setText(ins.flete.toString())
+            iBinding.cbHasProveedor.isChecked = ins.proveedor != null
+            iBinding.etProveedor.setText(ins.proveedor ?: "")
+            iBinding.btnAcceptInsumo.text = "Actualizar Insumo"
+        }
+
+        if (currentEditingIndex != null) {
+            loadInsumoToEdit(currentEditingIndex!!)
+        }
+
+        fun refreshInsumoListInDialog() {
+            iBinding.llInsumosAgregados.removeAllViews()
+            if (tempInsumosList.isEmpty()) {
+                iBinding.tvInsumosAgregadosTitle.visibility = View.GONE
+            } else {
+                iBinding.tvInsumosAgregadosTitle.visibility = View.VISIBLE
+                iBinding.tvInsumosTitle.text = "Insumos (${tempInsumosList.size})"
+                
+                tempInsumosList.forEachIndexed { index, ins ->
+                    val row = ItemInsumoRowBinding.inflate(layoutInflater, iBinding.llInsumosAgregados, false)
+                    row.tvInsumoNombre.text = ins.nombre
+                    
+                    lifecycleScope.launch {
+                        val unidad = db.assetDao().getUnidadInsumo(ins.catId) ?: ""
+                        row.tvInsumoCant.text = "${ins.cantidad} $unidad"
+                    }
+                    
+                    row.tvInsumoSubtotal.text = "S/ ${String.format("%.2f", (ins.cantidad * ins.precio) + ins.flete)}"
+                    
+                    row.root.setOnClickListener {
+                        androidx.appcompat.app.AlertDialog.Builder(this)
+                            .setTitle("Editar Insumo")
+                            .setMessage("¿Desea editar o eliminar este insumo?")
+                            .setPositiveButton("Editar") { _, _ ->
+                                loadInsumoToEdit(index)
+                                currentEditingIndex = index
+                            }
+                            .setNegativeButton("Eliminar") { _, _ ->
+                                tempInsumosList.removeAt(index)
+                                refreshInsumoListInDialog()
+                                onSync(tempInsumosList)
+                            }
+                            .show()
+                    }
+                    iBinding.llInsumosAgregados.addView(row.root)
+                }
+            }
+        }
+
+        refreshInsumoListInDialog()
+
+        iBinding.cbHasProveedor.setOnCheckedChangeListener { _, isChecked ->
+            iBinding.llProveedor.visibility = if (isChecked) View.VISIBLE else View.GONE
+        }
+
+        lifecycleScope.launch {
+            val catalogo = db.assetDao().getCatalogoInsumos()
+            val adapter = ArrayAdapter(this@RegisterLaborActivity, android.R.layout.simple_dropdown_item_1line, catalogo.map { it.nombre })
+            iBinding.etNombreInsumo.setAdapter(adapter)
+        }
+
+        iBinding.btnAcceptInsumo.setOnClickListener {
+            val nombre = iBinding.etNombreInsumo.text.toString()
+            val cant = iBinding.etCantidad.text.toString().toDoubleOrNull() ?: 0.0
+            val precio = iBinding.etPrecio.text.toString().toDoubleOrNull() ?: 0.0
+            val flete = iBinding.etFlete.text.toString().toDoubleOrNull() ?: 0.0
+            val unidad = iBinding.etUnidad.text.toString()
+            val proveedor = if (iBinding.cbHasProveedor.isChecked) iBinding.etProveedor.text.toString() else null
+
+            if (nombre.isNotEmpty() && cant > 0) {
+                lifecycleScope.launch {
+                    val catalogo = db.assetDao().getCatalogoInsumos()
+                    var catId = catalogo.find { it.nombre.lowercase() == nombre.lowercase() }?.id
+                    
+                    if (catId == null) {
+                        catId = db.assetDao().insertCatalogoInsumo(CatalogoInsumoEntity(
+                            nombre = nombre,
+                            categoria = "Otros",
+                            unidad_medida = unidad,
+                            descripcion = ""
+                        )).toInt()
+                    }
+                    
+                    val insumo = InsumoSessionItem(catId, nombre, cant, precio, flete, proveedor)
+                    
+                    if (currentEditingIndex != null) {
+                        tempInsumosList[currentEditingIndex!!] = insumo
+                        currentEditingIndex = null
+                        iBinding.btnAcceptInsumo.text = "Agregar Insumo"
+                    } else {
+                        tempInsumosList.add(insumo)
+                    }
+
+                    onSync(tempInsumosList)
+                    refreshInsumoListInDialog()
+
+                    // Limpiar campos
+                    iBinding.etNombreInsumo.setText("")
+                    iBinding.etCantidad.setText("")
+                    iBinding.etPrecio.setText("")
+                    iBinding.etFlete.setText("")
+                    iBinding.etProveedor.setText("")
+
+                    androidx.appcompat.app.AlertDialog.Builder(this@RegisterLaborActivity)
+                        .setTitle("¿Agregar más?")
+                        .setMessage("¿Deseas agregar otro insumo para esta labor?")
+                        .setPositiveButton("Sí") { _, _ -> /* Se queda en el modal */ }
+                        .setNegativeButton("No, listo") { _, _ -> dialog.dismiss() }
+                        .show()
+                }
+            } else {
+                Toast.makeText(this, "Completa los datos del insumo", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        iBinding.btnCancelInsumo.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private fun refreshLaboresList() {
+        binding.llLaboresList.removeAllViews()
+        val labor = currentLabor
+        
+        if (labor == null) {
+            binding.tvLaboresListTitle.text = "Labor para registrar en esta sesión:"
+            binding.tvEmptyLabores.visibility = View.VISIBLE
+            binding.tvEmptyLabores.text = "No has seleccionado ninguna labor todavía"
+            binding.btnFinalizarRegistro.isEnabled = false
+            binding.tvCostoTotalSession.text = "S/ 0.00"
+        } else {
+            binding.tvLaboresListTitle.text = "Labor a registrar: ${labor.name}"
+            binding.tvEmptyLabores.visibility = View.GONE
+            binding.btnFinalizarRegistro.isEnabled = true
+            
+            val itemBinding = ItemLaborDetalleBinding.inflate(layoutInflater, binding.llLaboresList, false)
+            itemBinding.tvLaborNombre.text = labor.name
+            itemBinding.tvLaborFecha.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(labor.timestamp * 1000))
+            
+            val costoMO = labor.manoObra.sumOf { it.cantidad * it.dias * it.costoDia }
+            itemBinding.tvLaborCostos.text = "MO: S/ ${String.format("%.2f", costoMO)} | Maq: S/ ${String.format("%.2f", labor.costoMaq)}"
+            
+            val subtotalInsumos = labor.insumos.sumOf { (it.cantidad * it.precio) + it.flete }
+            itemBinding.tvLaborInsumosCount.text = "${labor.insumos.size} items"
+            
+            val subtotal = costoMO + labor.costoMaq + subtotalInsumos
+            itemBinding.tvLaborTotal.text = "Subtotal: S/ ${String.format("%.2f", subtotal)}"
+            binding.tvCostoTotalSession.text = "S/ ${String.format("%.2f", subtotal)}"
+
+            // Listar detalles de insumos bajo la labor
+            itemBinding.llInsumosDetalle.removeAllViews()
+            labor.insumos.forEachIndexed { index, ins ->
+                val insRow = ItemInsumoRowBinding.inflate(layoutInflater, itemBinding.llInsumosDetalle, false)
+                insRow.tvInsumoNombre.text = ins.nombre
+                
+                lifecycleScope.launch {
+                    val unidad = db.assetDao().getUnidadInsumo(ins.catId) ?: ""
+                    val cantStr = if (ins.cantidad % 1.0 == 0.0) ins.cantidad.toInt().toString() else ins.cantidad.toString()
+                    insRow.tvInsumoCant.text = "$cantStr $unidad"
+                }
+
+                insRow.tvInsumoSubtotal.text = "S/ ${String.format("%.2f", (ins.cantidad * ins.precio) + ins.flete)}"
+                
+                insRow.btnEditInsumo.visibility = View.VISIBLE
+                insRow.btnRemoveInsumo.visibility = View.VISIBLE
+                
+                insRow.btnEditInsumo.setOnClickListener {
+                    openInsumoDialog(index) { nuevosInsumos ->
+                        currentLabor = labor.copy(insumos = nuevosInsumos)
+                        refreshLaboresList()
+                    }
+                }
+                
+                insRow.btnRemoveInsumo.setOnClickListener {
+                    val nuevosInsumos = labor.insumos.toMutableList()
+                    nuevosInsumos.removeAt(index)
+                    currentLabor = labor.copy(insumos = nuevosInsumos)
+                    refreshLaboresList()
+                }
+
+                insRow.root.setOnLongClickListener {
+                    androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setMessage("¿Deseas editar este insumo?")
+                        .setPositiveButton("Sí") { _, _ ->
+                            openInsumoDialog(index) { nuevosInsumos ->
+                                currentLabor = labor.copy(insumos = nuevosInsumos)
+                                refreshLaboresList()
+                            }
+                        }
+                        .setNegativeButton("No", null)
+                        .show()
+                    true
+                }
+
+                itemBinding.llInsumosDetalle.addView(insRow.root)
+            }
+
+            itemBinding.btnAddInsumoItem.setOnClickListener {
+                openInsumoDialog { nuevosInsumos ->
+                    currentLabor = labor.copy(insumos = nuevosInsumos)
+                    refreshLaboresList()
                 }
             }
 
-            Toast.makeText(this@RegisterLaborActivity, "✅ ${laboresAgregadas.size} labores registradas", Toast.LENGTH_LONG).show()
-            finish()
+            itemBinding.btnEditLabor.setOnClickListener {
+                showLaborDialog(labor.id, labor.name, labor)
+            }
+
+            itemBinding.btnRemoveLabor.setOnClickListener {
+                currentLabor = null
+                refreshLaboresList()
+            }
+
+            itemBinding.root.setOnLongClickListener {
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setMessage("¿Deseas editar esta labor?")
+                    .setPositiveButton("Sí") { _, _ ->
+                        showLaborDialog(labor.id, labor.name, labor)
+                    }
+                    .setNegativeButton("No", null)
+                    .show()
+                true
+            }
+
+            binding.llLaboresList.addView(itemBinding.root)
         }
     }
+
+    private fun recalculateSequenceState() {
+        lifecycleScope.launch {
+            val realizadas = db.assetDao().getLaboresByCultivo(selectedCultivoId)
+            val laborId = currentLabor?.id
+            
+            yaPreparo = realizadas.any { it.catalogo_labor_id == 1 } || laborId == 1
+            yaSembro = realizadas.any { it.catalogo_labor_id == 2 } || laborId == 2
+            
+            updateLaborGridState()
+        }
+    }
+
+    private fun showConfirmationDialog() {
+        val labor = currentLabor ?: return
+        val dialog = BottomSheetDialog(this)
+        val cBinding = DialogConfirmRegistroBinding.inflate(layoutInflater)
+        dialog.setContentView(cBinding.root)
+
+        val costoMO = labor.manoObra.sumOf { it.cantidad * it.dias * it.costoDia }
+        val total = costoMO + labor.costoMaq + labor.insumos.sumOf { i -> (i.cantidad * i.precio) + i.flete }
+        
+        cBinding.tvResumenFinal.visibility = View.GONE
+        
+        // Crear una tabla o vista detallada para la confirmación
+        val detailView = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 16, 0, 16)
+        }
+
+        // Título de la labor
+        val laborTitle = TextView(this).apply {
+            text = labor.name.uppercase()
+            textSize = 14f
+            setTextColor(androidx.core.content.ContextCompat.getColor(this@RegisterLaborActivity, android.R.color.black))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+        detailView.addView(laborTitle)
+
+        // Detalle de costos directos
+        val directCosts = TextView(this).apply {
+            text = "Costos Directos: S/ ${String.format("%.2f", costoMO + labor.costoMaq)}"
+            textSize = 13f
+            setPadding(0, 4, 0, 8)
+        }
+        detailView.addView(directCosts)
+
+        // Tabla de Insumos si existen
+        if (labor.insumos.isNotEmpty()) {
+            val insumosTitle = TextView(this).apply {
+                text = "Insumos Detallados:"
+                textSize = 12f
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                setPadding(0, 8, 0, 4)
+            }
+            detailView.addView(insumosTitle)
+
+            labor.insumos.forEach { ins ->
+                val insRow = ItemInsumoRowBinding.inflate(layoutInflater)
+                insRow.tvInsumoNombre.text = ins.nombre
+                
+                lifecycleScope.launch {
+                    val unidad = db.assetDao().getUnidadInsumo(ins.catId) ?: ""
+                    val cantStr = if (ins.cantidad % 1.0 == 0.0) ins.cantidad.toInt().toString() else ins.cantidad.toString()
+                    insRow.tvInsumoCant.text = "$cantStr $unidad"
+                }
+
+                insRow.tvInsumoSubtotal.text = "S/ ${String.format("%.2f", (ins.cantidad * ins.precio) + ins.flete)}"
+                detailView.addView(insRow.root)
+            }
+        }
+
+        val totalView = TextView(this).apply {
+            text = "\nTOTAL A REGISTRAR: S/ ${String.format("%.2f", total)}"
+            textSize = 16f
+            setTextColor(androidx.core.content.ContextCompat.getColor(this@RegisterLaborActivity, R.color.green_primary))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            gravity = android.view.Gravity.END
+        }
+        detailView.addView(totalView)
+
+        // Insertar la vista de detalle antes de los botones
+        val parent = cBinding.tvResumenFinal.parent as LinearLayout
+        val index = parent.indexOfChild(cBinding.tvResumenFinal)
+        parent.addView(detailView, index + 1)
+
+        cBinding.btnConfirmar.setOnClickListener {
+            saveEverything()
+            dialog.dismiss()
+        }
+        cBinding.btnRevisar.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private fun saveEverything() {
+        val item = currentLabor ?: return
+        val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
+        val userId = sharedPref.getInt("USER_ID", -1)
+
+        lifecycleScope.launch {
+            val costoMO_total = item.manoObra.sumOf { it.cantidad * it.dias * it.costoDia }
+            val laborId = db.assetDao().insertLabor(LaborRealizadaEntity(
+                cultivo_id = selectedCultivoId,
+                catalogo_labor_id = item.id,
+                fecha_realizacion = item.timestamp,
+                costo_mano_obra_total = costoMO_total,
+                costo_maquinaria_total = item.costoMaq,
+                observaciones = item.desc,
+                creado_por_usuario_id = userId
+            )).toInt()
+
+            item.manoObra.forEach { mo ->
+                db.assetDao().insertManoObra(ManoObraEntity(
+                    labor_realizada_id = laborId,
+                    tipo_id = mo.tipoId,
+                    cantidad_trabajadores = mo.cantidad,
+                    dias_trabajados = mo.dias,
+                    costo_por_dia = mo.costoDia,
+                    subtotal = mo.cantidad * mo.dias * mo.costoDia
+                ))
+            }
+
+            item.insumos.forEach { ins ->
+                db.assetDao().insertInsumoUsado(InsumoUsadoEntity(
+                    labor_id = laborId,
+                    catalogo_insumo_id = ins.catId,
+                    proveedor_id = null,
+                    cantidad = ins.cantidad,
+                    costo_unitario = ins.precio,
+                    costo_flete = ins.flete,
+                    nombre_proveedor_manual = ins.proveedor
+                ))
+            }
+            
+            Toast.makeText(this@RegisterLaborActivity, "✅ Registro de labor guardado", Toast.LENGTH_SHORT).show()
+            
+            // Limpiar para un nuevo registro sin cerrar la actividad
+            currentLabor = null
+            binding.tvCostoTotalSession.text = "S/ 0.00"
+            refreshLaboresList() // Limpia el contenedor de la lista visual
+            updateCounts()      // Actualiza los contadores en el grid superior
+        }
+    }
+
+    data class LaborSessionItem(val id: Int, val name: String, val timestamp: Long, val desc: String, val costoMaq: Double, val manoObra: List<ManoObraSessionItem>, val insumos: List<InsumoSessionItem>)
+    data class ManoObraSessionItem(val tipoId: Int, val cantidad: Int, val dias: Int, val costoDia: Double)
+    data class InsumoSessionItem(val catId: Int, val nombre: String, val cantidad: Double, val precio: Double, val flete: Double = 0.0, val proveedor: String? = null)
 }

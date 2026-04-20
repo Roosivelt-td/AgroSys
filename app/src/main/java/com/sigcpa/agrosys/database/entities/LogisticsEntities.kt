@@ -54,6 +54,40 @@ data class LaborRealizadaEntity(
     @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0
 )
 
+@Entity(tableName = "mano_obra_tipo")
+data class ManoObraTipoEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val nombre: String // Varon, Mujer, Otros
+)
+
+@Entity(
+    tableName = "mano_obra",
+    foreignKeys = [
+        ForeignKey(
+            entity = LaborRealizadaEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["labor_realizada_id"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = ManoObraTipoEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["tipo_id"],
+            onDelete = ForeignKey.RESTRICT
+        )
+    ],
+    indices = [Index(value = ["labor_realizada_id"]), Index(value = ["tipo_id"])]
+)
+data class ManoObraEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val labor_realizada_id: Int,
+    val tipo_id: Int,
+    val cantidad_trabajadores: Int,
+    val dias_trabajados: Int,
+    val costo_por_dia: Double,
+    val subtotal: Double
+)
+
 @Entity(tableName = "catalogo_insumos")
 data class CatalogoInsumoEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
@@ -106,6 +140,8 @@ data class InsumoUsadoEntity(
     val proveedor_id: Int?,
     val cantidad: Double,
     val costo_unitario: Double,
+    @ColumnInfo(defaultValue = "0") val costo_flete: Double = 0.0,
+    val nombre_proveedor_manual: String? = null,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
     @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0
 )

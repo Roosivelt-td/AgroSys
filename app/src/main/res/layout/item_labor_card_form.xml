@@ -26,7 +26,7 @@
             android:id="@+id/ivIcon"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/ic_tractor"
+            android:src="@drawable/agro_maquinaria_tractor"
             app:tint="#16a34a" />
 
         <TextView

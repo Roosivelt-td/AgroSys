@@ -4,91 +4,102 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
+    android:layout_marginBottom="8dp"
     app:cardBackgroundColor="@android:color/white"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
     app:strokeWidth="1dp"
-    app:strokeColor="#F3F4F6">
+    app:strokeColor="#e2e8f0">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:padding="12dp">
+
+        <!-- Indicador de Estado (Círculo o Icono) -->
+        <TextView
+            android:id="@+id/tvEstado"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_background"
+            android:backgroundTint="#dcfce7"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:text="🌱 Activo"
+            android:textColor="#15803d"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tvNombreLote"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Papa - Canchan"
-            android:textColor="#1F2937"
-            android:textSize="16sp"
+            android:textColor="#1e293b"
+            android:textSize="15sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/tvEstado"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/tvEstado"
+        <LinearLayout
+            android:id="@+id/llFechas"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/rounded_background"
-            android:backgroundTint="#DCFCE7"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="2dp"
-            android:text="🌱 Activo"
-            android:textColor="#15803D"
-            android:textSize="11sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <LinearLayout
-            android:id="@+id/llInfo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:gravity="center_vertical"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvNombreLote">
 
             <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:src="@drawable/ic_ubicacion"
-                app:tint="#6B7280" />
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:src="@drawable/ic_calendario"
+                app:tint="#64748b" />
 
             <TextView
-                android:id="@+id/tvTerreno"
+                android:id="@+id/tvFechaPlanificada"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:text="la casa"
-                android:textColor="#6B7280"
-                android:textSize="12sp" />
+                android:text="P: 10/05/24"
+                android:textColor="#64748b"
+                android:textSize="11sp" />
 
-            <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:layout_marginStart="12dp"
-                android:src="@drawable/ic_calendario"
-                app:tint="#6B7280" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="4dp"
+                android:text=" • "
+                android:textColor="#cbd5e1"/>
 
             <TextView
                 android:id="@+id/tvFecha"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="15/05/2024"
-                android:textColor="#6B7280"
-                android:textSize="12sp" />
+                android:text="S: 15/05/24"
+                android:textColor="#1e293b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llFechas">
 
             <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:layout_marginStart="12dp"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
                 android:src="@drawable/ic_estadistica_02"
-                app:tint="#6B7280" />
+                app:tint="#64748b" />
 
             <TextView
                 android:id="@+id/tvArea"
@@ -96,22 +107,30 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:text="2.0 ha"
-                android:textColor="#6B7280"
-                android:textSize="12sp" />
+                android:textColor="#64748b"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvTerreno"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="en Lote A"
+                android:textColor="#94a3b8"
+                android:textSize="11sp"
+                android:visibility="gone" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/tvFinanzas"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:text="S/ 0.00"
-            android:textColor="#15803D"
-            android:textSize="14sp"
+            android:textColor="#15803d"
+            android:textSize="13sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/llInfo" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
