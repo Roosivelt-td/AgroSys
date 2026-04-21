@@ -84,6 +84,7 @@ class CultivosListActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
         binding.btnNuevoCultivo.setOnClickListener { goToRegister() }
         binding.btnEmptyAdd.setOnClickListener { goToRegister() }
+        binding.fabAdd.setOnClickListener { goToRegister() }
         
         binding.navHome.setOnClickListener {
             val intent = Intent(this, DashboardActivity::class.java)
@@ -189,6 +190,8 @@ class CultivosListActivity : AppCompatActivity() {
         // Bloqueo de botones de creación
         binding.btnNuevoCultivo.alpha = if (hasTerrenos) 1.0f else 0.4f
         binding.btnEmptyAdd.alpha = if (hasTerrenos) 1.0f else 0.4f
+        binding.fabAdd.alpha = if (hasTerrenos) 1.0f else 0.4f
+        binding.fabAdd.isEnabled = hasTerrenos
 
         // Bloqueo de barra inferior
         binding.navLabores.alpha = if (hasCultivos) 1.0f else 0.4f

@@ -13,6 +13,13 @@
 
     <style name="Theme.AgroSys" parent="Base.Theme.AgroSys" />
 
+    <style name="CustomDialogTheme" parent="Theme.Material3.DayNight.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
     <style name="ShapeAppearanceOverlay.App.Card.TopOnly" parent="">
         <item name="cornerSizeTopLeft">40dp</item>
         <item name="cornerSizeTopRight">40dp</item>

@@ -95,6 +95,10 @@ class DetalleCultivoActivity : AppCompatActivity() {
         binding.btnAgregarLabor.setOnClickListener {
             val intent = Intent(this, RegisterLaborActivity::class.java)
             intent.putExtra("CULTIVO_ID", currentCultivoId)
+            currentCultivo?.let { cultivo ->
+                intent.putExtra("TERRENO_NOMBRE", binding.tvTerrenoNombre.text.toString())
+                intent.putExtra("CULTIVO_DETALLE", "${cultivo.nombre_lote} (${cultivo.variedad})")
+            }
             startActivity(intent)
         }
 
@@ -200,6 +204,15 @@ class DetalleCultivoActivity : AppCompatActivity() {
             updateStatusButtons(cultivo.estado)
             updateFinanzas(labores, insumos, cosechas, ventas)
             updateListas(labores, cosechas, ventas)
+            
+            // Actualizar el header con la última actividad
+            val lastLabor = labores.maxByOrNull { it.fecha_realizacion }
+            if (lastLabor != null) {
+                val cat = db.assetDao().getCatalogoLaborById(lastLabor.catalogo_labor_id)
+                val date = Date(lastLabor.fecha_realizacion * 1000)
+                val sdf = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
+                binding.tvHeaderLabel.text = "Última: ${cat?.nombre ?: "Labor"} (${sdf.format(date)})"
+            }
         }
     }
 
@@ -292,12 +305,31 @@ class DetalleCultivoActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             val catalogo = db.assetDao().getCatalogoLabores()
-            val groupedLabores = labores.groupBy { it.catalogo_labor_id }
-                .map { (catId, items) -> 
+            
+            // Mostrar solo las últimas 5 labores únicas o grupos
+            val sortedLabores = labores.sortedByDescending { it.fecha_realizacion }
+            val recentLabores = sortedLabores.take(5)
+            
+            val groupedLabores = recentLabores.groupBy { it.catalogo_labor_id }
+                .map { (catId, _) ->
                     val catLabor = catalogo.find { it.id == catId }
-                    LaborGroup(catId, catLabor?.nombre ?: "Labor", items)
+                    // Obtenemos todas las labores de este tipo para el resumen completo en el modal
+                    val allItemsOfType = labores.filter { it.catalogo_labor_id == catId }
+                    LaborGroup(catId, catLabor?.nombre ?: "Labor", allItemsOfType)
                 }
-            binding.rvLabores.adapter = LaboresGroupAdapter(groupedLabores)
+            binding.rvLabores.adapter = LaboresGroupAdapter(groupedLabores, isRecent = true)
+            
+            // Si hay más de 5 labores en total, mostrar botón "Ver más"
+            if (labores.size > 5) {
+                binding.btnVerTodoHistorial.visibility = android.view.View.VISIBLE
+                binding.btnVerTodoHistorial.setOnClickListener {
+                    val intent = android.content.Intent(this@DetalleCultivoActivity, LaboresListActivity::class.java)
+                    intent.putExtra("CULTIVO_ID", currentCultivoId)
+                    startActivity(intent)
+                }
+            } else {
+                binding.btnVerTodoHistorial.visibility = android.view.View.GONE
+            }
         }
 
         binding.tvCosechasTitulo.text = getString(R.string.label_cosechas_count, cosechas.size)
@@ -306,45 +338,39 @@ class DetalleCultivoActivity : AppCompatActivity() {
 
     data class LaborGroup(val id: Int, val nombre: String, val items: List<LaborRealizadaEntity>)
 
-    inner class LaboresGroupAdapter(private val groups: List<LaborGroup>) : RecyclerView.Adapter<LaboresGroupAdapter.ViewHolder>() {
+    inner class LaboresGroupAdapter(
+        private val groups: List<LaborGroup>,
+        private val isRecent: Boolean = false
+    ) : RecyclerView.Adapter<LaboresGroupAdapter.ViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(ItemLaborGroupBinding.inflate(LayoutInflater.from(parent.context), parent, false))
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val group = groups[position]
-            holder.binding.tvNombreCultivo.text = "${group.nombre} (${group.items.size})"
+            
+            if (isRecent) {
+                // En la vista reciente, mostramos la labor individual más que el grupo
+                val item = group.items.first()
+                holder.binding.tvNombreCultivo.text = group.nombre
+                val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                holder.binding.tvResumenLabores.text = "Registrado el ${sdf.format(Date(item.fecha_realizacion * 1000))}"
+            } else {
+                holder.binding.tvNombreCultivo.text = "${group.nombre} (${group.items.size})"
 
-            lifecycleScope.launch {
-                var totalGastoGroup = 0.0
-                group.items.forEach { labor ->
-                    val insumos = db.assetDao().getInsumosByLaborId(labor.id)
-                    totalGastoGroup += labor.costo_mano_obra_total + labor.costo_maquinaria_total + 
-                                     insumos.sumOf { (it.cantidad * it.costo_unitario) + it.costo_flete }
+                lifecycleScope.launch {
+                    var totalGastoGroup = 0.0
+                    group.items.forEach { labor ->
+                        val insumos = db.assetDao().getInsumosByLaborId(labor.id)
+                        totalGastoGroup += labor.costo_mano_obra_total + labor.costo_maquinaria_total + 
+                                         insumos.sumOf { (it.cantidad * it.costo_unitario) + it.costo_flete }
+                    }
+                    holder.binding.tvResumenLabores.text = "Gasto acumulado: S/ ${String.format("%.2f", totalGastoGroup)}"
                 }
-                holder.binding.tvResumenLabores.text = "Gasto acumulado: S/ ${String.format("%.2f", totalGastoGroup)}"
             }
             
             holder.binding.layoutExpandible.visibility = android.view.View.GONE
             holder.binding.ivExpand.rotation = 0f
 
             holder.binding.layoutHeader.setOnClickListener {
-                val isExpanded = holder.binding.layoutExpandible.visibility == android.view.View.VISIBLE
-                holder.binding.layoutExpandible.visibility = if (isExpanded) android.view.View.GONE else android.view.View.VISIBLE
-                holder.binding.ivExpand.animate().rotation(if (isExpanded) 0f else 180f).start()
-                
-                if (!isExpanded && holder.binding.containerLaboresMini.childCount == 0) {
-                    group.items.sortedByDescending { it.fecha_realizacion }.forEach { labor ->
-                        val miniBinding = ItemLaborMiniBinding.inflate(LayoutInflater.from(holder.itemView.context), holder.binding.containerLaboresMini, false)
-                        miniBinding.tvMiniNombre.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(labor.fecha_realizacion * 1000))
-                        
-                        lifecycleScope.launch {
-                            val costoInsumos = db.assetDao().getCostoInsumosByLabor(labor.id) ?: 0.0
-                            val subtotal = labor.costo_mano_obra_total + labor.costo_maquinaria_total + costoInsumos
-                            miniBinding.tvMiniCosto.text = "S/ ${String.format("%.2f", subtotal)}"
-                        }
-                        
-                        miniBinding.tvMiniFecha.text = if (labor.observaciones.isNullOrBlank()) "Sin observaciones" else labor.observaciones
-                        holder.binding.containerLaboresMini.addView(miniBinding.root)
-                    }
-                }
+                mostrarResumenLabor(group)
             }
 
             holder.binding.btnVerDetalles.setOnClickListener {
@@ -354,6 +380,61 @@ class DetalleCultivoActivity : AppCompatActivity() {
                 intent.putExtra("LABOR_NOMBRE", group.nombre)
                 startActivity(intent)
             }
+        }
+
+        private fun mostrarResumenLabor(group: LaborGroup) {
+            val lastLabor = group.items.maxByOrNull { it.fecha_realizacion } ?: return
+            val dialogBinding = com.sigcpa.agrosys.databinding.DialogLaborHistoryBriefBinding.inflate(layoutInflater)
+            val dialog = AlertDialog.Builder(this@DetalleCultivoActivity, R.style.CustomDialogTheme)
+                .setView(dialogBinding.root)
+                .create()
+
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+            dialogBinding.tvTitle.text = "${group.nombre} (${group.items.size})"
+            
+            val date = Date(lastLabor.fecha_realizacion * 1000)
+            dialogBinding.tvLastDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(date)
+            dialogBinding.tvLastTime.text = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(date)
+
+            lifecycleScope.launch {
+                var totalGasto = 0.0
+                var totalPeones = 0
+                group.items.forEach { labor ->
+                    val insumos = db.assetDao().getInsumosByLaborId(labor.id)
+                    val manoObra = db.assetDao().getManoObraByLabor(labor.id)
+                    totalGasto += labor.costo_mano_obra_total + labor.costo_maquinaria_total + 
+                                 insumos.sumOf { (it.cantidad * it.costo_unitario) + it.costo_flete }
+                    totalPeones += manoObra.sumOf { it.cantidad_trabajadores }
+                }
+
+                dialogBinding.tvSummary.text = "Gasto Total: S/ ${String.format("%.2f", totalGasto)}\n" +
+                                              "Mano de obra acumulada: $totalPeones peones"
+            }
+
+            dialogBinding.btnVerDetalles.setOnClickListener {
+                dialog.dismiss()
+                val intent = Intent(this@DetalleCultivoActivity, LaborTypeDetailActivity::class.java)
+                intent.putExtra("CULTIVO_ID", currentCultivoId)
+                intent.putExtra("LABOR_ID", group.id)
+                intent.putExtra("LABOR_NOMBRE", group.nombre)
+                startActivity(intent)
+            }
+
+            dialogBinding.btnNuevaLabor.setOnClickListener {
+                dialog.dismiss()
+                val intent = Intent(this@DetalleCultivoActivity, RegisterLaborActivity::class.java)
+                intent.putExtra("CULTIVO_ID", currentCultivoId)
+                intent.putExtra("PRE_SELECT_LABOR_ID", group.id)
+                intent.putExtra("LABOR_NOMBRE", group.nombre)
+                currentCultivo?.let { cultivo ->
+                    intent.putExtra("TERRENO_NOMBRE", binding.tvTerrenoNombre.text.toString())
+                    intent.putExtra("CULTIVO_DETALLE", "${cultivo.nombre_lote} (${cultivo.variedad})")
+                }
+                startActivity(intent)
+            }
+
+            dialog.show()
         }
         override fun getItemCount() = groups.size
         inner class ViewHolder(val binding: ItemLaborGroupBinding) : RecyclerView.ViewHolder(binding.root)

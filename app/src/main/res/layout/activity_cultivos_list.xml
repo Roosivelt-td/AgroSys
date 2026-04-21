@@ -178,31 +178,55 @@
             android:visibility="visible">
 
             <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:src="@drawable/agro_planta_buena"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@drawable/agro_cosecha"
                 app:tint="#D1D5DB" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="20dp"
                 android:text="@string/msg_no_cultivos"
+                android:textColor="#374151"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/msg_no_cultivos_detail"
                 android:textColor="#6B7280"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:gravity="center" />
 
             <Button
                 android:id="@+id/btnEmptyAdd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="24dp"
                 android:backgroundTint="#15803D"
                 android:text="@string/btn_nuevo_cultivo_plus"
                 android:textAllCaps="false"
                 android:textColor="#ffffff"
+                android:paddingHorizontal="32dp"
                 app:cornerRadius="24dp" />
         </LinearLayout>
     </FrameLayout>
+
+    <!-- FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="#15803D"
+        android:src="@android:drawable/ic_input_add"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="#ffffff" />
 
     <!-- Bottom Navigation -->
     <LinearLayout

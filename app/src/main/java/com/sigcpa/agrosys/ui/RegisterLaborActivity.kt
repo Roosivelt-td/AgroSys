@@ -100,20 +100,33 @@ class RegisterLaborActivity : AppCompatActivity() {
             yaSembro = laborsHistory.any { it.catalogo_labor_id == 2 }
             updateLaborGridState()
             updateCounts()
+
+            // Manejar pre-selección automática si viene de otra pantalla
+            val preSelectId = intent.getIntExtra("PRE_SELECT_LABOR_ID", -1)
+            val preSelectNombre = intent.getStringExtra("LABOR_NOMBRE")
+            if (preSelectId != -1 && preSelectNombre != null) {
+                // Si viene de un resumen, abrimos directamente el formulario
+                openLaborDialog(preSelectId, preSelectNombre)
+            }
         }
     }
 
     private fun updateCounts() {
-        val counts = laborsHistory.groupBy { it.catalogo_labor_id }.mapValues { it.value.size }
-        binding.tvCountPreparacion.text = (counts[1] ?: 0).toString()
-        binding.tvCountSiembra.text = (counts[2] ?: 0).toString()
-        binding.tvCountRiego.text = (counts[3] ?: 0).toString()
-        binding.tvCountFumigacion.text = (counts[4] ?: 0).toString()
-        binding.tvCountAporque.text = (counts[5] ?: 0).toString()
-        binding.tvCountDeshierbe.text = (counts[6] ?: 0).toString()
-        binding.tvCountFertilizacion.text = (counts[7] ?: 0).toString()
-        binding.tvCountOtros.text = (counts[8] ?: 0).toString()
-        binding.tvCountCosecha.text = (counts[9] ?: 0).toString()
+        lifecycleScope.launch {
+            laborsHistory = db.assetDao().getLaboresByCultivo(selectedCultivoId)
+            val counts = laborsHistory.groupBy { it.catalogo_labor_id }.mapValues { it.value.size }
+            binding.tvCountPreparacion.text = (counts[1] ?: 0).toString()
+            binding.tvCountSiembra.text = (counts[2] ?: 0).toString()
+            binding.tvCountRiego.text = (counts[3] ?: 0).toString()
+            binding.tvCountFumigacion.text = (counts[4] ?: 0).toString()
+            binding.tvCountAporque.text = (counts[5] ?: 0).toString()
+            binding.tvCountDeshierbe.text = (counts[6] ?: 0).toString()
+            binding.tvCountFertilizacion.text = (counts[7] ?: 0).toString()
+            binding.tvCountOtros.text = (counts[8] ?: 0).toString()
+            binding.tvCountCosecha.text = (counts[9] ?: 0).toString()
+            
+            recalculateSequenceState()
+        }
     }
 
     private fun handleLaborClick(laborId: Int, laborName: String) {
@@ -132,7 +145,8 @@ class RegisterLaborActivity : AppCompatActivity() {
         dialog.setContentView(hBinding.root)
 
         hBinding.tvTitle.text = "$laborName (${history.size})"
-        val formattedDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(last.fecha_realizacion * 1000))
+        val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        val formattedDate = sdf.format(Date(last.fecha_realizacion * 1000))
         hBinding.tvLastDate.text = getString(R.string.label_last_time, formattedDate)
         
         lifecycleScope.launch {
@@ -460,7 +474,8 @@ class RegisterLaborActivity : AppCompatActivity() {
             
             val itemBinding = ItemLaborDetalleBinding.inflate(layoutInflater, binding.llLaboresList, false)
             itemBinding.tvLaborNombre.text = labor.name
-            itemBinding.tvLaborFecha.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(labor.timestamp * 1000))
+            val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+            itemBinding.tvLaborFecha.text = sdf.format(Date(labor.timestamp * 1000))
             
             val costoMO = labor.manoObra.sumOf { it.cantidad * it.dias * it.costoDia }
             itemBinding.tvLaborCostos.text = "MO: S/ ${String.format("%.2f", costoMO)} | Maq: S/ ${String.format("%.2f", labor.costoMaq)}"

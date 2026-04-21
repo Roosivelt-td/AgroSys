@@ -13,6 +13,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -37,11 +38,14 @@ class LaboresListActivity : AppCompatActivity() {
     private val db by lazy { AppDatabase.getDatabase(this) }
     
     private var hasTerrenos = false
+    private var filterCultivoId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLaboresListBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        filterCultivoId = intent.getIntExtra("CULTIVO_ID", -1)
 
         // Forzar barra de estado verde y iconos blancos
         window.statusBarColor = android.graphics.Color.parseColor("#15803D")
@@ -77,18 +81,10 @@ class LaboresListActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        val goToRegister = {
-            if (hasTerrenos) {
-                // Ahora la lógica es seleccionar desde el terreno
-                Toast.makeText(this, getString(R.string.msg_select_terreno_labor), Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, getString(R.string.error_no_terrenos), Toast.LENGTH_SHORT).show()
-            }
-        }
-
         binding.btnBack.setOnClickListener { finish() }
-        binding.btnNuevaLabor.setOnClickListener { goToRegister() }
-        binding.btnEmptyAdd.setOnClickListener { goToRegister() }
+        binding.btnNuevaLabor.setOnClickListener { showGlobalCultivoSelector() }
+        binding.btnEmptyAdd.setOnClickListener { showGlobalCultivoSelector() }
+        binding.fabAdd.setOnClickListener { showGlobalCultivoSelector() }
 
         binding.navHome.setOnClickListener {
             val intent = Intent(this, DashboardActivity::class.java)
@@ -112,6 +108,65 @@ class LaboresListActivity : AppCompatActivity() {
         }
     }
 
+    private fun showGlobalCultivoSelector() {
+        val sharedPref = getSharedPreferences("agrosys_prefs", MODE_PRIVATE)
+        val userId = sharedPref.getInt("USER_ID", -1)
+
+        lifecycleScope.launch {
+            val agricultor = db.userDao().getAgricultorByUserId(userId) ?: return@launch
+            val cultivos = db.assetDao().getCultivosByAgricultor(agricultor.id)
+                .filter { it.estado == "activo" || it.estado == "planificado" }
+                .sortedByDescending { it.fecha_siembra }
+
+            if (cultivos.isEmpty()) {
+                Toast.makeText(this@LaboresListActivity, "No tienes cultivos activos para registrar labores", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            val dialogBinding = com.sigcpa.agrosys.databinding.DialogSelectCultivoBinding.inflate(layoutInflater)
+            val dialog = AlertDialog.Builder(this@LaboresListActivity, R.style.CustomDialogTheme)
+                .setView(dialogBinding.root)
+                .create()
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+            dialogBinding.rvCultivos.layoutManager = LinearLayoutManager(this@LaboresListActivity)
+            dialogBinding.rvCultivos.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+                
+                inner class SimpleViewHolder(val itemBinding: com.sigcpa.agrosys.databinding.ItemCultivoSimpleBinding) : RecyclerView.ViewHolder(itemBinding.root)
+
+                override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+                    return SimpleViewHolder(com.sigcpa.agrosys.databinding.ItemCultivoSimpleBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+                }
+
+                override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+                    val cultivo = cultivos[position]
+                    val h = holder as SimpleViewHolder
+                    h.itemBinding.tvNombre.text = cultivo.nombre_lote
+                    
+                    lifecycleScope.launch {
+                        val terreno = db.assetDao().getTerrenoById(cultivo.terreno_id)
+                        h.itemBinding.tvDetalle.text = "${terreno?.nombre ?: "Sin terreno"} • ${cultivo.variedad}"
+                    }
+
+                    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    h.itemBinding.tvFecha.text = "Fecha: ${sdf.format(Date(cultivo.fecha_siembra * 1000))}"
+
+                    h.itemView.setOnClickListener {
+                        dialog.dismiss()
+                        val intent = Intent(this@LaboresListActivity, RegisterLaborActivity::class.java)
+                        intent.putExtra("CULTIVO_ID", cultivo.id)
+                        startActivity(intent)
+                    }
+                }
+
+                override fun getItemCount() = cultivos.size
+            }
+
+            dialogBinding.btnCerrar.setOnClickListener { dialog.dismiss() }
+            dialog.show()
+        }
+    }
+
     private fun loadTerrenosActivos() {
         val sharedPref = getSharedPreferences("agrosys_prefs", MODE_PRIVATE)
         val userId = sharedPref.getInt("USER_ID", -1)
@@ -119,11 +174,28 @@ class LaboresListActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val agricultor = db.userDao().getAgricultorByUserId(userId)
             if (agricultor != null) {
+                if (filterCultivoId != -1) {
+                    val cultivo = db.assetDao().getCultivoById(filterCultivoId)
+                    if (cultivo != null) {
+                        val terreno = db.assetDao().getTerrenoById(cultivo.terreno_id)
+                        if (terreno != null) {
+                            hasTerrenos = true
+                            binding.btnNuevaLabor.alpha = 1.0f
+                            binding.fabAdd.alpha = 1.0f
+                            binding.fabAdd.isEnabled = true
+                            updateUI(listOf(terreno))
+                            return@launch
+                        }
+                    }
+                }
+
                 val terrenos = db.assetDao().getTerrenosActivosYPlanificados(agricultor.id)
                 hasTerrenos = terrenos.isNotEmpty()
                 
                 // Aplicar bloqueos visuales
                 binding.btnNuevaLabor.alpha = if (hasTerrenos) 1.0f else 0.4f
+                binding.fabAdd.alpha = if (hasTerrenos) 1.0f else 0.4f
+                binding.fabAdd.isEnabled = hasTerrenos
                 binding.navReportes.alpha = if (hasTerrenos) 1.0f else 0.4f
 
                 updateUI(terrenos)
@@ -162,6 +234,12 @@ class LaboresListActivity : AppCompatActivity() {
             holder.binding.tvUbicacion.text = terreno.direccion_referencia ?: getString(R.string.label_sin_ubicacion)
             holder.binding.tvAreaTotal.text = "${terreno.area_hectareas} ${getString(R.string.unit_ha)}"
             
+            if (filterCultivoId != -1) {
+                holder.binding.root.setBackgroundColor(android.graphics.Color.parseColor("#F0FDF4"))
+                holder.binding.root.strokeWidth = 2
+                holder.binding.root.strokeColor = android.graphics.Color.parseColor("#15803D")
+            }
+            
             holder.binding.chipEstado.text = terreno.estado.uppercase()
             holder.binding.chipEstado.chipBackgroundColor = ColorStateList.valueOf(
                 if (terreno.estado == "activo") Color.parseColor("#166534") else Color.parseColor("#1d4ed8")
@@ -176,7 +254,18 @@ class LaboresListActivity : AppCompatActivity() {
                 holder.binding.tvAreaDisponible.text = "${String.format("%.2f", areaDisponible)} ${getString(R.string.unit_ha)}"
                 
                 holder.itemView.setOnClickListener {
-                    showCultivosModal(terreno, cultivos, areaDisponible)
+                    if (filterCultivoId != -1) {
+                        val filteredCultivo = cultivos.find { it.id == filterCultivoId }
+                        if (filteredCultivo != null) {
+                            val intent = android.content.Intent(this@LaboresListActivity, RegisterLaborActivity::class.java)
+                            intent.putExtra("CULTIVO_ID", filteredCultivo.id)
+                            startActivity(intent)
+                        } else {
+                            showCultivosModal(terreno, cultivos, areaDisponible)
+                        }
+                    } else {
+                        showCultivosModal(terreno, cultivos, areaDisponible)
+                    }
                 }
             }
         }

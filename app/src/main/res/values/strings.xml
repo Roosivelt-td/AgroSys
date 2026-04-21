@@ -32,10 +32,13 @@
     <string name="btn_usuarios">Usuarios</string>
     <string name="label_lista_de">Lista de</string>
     <string name="msg_no_terrenos">No existe ningún terreno registrado</string>
+    <string name="msg_no_terrenos_detail">Registra tus parcelas o campos para empezar a planificar tus cultivos.</string>
     <string name="btn_registrar_terreno_plus">+ Registrar terreno</string>
     <string name="msg_no_cultivos">No hay cultivos registrados</string>
+    <string name="msg_no_cultivos_detail">Registra tus cultivos para empezar a gestionar tus labores y cosechas.</string>
     <string name="btn_nuevo_cultivo_plus">+ Nuevo cultivo</string>
     <string name="msg_no_labores">No hay labores registradas</string>
+    <string name="msg_no_labores_detail">Registra las tareas diarias para llevar un mejor control de tus cultivos.</string>
     <string name="btn_nueva_labor_plus">+ Nueva labor</string>
     <string name="filter_todas">Todas</string>
     <string name="msg_select_terreno_labor">Selecciona un terreno para registrar labor</string>
@@ -83,6 +86,7 @@
     <string name="label_cosechas_count">Cosechas (%1$d)</string>
     <string name="btn_agregar">+ Agregar</string>
     <string name="btn_registrar">+ Registrar</string>
+    <string name="btn_ver_todo_historial">Ver historial completo</string>
     <string name="btn_eliminar_cultivo">Eliminar cultivo</string>
     <string name="dialog_eliminar_cultivo_title">¿Eliminar cultivo?</string>
     <string name="dialog_eliminar_cultivo_msg">¿Estás seguro de que deseas eliminar este cultivo? Se perderán todas las labores y cosechas registradas.</string>

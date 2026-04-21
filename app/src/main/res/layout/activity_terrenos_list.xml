@@ -97,28 +97,39 @@
             android:visibility="visible">
 
             <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
                 android:src="@drawable/ic_ubicacion_terreno"
                 app:tint="#D1D5DB" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="20dp"
                 android:text="@string/msg_no_terrenos"
+                android:textColor="#374151"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/msg_no_terrenos_detail"
                 android:textColor="#6B7280"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:gravity="center" />
 
             <Button
                 android:id="@+id/btnEmptyAdd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="24dp"
                 android:backgroundTint="#15803D"
                 android:text="@string/btn_registrar_terreno_plus"
                 android:textAllCaps="false"
                 android:textColor="#ffffff"
+                android:paddingHorizontal="32dp"
                 app:cornerRadius="24dp" />
         </LinearLayout>
     </FrameLayout>

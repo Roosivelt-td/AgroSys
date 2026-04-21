@@ -79,7 +79,8 @@ class LaborTypeDetailActivity : AppCompatActivity() {
             }
 
             // Actualizar resumen en la UI
-            binding.tvHeaderTitle.text = "${intent.getStringExtra("LABOR_NOMBRE")} (${labores.size})\nGasto Total: S/ ${String.format("%.2f", granTotal)}"
+            binding.tvHeaderTitle.text = intent.getStringExtra("LABOR_NOMBRE") ?: "Detalle"
+            binding.tvHeaderLabel.text = "HISTORIAL (${labores.size}) • TOTAL S/ ${String.format("%.2f", granTotal)}"
             
             binding.rvLabores.adapter = LaboresAdapter(labores)
         }
@@ -96,7 +97,8 @@ class LaborTypeDetailActivity : AppCompatActivity() {
             val isExpanded = expandedPositions.contains(position)
             
             holder.binding.tvLaborNombre.text = "Registro #${lista.size - position}"
-            holder.binding.tvLaborFecha.text = SimpleDateFormat("EEEE d 'de' MMMM, yyyy", Locale.getDefault()).format(Date(item.fecha_realizacion * 1000)).replaceFirstChar { it.uppercase() }
+            val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+            holder.binding.tvLaborFecha.text = sdf.format(Date(item.fecha_realizacion * 1000))
             
             lifecycleScope.launch {
                 val insumos = db.assetDao().getInsumosByLaborId(item.id)

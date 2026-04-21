@@ -85,6 +85,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingHorizontal="16dp">
+
             <TextView
                 android:id="@+id/filterTodas"
                 android:layout_width="wrap_content"
@@ -96,6 +97,31 @@
                 android:text="@string/filter_todas"
                 android:textColor="#ffffff"
                 android:textSize="12sp" />
+
+            <Space
+                android:layout_width="16dp"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/tvSeparador"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="|"
+                android:textColor="#9CA3AF"
+                android:textSize="14sp" />
+
+            <Space
+                android:layout_width="16dp"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/tvTextoExtra"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lista de terrenos con cultivos"
+                android:textColor="#6B7280"
+                android:textSize="12sp" />
+
         </LinearLayout>
     </HorizontalScrollView>
 
@@ -126,31 +152,55 @@
             android:visibility="visible">
 
             <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:src="@drawable/ic_lista"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@drawable/ic_trabajo_01"
                 app:tint="#D1D5DB" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="20dp"
                 android:text="@string/msg_no_labores"
+                android:textColor="#374151"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/msg_no_labores_detail"
                 android:textColor="#6B7280"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:gravity="center" />
 
             <Button
                 android:id="@+id/btnEmptyAdd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="24dp"
                 android:backgroundTint="#15803D"
                 android:text="@string/btn_nueva_labor_plus"
                 android:textAllCaps="false"
                 android:textColor="#ffffff"
+                android:paddingHorizontal="32dp"
                 app:cornerRadius="24dp" />
         </LinearLayout>
     </FrameLayout>
+
+    <!-- FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="#15803D"
+        android:src="@android:drawable/ic_input_add"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="#ffffff" />
 
     <!-- Bottom Navigation -->
     <LinearLayout

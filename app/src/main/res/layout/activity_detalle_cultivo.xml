@@ -410,6 +410,17 @@
                 android:nestedScrollingEnabled="false"
                 tools:listitem="@layout/item_labor_detalle" />
 
+            <Button
+                android:id="@+id/btnVerTodoHistorial"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_ver_todo_historial"
+                android:textAllCaps="false"
+                android:textColor="#4b5563"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
             <!-- Cosechas -->
             <LinearLayout
                 android:layout_width="match_parent"

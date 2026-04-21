@@ -5,17 +5,17 @@
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#00582a">
+    android:background="#F8FAFC"
+    android:orientation="vertical">
 
     <LinearLayout
-        android:id="@+id/header_container"
+        android:id="@+id/headerContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/header_gradient_bg"
+        android:background="#15803D"
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
-        android:paddingTop="5dp"
+        android:paddingTop="12dp"
         android:paddingBottom="24dp">
 
         <LinearLayout
@@ -29,13 +29,12 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/direccion_izquierda"
-                app:tint="#ffffff"
-                android:rotation="180"/>
+                app:tint="#ffffff" />
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="16dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -43,9 +42,11 @@
                     android:id="@+id/tvHeaderLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Detalle de"
-                    android:textColor="#dcfce7"
-                    android:textSize="12sp" />
+                    android:letterSpacing="0.1"
+                    android:text="HISTORIAL DE LABOR"
+                    android:textColor="#BBF7D0"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tvHeaderTitle"
@@ -53,36 +54,27 @@
                     android:layout_height="wrap_content"
                     android:text="Cargando..."
                     android:textColor="#ffffff"
-                    android:textSize="18sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
             <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="@drawable/circle_bg_green_light"
-                android:padding="8dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/rounded_soft"
+                android:backgroundTint="#22C55E"
+                android:padding="10dp"
                 android:src="@drawable/ic_lista"
-                app:tint="#15803d" />
+                app:tint="#FFFFFF" />
         </LinearLayout>
     </LinearLayout>
 
-    <com.google.android.material.card.MaterialCardView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvLabores"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:cardCornerRadius="40dp"
-        app:cardElevation="0dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.Card.TopOnly">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvLabores"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#FFFFFF"
-            android:clipToPadding="false"
-            android:padding="24dp"
-            tools:listitem="@layout/item_labor_detalle" />
-
-    </com.google.android.material.card.MaterialCardView>
+        android:clipToPadding="false"
+        android:padding="16dp"
+        tools:listitem="@layout/item_labor_detalle" />
 
 </LinearLayout>
