@@ -2,15 +2,21 @@ package com.sigcpa.agrosys.ui
 
 import android.app.DatePickerDialog
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.ui.adapters.TerrenoSelectorAdapter
 import com.sigcpa.agrosys.database.AppDatabase
 import com.sigcpa.agrosys.database.entities.CatalogoCultivoEntity
@@ -38,6 +44,22 @@ class RegisterCultivoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterCultivoBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Branding y Insets
+        window.statusBarColor = Color.parseColor("#15803D")
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        val initialHeaderTopPadding = binding.headerContainer.paddingTop
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.headerContainer.setPadding(
+                binding.headerContainer.paddingLeft,
+                initialHeaderTopPadding + systemBars.top,
+                binding.headerContainer.paddingRight,
+                binding.headerContainer.paddingBottom
+            )
+            insets
+        }
 
         setupUI()
         loadData()
@@ -95,8 +117,8 @@ class RegisterCultivoActivity : AppCompatActivity() {
 
     private fun updateCicloInfo(it: CatalogoCultivoEntity) {
         binding.tvCicloInfo.visibility = View.VISIBLE
-        val ciclo = if (it.tipo_ciclo == "perenne") "Perenne" else "${it.dias_a_cosecha_promedio ?: "--"} días"
-        binding.tvCicloInfo.text = "Ciclo productivo estimado: $ciclo"
+        val ciclo = if (it.tipo_ciclo == "perenne") getString(R.string.label_perenne) else "${it.dias_a_cosecha_promedio ?: "--"} ${getString(R.string.unit_days)}"
+        binding.tvCicloInfo.text = getString(R.string.label_ciclo_estimado, ciclo)
     }
 
     private fun seleccionarCultivoPorNombre(nombre: String) {
@@ -150,8 +172,8 @@ class RegisterCultivoActivity : AppCompatActivity() {
             val areaDisponible = terreno.area_hectareas - areaOcupada
 
             binding.tvSelectedTerrenoName.text = terreno.nombre
-            binding.tvSelectedTerrenoArea.text = "${String.format("%.2f", areaDisponible)} Hectáreas Libres"
-            binding.tvSelectedTerrenoUbicacion.text = terreno.direccion_referencia ?: terreno.ubicacion_geo ?: "Ubicación no especificada"
+            binding.tvSelectedTerrenoArea.text = getString(R.string.label_ha_free, areaDisponible)
+            binding.tvSelectedTerrenoUbicacion.text = terreno.direccion_referencia ?: terreno.ubicacion_geo ?: getString(R.string.label_no_location)
             binding.badgeStatus.text = terreno.tipo_tenencia.replaceFirstChar { it.uppercase() }
         }
     }
@@ -190,7 +212,7 @@ class RegisterCultivoActivity : AppCompatActivity() {
             val terrenos = db.assetDao().getTerrenosByAgricultor(agricultor.id)
 
             if (terrenos.isEmpty()) {
-                Toast.makeText(this@RegisterCultivoActivity, "No tienes terrenos. Registra uno primero.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@RegisterCultivoActivity, getString(R.string.error_no_terrenos), Toast.LENGTH_LONG).show()
                 finish()
                 return@launch
             }
@@ -238,29 +260,29 @@ class RegisterCultivoActivity : AppCompatActivity() {
         val observaciones = binding.etObservaciones.text.toString().trim()
         
         if (selectedTerreno == null) {
-            Toast.makeText(this, "⚠️ El terreno es obligatorio", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_terreno_required), Toast.LENGTH_SHORT).show()
             return
         }
         if (selectedCatalogo == null) {
-            Toast.makeText(this, "⚠️ Selecciona un tipo de cultivo", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_cultivo_type_required), Toast.LENGTH_SHORT).show()
             return
         }
         if (variedad.isEmpty()) {
-            Toast.makeText(this, "⚠️ La variedad es obligatoria", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_variedad_required), Toast.LENGTH_SHORT).show()
             return
         }
         if (fechaPlanificadaStr.isEmpty()) {
-            Toast.makeText(this, "⚠️ La fecha planificada es obligatoria", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_fecha_planificada_required), Toast.LENGTH_SHORT).show()
             return
         }
         if (areaStr.isEmpty()) {
-            Toast.makeText(this, "⚠️ El área es obligatoria", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_area_required), Toast.LENGTH_SHORT).show()
             return
         }
 
         val areaNueva = areaStr.toDoubleOrNull() ?: 0.0
         if (areaNueva <= 0) {
-            Toast.makeText(this, "⚠️ El área debe ser mayor a 0", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_invalid_area), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -271,7 +293,7 @@ class RegisterCultivoActivity : AppCompatActivity() {
             val areaDisponible = terreno.area_hectareas - areaOcupada
 
             if (areaNueva > areaDisponible) {
-                Toast.makeText(this@RegisterCultivoActivity, "❌ Área insuficiente. Disponible: ${String.format("%.2f", areaDisponible)} ha", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@RegisterCultivoActivity, getString(R.string.error_insufficient_area, areaDisponible), Toast.LENGTH_LONG).show()
                 return@launch
             }
 
@@ -295,7 +317,7 @@ class RegisterCultivoActivity : AppCompatActivity() {
 
             val id = db.assetDao().insertCultivo(nuevoCultivo)
             if (id > 0) {
-                Toast.makeText(this@RegisterCultivoActivity, "✅ Cultivo registrado", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@RegisterCultivoActivity, getString(R.string.msg_cultivo_registered), Toast.LENGTH_LONG).show()
                 finish()
             }
         }

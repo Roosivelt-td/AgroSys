@@ -3,11 +3,15 @@ package com.sigcpa.agrosys.ui
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.sigcpa.agrosys.R
@@ -36,6 +40,32 @@ class RegisterLaborActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterLaborBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Branding y Insets
+        window.statusBarColor = Color.parseColor("#15803D")
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        val initialFooterBottomPadding = binding.footerContainer.paddingBottom
+        
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            
+            binding.headerContainer.setPadding(
+                binding.headerContainer.paddingLeft,
+                systemBars.top,
+                binding.headerContainer.paddingRight,
+                binding.headerContainer.paddingBottom
+            )
+            
+            binding.footerContainer.setPadding(
+                binding.footerContainer.paddingLeft,
+                binding.footerContainer.paddingTop,
+                binding.footerContainer.paddingRight,
+                initialFooterBottomPadding + systemBars.bottom
+            )
+            
+            insets
+        }
 
         selectedCultivoId = intent.getIntExtra("CULTIVO_ID", -1)
         binding.tvHeaderTitle.text = intent.getStringExtra("TERRENO_NOMBRE") ?: "Terreno"
@@ -102,7 +132,8 @@ class RegisterLaborActivity : AppCompatActivity() {
         dialog.setContentView(hBinding.root)
 
         hBinding.tvTitle.text = "$laborName (${history.size})"
-        hBinding.tvLastDate.text = "Última vez: " + SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(last.fecha_realizacion * 1000))
+        val formattedDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(last.fecha_realizacion * 1000))
+        hBinding.tvLastDate.text = getString(R.string.label_last_time, formattedDate)
         
         lifecycleScope.launch {
             val mo = db.assetDao().getManoObraByLabor(last.id)
@@ -110,7 +141,8 @@ class RegisterLaborActivity : AppCompatActivity() {
             val cantMO = mo.sumOf { it.cantidad_trabajadores }
             val insumosCosto = db.assetDao().getCostoInsumosByLabor(last.id) ?: 0.0
             
-            hBinding.tvSummary.text = "Gasto: S/ ${String.format("%.2f", totalMO + last.costo_maquinaria_total + insumosCosto)}\nMano de obra: $cantMO peones"
+            val totalGasto = totalMO + last.costo_maquinaria_total + insumosCosto
+            hBinding.tvSummary.text = "${getString(R.string.label_gasto, totalGasto)}\n${getString(R.string.label_mo_peones, cantMO)}"
         }
 
         hBinding.btnVerDetalles.setOnClickListener {
@@ -163,14 +195,14 @@ class RegisterLaborActivity : AppCompatActivity() {
         // Validar secuencia antes de abrir (solo si es nueva labor)
         if (existingLabor == null) {
             if (laborId == 1 && yaPreparo) {
-                Toast.makeText(this, "La preparación ya ha sido registrada anteriormente.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_prep_already_registered), Toast.LENGTH_SHORT).show()
             }
             if (laborId == 2 && !yaPreparo) {
-                Toast.makeText(this, "⚠️ Primero debes registrar la Preparación del terreno", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_require_prep), Toast.LENGTH_SHORT).show()
                 return
             }
             if (laborId > 2 && !yaSembro) {
-                Toast.makeText(this, "⚠️ Primero debes registrar la Siembra", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_require_siembra), Toast.LENGTH_SHORT).show()
                 return
             }
         }
@@ -416,13 +448,13 @@ class RegisterLaborActivity : AppCompatActivity() {
         val labor = currentLabor
         
         if (labor == null) {
-            binding.tvLaboresListTitle.text = "Labor para registrar en esta sesión:"
+            binding.tvLaboresListTitle.text = getString(R.string.label_labor_sesion)
             binding.tvEmptyLabores.visibility = View.VISIBLE
-            binding.tvEmptyLabores.text = "No has seleccionado ninguna labor todavía"
+            binding.tvEmptyLabores.text = getString(R.string.msg_no_labor_selected)
             binding.btnFinalizarRegistro.isEnabled = false
             binding.tvCostoTotalSession.text = "S/ 0.00"
         } else {
-            binding.tvLaboresListTitle.text = "Labor a registrar: ${labor.name}"
+            binding.tvLaboresListTitle.text = getString(R.string.label_labor_to_register, labor.name)
             binding.tvEmptyLabores.visibility = View.GONE
             binding.btnFinalizarRegistro.isEnabled = true
             
@@ -437,7 +469,7 @@ class RegisterLaborActivity : AppCompatActivity() {
             itemBinding.tvLaborInsumosCount.text = "${labor.insumos.size} items"
             
             val subtotal = costoMO + labor.costoMaq + subtotalInsumos
-            itemBinding.tvLaborTotal.text = "Subtotal: S/ ${String.format("%.2f", subtotal)}"
+            itemBinding.tvLaborTotal.text = getString(R.string.label_subtotal, subtotal)
             binding.tvCostoTotalSession.text = "S/ ${String.format("%.2f", subtotal)}"
 
             // Listar detalles de insumos bajo la labor
@@ -473,7 +505,7 @@ class RegisterLaborActivity : AppCompatActivity() {
 
                 insRow.root.setOnLongClickListener {
                     androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setMessage("¿Deseas editar este insumo?")
+                        .setMessage(getString(R.string.msg_edit_insumo_confirm))
                         .setPositiveButton("Sí") { _, _ ->
                             openInsumoDialog(index) { nuevosInsumos ->
                                 currentLabor = labor.copy(insumos = nuevosInsumos)
@@ -506,7 +538,7 @@ class RegisterLaborActivity : AppCompatActivity() {
 
             itemBinding.root.setOnLongClickListener {
                 androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setMessage("¿Deseas editar esta labor?")
+                    .setMessage(getString(R.string.msg_edit_labor_confirm))
                     .setPositiveButton("Sí") { _, _ ->
                         showLaborDialog(labor.id, labor.name, labor)
                     }
@@ -559,7 +591,7 @@ class RegisterLaborActivity : AppCompatActivity() {
 
         // Detalle de costos directos
         val directCosts = TextView(this).apply {
-            text = "Costos Directos: S/ ${String.format("%.2f", costoMO + labor.costoMaq)}"
+            text = getString(R.string.label_direct_costs, costoMO + labor.costoMaq)
             textSize = 13f
             setPadding(0, 4, 0, 8)
         }
@@ -568,7 +600,7 @@ class RegisterLaborActivity : AppCompatActivity() {
         // Tabla de Insumos si existen
         if (labor.insumos.isNotEmpty()) {
             val insumosTitle = TextView(this).apply {
-                text = "Insumos Detallados:"
+                text = getString(R.string.label_detailed_insumos)
                 textSize = 12f
                 setTypeface(null, android.graphics.Typeface.BOLD)
                 setPadding(0, 8, 0, 4)
@@ -591,7 +623,7 @@ class RegisterLaborActivity : AppCompatActivity() {
         }
 
         val totalView = TextView(this).apply {
-            text = "\nTOTAL A REGISTRAR: S/ ${String.format("%.2f", total)}"
+            text = getString(R.string.label_total_to_register, total)
             textSize = 16f
             setTextColor(androidx.core.content.ContextCompat.getColor(this@RegisterLaborActivity, R.color.green_primary))
             setTypeface(null, android.graphics.Typeface.BOLD)
@@ -652,7 +684,7 @@ class RegisterLaborActivity : AppCompatActivity() {
                 ))
             }
             
-            Toast.makeText(this@RegisterLaborActivity, "✅ Registro de labor guardado", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@RegisterLaborActivity, getString(R.string.msg_labor_saved), Toast.LENGTH_SHORT).show()
             
             // Limpiar para un nuevo registro sin cerrar la actividad
             currentLabor = null

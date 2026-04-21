@@ -3,55 +3,49 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/header_gradient_bg"
+    android:background="#00582a"
     android:fitsSystemWindows="true">
 
     <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true">
 
-
         <LinearLayout
+            android:id="@+id/main_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
             android:padding="20dp">
 
+            <!-- Logo Header -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginStart="70dp"
-                android:layout_marginEnd="70dp"
-                android:layout_marginBottom="10dp"
-                android:orientation="horizontal"
-                android:gravity="center">
+                android:id="@+id/headerContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:gravity="center"
+                android:orientation="horizontal">
 
                 <ImageView
-                    android:id="@+id/ivTitleLogo"
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="5dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/title_03" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Agricultura\nInteligente"
-                    android:textSize="12sp"
-                    android:layout_gravity="center"
-                    android:textColor="#ffffff"
-                    android:layout_marginBottom="2dp"/>
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:src="@drawable/logo" />
 
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/title_04" />
             </LinearLayout>
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="30dp"
-                app:cardElevation="15dp"
+                app:cardCornerRadius="40dp"
+                app:cardElevation="0dp"
                 app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
@@ -69,70 +63,74 @@
                         android:orientation="horizontal">
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:gravity="center"
                             android:orientation="vertical">
                             <TextView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
                                 android:background="@drawable/circle_bg_green_light"
-                                android:backgroundTint="#166534"
+                                android:backgroundTint="#00582a"
                                 android:gravity="center"
                                 android:text="1"
                                 android:textColor="@android:color/white"
+                                android:textSize="16sp"
                                 android:textStyle="bold" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="Personales"
-                                android:textSize="10sp"
-                                android:textColor="#166534" />
+                                android:text="@string/label_step_personales"
+                                android:textSize="11sp"
+                                android:textColor="#00582a"
+                                android:textStyle="bold" />
                         </LinearLayout>
 
                         <View
-                            android:layout_width="40dp"
+                            android:layout_width="60dp"
                             android:layout_height="2dp"
-                            android:background="#E5E7EB"
-                            android:layout_marginBottom="16dp" />
+                            android:layout_marginHorizontal="12dp"
+                            android:layout_marginBottom="18dp"
+                            android:background="#E5E7EB" />
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:gravity="center"
                             android:orientation="vertical">
                             <TextView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
                                 android:background="@drawable/circle_bg_green_light"
+                                android:backgroundTint="#F3F4F6"
                                 android:gravity="center"
                                 android:text="2"
-                                android:textColor="#6B7280"
+                                android:textColor="#9CA3AF"
+                                android:textSize="16sp"
                                 android:textStyle="bold" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="Información"
-                                android:textSize="10sp"
-                                android:textColor="#6B7280" />
+                                android:text="@string/label_step_informacion"
+                                android:textSize="11sp"
+                                android:textColor="#9CA3AF" />
                         </LinearLayout>
                     </LinearLayout>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Crear Cuenta"
-                        android:textSize="24sp"
+                        android:text="@string/header_crear_cuenta"
+                        android:textSize="28sp"
                         android:textStyle="bold"
                         android:layout_gravity="center"
-                        android:textColor="#1F2937"/>
+                        android:textColor="#111827"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Datos personales"
+                        android:text="@string/label_datos_personales"
                         android:textSize="14sp"
                         android:layout_gravity="center"
                         android:textColor="#6B7280"
@@ -145,78 +143,79 @@
                         <EditText
                             android:id="@+id/etRegName"
                             android:layout_width="0dp"
-                            android:layout_height="50dp"
+                            android:layout_height="55dp"
                             android:layout_weight="1"
                             android:layout_marginEnd="8dp"
                             android:background="@drawable/edit_text_elegant"
-                            android:hint="Nombre"
-                            android:paddingHorizontal="12dp"
+                            android:hint="@string/hint_nombre"
+                            android:paddingHorizontal="16dp"
                             android:textSize="14sp" />
                         <EditText
                             android:id="@+id/etRegLastName"
                             android:layout_width="0dp"
-                            android:layout_height="50dp"
+                            android:layout_height="55dp"
                             android:layout_weight="1"
                             android:background="@drawable/edit_text_elegant"
-                            android:hint="Apellidos"
-                            android:paddingHorizontal="12dp"
+                            android:hint="@string/hint_apellidos"
+                            android:paddingHorizontal="16dp"
                             android:textSize="14sp" />
                     </LinearLayout>
 
                     <EditText
                         android:id="@+id/etRegEmail"
                         android:layout_width="match_parent"
-                        android:layout_height="50dp"
+                        android:layout_height="55dp"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/edit_text_elegant"
-                        android:hint="Correo electrónico"
+                        android:hint="@string/hint_email"
                         android:inputType="textEmailAddress"
-                        android:paddingHorizontal="12dp"
+                        android:paddingHorizontal="16dp"
                         android:textSize="14sp" />
 
                     <EditText
                         android:id="@+id/etRegPhone"
                         android:layout_width="match_parent"
-                        android:layout_height="50dp"
+                        android:layout_height="55dp"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/edit_text_elegant"
-                        android:hint="Teléfono (Opcional)"
+                        android:hint="@string/hint_telefono_opcional"
                         android:inputType="phone"
-                        android:paddingHorizontal="12dp"
+                        android:paddingHorizontal="16dp"
                         android:textSize="14sp" />
 
                     <EditText
                         android:id="@+id/etRegPassword"
                         android:layout_width="match_parent"
-                        android:layout_height="50dp"
+                        android:layout_height="55dp"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/edit_text_elegant"
-                        android:hint="Contraseña"
+                        android:hint="@string/hint_password"
                         android:inputType="textPassword"
-                        android:paddingHorizontal="12dp"
+                        android:paddingHorizontal="16dp"
                         android:textSize="14sp" />
 
                     <EditText
                         android:id="@+id/etRegConfirmPassword"
                         android:layout_width="match_parent"
-                        android:layout_height="50dp"
+                        android:layout_height="55dp"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/edit_text_elegant"
-                        android:hint="Confirmar contraseña"
+                        android:hint="@string/hint_confirm_password"
                         android:inputType="textPassword"
-                        android:paddingHorizontal="12dp"
+                        android:paddingHorizontal="16dp"
                         android:textSize="14sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNextStep"
                         android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:layout_marginTop="20dp"
-                        android:backgroundTint="#a15fc1"
-                        android:text="Continuar"
+                        android:layout_height="56dp"
+                        android:layout_marginTop="24dp"
+                        android:backgroundTint="#BD22C1"
+                        android:text="@string/btn_continuar"
                         android:textAllCaps="false"
+                        android:textSize="16sp"
                         android:textStyle="bold"
-                        app:cornerRadius="12dp" />
+                        app:cornerRadius="15dp" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -225,20 +224,36 @@
                 android:id="@+id/tvSwitchToLogin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="15dp"
-                android:text="¿Ya tienes cuenta? Inicia sesión"
-                android:textColor="#CCFFCC"
+                android:layout_marginTop="20dp"
+                android:text="@string/label_switch_to_login"
+                android:textColor="#ffffff"
                 android:textSize="13sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:background="?attr/selectableItemBackground"
+                android:padding="8dp" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="🛡 Tus datos están seguros"
+                android:layout_marginTop="8dp"
+                android:text="@string/footer_datos_seguros"
                 android:textColor="#9CA3AF"
                 android:textSize="12sp" />
 
         </LinearLayout>
     </ScrollView>
+
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_margin="12dp"
+        android:padding="8dp"
+        android:src="@drawable/direccion_izquierda"
+        app:tint="#ffffff"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

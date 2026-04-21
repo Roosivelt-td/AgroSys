@@ -5,13 +5,14 @@
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="#FFFFFF"
+    android:fitsSystemWindows="false">
 
     <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/header_container"
+        android:id="@+id/app_bar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent">
+        android:background="#00582a">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
@@ -21,11 +22,11 @@
             <!-- Portada Agrícola Estilo Img 1 -->
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="180dp">
+                android:layout_height="200dp">
                 <ImageView
                     android:id="@+id/ivProfilePortada"
                     android:layout_width="match_parent"
-                    android:layout_height="150dp"
+                    android:layout_height="170dp"
                     android:scaleType="centerCrop"
                     android:src="@drawable/header_gradient_bg" />
 

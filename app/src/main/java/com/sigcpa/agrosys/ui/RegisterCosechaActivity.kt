@@ -25,8 +25,25 @@ class RegisterCosechaActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Forzar barra de estado verde y iconos blancos
+        window.statusBarColor = android.graphics.Color.parseColor("#15803D")
+        androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
         binding = ActivityRegisterCosechaBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Manejo dinámico de Insets
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            binding.headerContainer.setPadding(
+                binding.headerContainer.paddingLeft,
+                systemBars.top,
+                binding.headerContainer.paddingRight,
+                binding.headerContainer.paddingBottom
+            )
+            insets
+        }
 
         currentCultivoId = intent.getIntExtra("CULTIVO_ID", -1)
         if (currentCultivoId == -1) {

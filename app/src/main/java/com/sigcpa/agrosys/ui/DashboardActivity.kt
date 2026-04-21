@@ -69,8 +69,8 @@ class DashboardActivity : AppCompatActivity() {
         if (isGranted) {
             getLocationAndWeather()
         } else {
-            Toast.makeText(this, "Para clima exacto, activa la ubicación", Toast.LENGTH_LONG).show()
-            weatherViewModel.fetchWeatherByCity("Ayacucho")
+            Toast.makeText(this, getString(R.string.msg_location_permission_denied), Toast.LENGTH_LONG).show()
+            weatherViewModel.fetchWeatherByCity(getString(R.string.default_city))
         }
     }
 
@@ -92,11 +92,15 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         // También ajustamos el Header para que respete la barra de estado superior
-        val initialHeaderTopPadding = binding.root.findViewById<LinearLayout>(R.id.header_container)?.paddingTop ?: 0
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             val header = binding.root.findViewById<LinearLayout>(R.id.header_container)
-            header?.setPadding(header.paddingLeft, initialHeaderTopPadding + systemBars.top, header.paddingRight, header.paddingBottom)
+            header?.setPadding(
+                header.paddingLeft,
+                systemBars.top,
+                header.paddingRight,
+                header.paddingBottom
+            )
             insets
         }
 
@@ -122,7 +126,7 @@ class DashboardActivity : AppCompatActivity() {
                 showAddCatalogDialog()
             }
             binding.btnManageUsers.setOnClickListener {
-                Toast.makeText(this, "Gestión de Usuarios habilitada", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.msg_admin_users_enabled), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -162,11 +166,11 @@ class DashboardActivity : AppCompatActivity() {
                         instrucciones_base_plagas = if (plagas.isEmpty()) null else plagas
                     )
                     db.assetDao().insertCatalogoCultivo(nuevo)
-                    Toast.makeText(this@DashboardActivity, "✅ $nombre añadido", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DashboardActivity, "✅ $nombre", Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
                 }
             } else {
-                Toast.makeText(this, "⚠️ El nombre es obligatorio", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.msg_name_required), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -233,7 +237,7 @@ class DashboardActivity : AppCompatActivity() {
     private fun getLocationAndWeather() {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            weatherViewModel.fetchWeatherByCity("Ayacucho")
+            weatherViewModel.fetchWeatherByCity(getString(R.string.default_city))
             return
         }
 
@@ -253,10 +257,10 @@ class DashboardActivity : AppCompatActivity() {
                     }
                 }
             } else {
-                weatherViewModel.fetchWeatherByCity("Ayacucho")
+                weatherViewModel.fetchWeatherByCity(getString(R.string.default_city))
             }
         }.addOnFailureListener {
-            weatherViewModel.fetchWeatherByCity("Ayacucho")
+            weatherViewModel.fetchWeatherByCity(getString(R.string.default_city))
         }
     }
 
@@ -280,13 +284,13 @@ class DashboardActivity : AppCompatActivity() {
 
     private fun actualizarSaludo() {
         val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        val (saludo, icono) = when (hora) {
-            in 0..5 -> "Buenas noches" to "🌙"
-            in 6..11 -> "Buenos días" to "🌅"
-            in 12..18 -> "Buenas tardes" to "🌤️"
-            else -> "Buenas noches" to "🌙"
+        val (saludoRes, icono) = when (hora) {
+            in 0..5 -> R.string.saludo_buenas_noches to "🌙"
+            in 6..11 -> R.string.saludo_buenos_dias to "🌅"
+            in 12..18 -> R.string.saludo_buenas_tardes to "🌤️"
+            else -> R.string.saludo_buenas_noches to "🌙"
         }
-        binding.saludoTexto.text = saludo
+        binding.saludoTexto.text = getString(saludoRes)
         binding.ivSaludoIcono.text = icono
     }
 
@@ -330,14 +334,14 @@ class DashboardActivity : AppCompatActivity() {
         binding.navCosechaQuick.setOnClickListener { 
             if (hasCultivos) {
                 startActivity(Intent(this, CultivosListActivity::class.java))
-                Toast.makeText(this, "Selecciona un cultivo para cosechar", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.msg_select_cultivo_harvest), Toast.LENGTH_SHORT).show()
             } else {
                 showLockMessage("cultivo")
             }
         }
 
         binding.navReportes.setOnClickListener {
-            Toast.makeText(this, "Módulo de Reportes próximamente", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.msg_reportes_dev), Toast.LENGTH_SHORT).show()
         }
     }
 

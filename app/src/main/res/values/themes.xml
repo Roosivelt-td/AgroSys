@@ -13,6 +13,13 @@
 
     <style name="Theme.AgroSys" parent="Base.Theme.AgroSys" />
 
+    <style name="ShapeAppearanceOverlay.App.Card.TopOnly" parent="">
+        <item name="cornerSizeTopLeft">40dp</item>
+        <item name="cornerSizeTopRight">40dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
     <!-- Labor Card Styles -->
     <style name="LaborCardStyle">
         <item name="android:layout_width">0dp</item>

@@ -2,12 +2,17 @@ package com.sigcpa.agrosys.ui
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
+import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.databinding.ActivityRegisterStep2Binding
 import com.sigcpa.agrosys.repository.AuthRepository
 import kotlinx.coroutines.launch
@@ -20,6 +25,16 @@ class RegisterStep2Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterStep2Binding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Insets & Branding
+        window.statusBarColor = Color.parseColor("#15803D")
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.headerContainer) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(v.paddingLeft, systemBars.top, v.paddingRight, v.paddingBottom)
+            insets
+        }
 
         authRepository = AuthRepository(this)
         setupUI()
@@ -51,6 +66,10 @@ class RegisterStep2Activity : AppCompatActivity() {
             finish()
         }
 
+        binding.btnBack.setOnClickListener {
+            finish()
+        }
+
         binding.btnFinalizeRegister.setOnClickListener {
             finalizeRegistration()
         }
@@ -65,7 +84,7 @@ class RegisterStep2Activity : AppCompatActivity() {
 
         val dni = binding.etRegDni.text.toString().trim()
         if (dni.isEmpty()) {
-            Toast.makeText(this, "⚠️ El DNI/Documento es obligatorio", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.msg_error_dni_obligatorio), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -90,7 +109,7 @@ class RegisterStep2Activity : AppCompatActivity() {
         lifecycleScope.launch {
             val userId = authRepository.registerFullUser(userData, role, orgData, extraData)
             if (userId != -1) {
-                Toast.makeText(this@RegisterStep2Activity, "✅ Registro exitoso", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@RegisterStep2Activity, getString(R.string.msg_registro_exitoso), Toast.LENGTH_SHORT).show()
                 
                 // Save session
                 val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
@@ -103,7 +122,7 @@ class RegisterStep2Activity : AppCompatActivity() {
                 startActivity(intent)
                 finishAffinity()
             } else {
-                Toast.makeText(this@RegisterStep2Activity, "❌ Error al guardar datos", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@RegisterStep2Activity, getString(R.string.msg_error_guardar_datos), Toast.LENGTH_SHORT).show()
             }
         }
     }

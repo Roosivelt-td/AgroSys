@@ -1,11 +1,15 @@
 package com.sigcpa.agrosys.ui
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -29,9 +33,31 @@ class LaborTypeDetailActivity : AppCompatActivity() {
         binding = ActivityLaborTypeDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Branding e Insets
+        window.statusBarColor = Color.parseColor("#15803D")
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        val initialHeaderPaddingTop = binding.headerContainer.paddingTop
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.headerContainer.setPadding(
+                binding.headerContainer.paddingLeft,
+                initialHeaderPaddingTop + systemBars.top,
+                binding.headerContainer.paddingRight,
+                binding.headerContainer.paddingBottom
+            )
+            binding.rvLabores.setPadding(
+                binding.rvLabores.paddingLeft,
+                binding.rvLabores.paddingTop,
+                binding.rvLabores.paddingRight,
+                systemBars.bottom + (16 * resources.displayMetrics.density).toInt()
+            )
+            insets
+        }
+
         cultivoId = intent.getIntExtra("CULTIVO_ID", -1)
         laborId = intent.getIntExtra("LABOR_ID", -1)
-        binding.tvTitle.text = intent.getStringExtra("LABOR_NOMBRE") ?: "Detalle de Labor"
+        binding.tvHeaderTitle.text = intent.getStringExtra("LABOR_NOMBRE") ?: "Detalle de Labor"
 
         binding.btnBack.setOnClickListener { finish() }
         binding.rvLabores.layoutManager = LinearLayoutManager(this)
@@ -53,7 +79,7 @@ class LaborTypeDetailActivity : AppCompatActivity() {
             }
 
             // Actualizar resumen en la UI
-            binding.tvTitle.text = "${intent.getStringExtra("LABOR_NOMBRE")} (${labores.size})\nGasto Total: S/ ${String.format("%.2f", granTotal)}"
+            binding.tvHeaderTitle.text = "${intent.getStringExtra("LABOR_NOMBRE")} (${labores.size})\nGasto Total: S/ ${String.format("%.2f", granTotal)}"
             
             binding.rvLabores.adapter = LaboresAdapter(labores)
         }

@@ -16,7 +16,7 @@
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
         android:paddingTop="32dp"
-        android:paddingBottom="20dp"
+        android:paddingBottom="16dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
@@ -41,21 +41,21 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/tvTerrenoNombreHeader"
+                    android:id="@+id/tvHeaderLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Cargando..."
+                    android:text="@string/label_detalle_de"
+                    android:textColor="#dcfce7"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvHeaderTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_cargando"
                     android:textColor="#ffffff"
                     android:textSize="18sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvTerrenoSubheader"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Cargando información"
-                    android:textColor="#dcfce7"
-                    android:textSize="12sp" />
             </LinearLayout>
 
             <ImageView
@@ -69,12 +69,12 @@
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingBottom="80dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header">
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintTop_toBottomOf="@id/header_container">
 
         <LinearLayout
             android:id="@+id/detalleContent"
@@ -87,7 +87,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="40dp"
                 app:cardElevation="0dp"
                 app:strokeWidth="1dp"
                 app:strokeColor="#e2e8f0">
@@ -103,7 +103,7 @@
                         android:id="@+id/tvTerrenoNombreCard"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Nombre del Terreno"
+                        android:text="@string/label_nombre_terreno"
                         android:textColor="#1e293b"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -113,7 +113,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="0.0 ha disponible"
+                        android:text="@string/label_cargando"
                         android:textColor="#64748b"
                         android:textSize="13sp" />
                 </LinearLayout>
@@ -124,7 +124,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="40dp"
                 app:cardElevation="0dp"
                 app:strokeWidth="1dp"
                 app:strokeColor="#e2e8f0">
@@ -138,7 +138,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Detalles del Terreno"
+                        android:text="@string/label_detalles_terreno"
                         android:textColor="#1e293b"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -150,32 +150,32 @@
                         android:orientation="vertical">
 
                         <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="8dp">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ubicación" android:textColor="#64748b" android:textSize="13sp"/>
-                            <TextView android:id="@+id/tvUbicacion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="No especificada" android:textColor="#1e293b" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_ubicacion" android:textColor="#64748b" android:textSize="13sp"/>
+                            <TextView android:id="@+id/tvUbicacion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="@string/label_no_location" android:textColor="#1e293b" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
                         </RelativeLayout>
                         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#f1f5f9"/>
 
                         <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="8dp">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Área Total" android:textColor="#64748b" android:textSize="13sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_area_total" android:textColor="#64748b" android:textSize="13sp"/>
                             <TextView android:id="@+id/tvAreaInfo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="0.0 ha" android:textColor="#1e293b" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
                         </RelativeLayout>
                         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#f1f5f9"/>
 
                         <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="8dp">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Régimen" android:textColor="#64748b" android:textSize="13sp"/>
-                            <TextView android:id="@+id/tvCostoAlquiler" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="Propio" android:textColor="#1e293b" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_regimen" android:textColor="#64748b" android:textSize="13sp"/>
+                            <TextView android:id="@+id/tvCostoAlquiler" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="@string/label_propio" android:textColor="#1e293b" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
                         </RelativeLayout>
                         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#f1f5f9"/>
 
                         <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="8dp">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Suelo" android:textColor="#64748b" android:textSize="13sp"/>
-                            <TextView android:id="@+id/tvCalidadSuelo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="No especificada" android:textColor="#1e293b" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_suelo" android:textColor="#64748b" android:textSize="13sp"/>
+                            <TextView android:id="@+id/tvCalidadSuelo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="@string/label_no_location" android:textColor="#1e293b" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
                         </RelativeLayout>
                         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#f1f5f9"/>
 
                         <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="8dp">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Agua" android:textColor="#64748b" android:textSize="13sp"/>
-                            <TextView android:id="@+id/tvFuenteAgua" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="No especificada" android:textColor="#1e293b" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_agua" android:textColor="#64748b" android:textSize="13sp"/>
+                            <TextView android:id="@+id/tvFuenteAgua" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="@string/label_no_location" android:textColor="#1e293b" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
                         </RelativeLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -194,7 +194,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Cultivos (0)"
+                    android:text="@string/label_cultivos"
                     android:textColor="#1e293b"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -203,7 +203,7 @@
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="+ Nuevo"
+                    android:text="@string/btn_nuevo"
                     android:textAllCaps="false"
                     android:textColor="#15803d"
                     android:padding="0dp"/>
@@ -222,7 +222,7 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="24dp"
                 android:backgroundTint="#fee2e2"
-                android:text="Eliminar terreno"
+                android:text="@string/btn_eliminar_terreno"
                 android:textAllCaps="false"
                 android:textColor="#b91c1c"
                 android:textStyle="bold"
@@ -263,7 +263,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Inicio"
+                android:text="@string/label_inicio"
                 android:textSize="10sp"
                 android:textColor="#9ca3af" />
         </LinearLayout>
@@ -283,7 +283,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Terrenos"
+                android:text="@string/label_terrenos"
                 android:textSize="10sp"
                 android:textColor="#166534"
                 android:textStyle="bold" />
@@ -304,7 +304,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cultivos"
+                android:text="@string/label_cultivos"
                 android:textSize="10sp"
                 android:textColor="#9ca3af" />
         </LinearLayout>
@@ -324,7 +324,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Labores"
+                android:text="@string/label_labores"
                 android:textSize="10sp"
                 android:textColor="#9ca3af" />
         </LinearLayout>
@@ -344,7 +344,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Reportes"
+                android:text="@string/label_reportes"
                 android:textSize="10sp"
                 android:textColor="#9ca3af" />
         </LinearLayout>

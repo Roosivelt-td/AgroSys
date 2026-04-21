@@ -3,53 +3,49 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/header_gradient"
+    android:background="#00582a"
     android:fitsSystemWindows="true">
 
     <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true">
 
         <LinearLayout
+            android:id="@+id/main_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
             android:padding="20dp">
+
+            <!-- Logo Header -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginStart="70dp"
-                android:layout_marginEnd="70dp"
-                android:layout_marginBottom="10dp"
-                android:orientation="horizontal"
-                android:gravity="center">
+                android:id="@+id/headerContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:gravity="center"
+                android:orientation="horizontal">
 
                 <ImageView
-                    android:id="@+id/ivTitleLogo"
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="5dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/title_03" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Agricultura\nInteligente"
-                    android:textSize="12sp"
-                    android:layout_gravity="center"
-                    android:textColor="#ffffff"
-                    android:layout_marginBottom="2dp"/>
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:src="@drawable/logo" />
 
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/title_04" />
             </LinearLayout>
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="30dp"
-                app:cardElevation="15dp"
+                app:cardCornerRadius="40dp"
+                app:cardElevation="0dp"
                 app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
@@ -67,73 +63,76 @@
                         android:orientation="horizontal">
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:gravity="center"
                             android:orientation="vertical">
                             <TextView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
                                 android:background="@drawable/circle_bg_green_light"
-                                android:backgroundTint="#166534"
+                                android:backgroundTint="#00582a"
                                 android:gravity="center"
                                 android:text="✓"
                                 android:textColor="@android:color/white"
+                                android:textSize="16sp"
                                 android:textStyle="bold" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="Personales"
-                                android:textSize="10sp"
-                                android:textColor="#166534" />
+                                android:text="@string/label_step_personales"
+                                android:textSize="11sp"
+                                android:textColor="#00582a"
+                                android:textStyle="bold" />
                         </LinearLayout>
 
                         <View
-                            android:layout_width="40dp"
+                            android:layout_width="60dp"
                             android:layout_height="2dp"
-                            android:background="#166534"
-                            android:layout_marginBottom="16dp" />
+                            android:layout_marginHorizontal="12dp"
+                            android:layout_marginBottom="18dp"
+                            android:background="#00582a" />
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:gravity="center"
                             android:orientation="vertical">
                             <TextView
                                 android:id="@+id/tvStep2Circle"
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
                                 android:background="@drawable/circle_bg_green_light"
-                                android:backgroundTint="#166534"
+                                android:backgroundTint="#00582a"
                                 android:gravity="center"
                                 android:text="2"
                                 android:textColor="@android:color/white"
+                                android:textSize="16sp"
                                 android:textStyle="bold" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="Información"
-                                android:textSize="10sp"
-                                android:textColor="#166534" />
+                                android:text="@string/label_step_informacion"
+                                android:textSize="11sp"
+                                android:textColor="#00582a"
+                                android:textStyle="bold" />
                         </LinearLayout>
                     </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Crear Cuenta"
-                        android:textSize="24sp"
+                        android:text="@string/header_crear_cuenta"
+                        android:textSize="28sp"
                         android:textStyle="bold"
                         android:layout_gravity="center"
-                        android:textColor="#1F2937"/>
+                        android:textColor="#111827"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Información agrícola"
+                        android:text="@string/label_info_agricola"
                         android:textSize="14sp"
                         android:layout_gravity="center"
                         android:textColor="#6B7280"
@@ -142,7 +141,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Rol en la plataforma"
+                        android:text="@string/label_rol_plataforma"
                         android:textColor="#374151"
                         android:textSize="13sp"
                         android:textStyle="bold" />
@@ -161,7 +160,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Agricultor"
+                            android:text="@string/label_agricultor"
                             android:textAllCaps="false"
                             android:textSize="11sp" />
                         <com.google.android.material.button.MaterialButton
@@ -170,7 +169,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Supervisor"
+                            android:text="@string/label_supervisor"
                             android:textAllCaps="false"
                             android:textSize="11sp" />
                         <com.google.android.material.button.MaterialButton
@@ -179,7 +178,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Admin"
+                            android:text="@string/label_admin"
                             android:textAllCaps="false"
                             android:textSize="11sp" />
                     </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -187,23 +186,23 @@
                     <EditText
                         android:id="@+id/etRegDni"
                         android:layout_width="match_parent"
-                        android:layout_height="50dp"
+                        android:layout_height="55dp"
                         android:layout_marginTop="16dp"
                         android:background="@drawable/edit_text_elegant"
-                        android:hint="DNI / Documento"
+                        android:hint="@string/hint_dni"
                         android:inputType="number"
-                        android:paddingHorizontal="12dp"
+                        android:paddingHorizontal="16dp"
                         android:textSize="14sp" />
 
                     <EditText
                         android:id="@+id/etRegExp"
                         android:layout_width="match_parent"
-                        android:layout_height="50dp"
+                        android:layout_height="55dp"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/edit_text_elegant"
-                        android:hint="Años de experiencia"
+                        android:hint="@string/hint_experiencia"
                         android:inputType="number"
-                        android:paddingHorizontal="12dp"
+                        android:paddingHorizontal="16dp"
                         android:textSize="14sp" />
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -216,28 +215,28 @@
                         <AutoCompleteTextView
                             android:id="@+id/spinnerEducation"
                             android:layout_width="match_parent"
-                            android:layout_height="50dp"
+                            android:layout_height="55dp"
                             android:background="@drawable/edit_text_elegant"
-                            android:hint="Nivel educativo"
+                            android:hint="@string/label_nivel_educativo"
                             android:inputType="none"
-                            android:paddingHorizontal="12dp"
+                            android:paddingHorizontal="16dp"
                             android:textSize="14sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <EditText
                         android:id="@+id/etRegOrg"
                         android:layout_width="match_parent"
-                        android:layout_height="50dp"
+                        android:layout_height="55dp"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/edit_text_elegant"
-                        android:hint="Organización / Finca"
-                        android:paddingHorizontal="12dp"
+                        android:hint="@string/hint_organizacion"
+                        android:paddingHorizontal="16dp"
                         android:textSize="14sp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
+                        android:layout_marginTop="24dp"
                         android:orientation="horizontal">
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnBackStep"
@@ -246,34 +245,47 @@
                             android:layout_height="56dp"
                             android:layout_weight="1"
                             android:layout_marginEnd="8dp"
-                            android:text="Atrás"
+                            android:text="@string/btn_atras"
                             android:textAllCaps="false"
-                            app:cornerRadius="12dp"
+                            app:cornerRadius="15dp"
                             app:strokeColor="#D1D5DB" />
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnFinalizeRegister"
                             android:layout_width="0dp"
                             android:layout_height="56dp"
                             android:layout_weight="1"
-                            android:backgroundTint="#a15fc1"
-                            android:text="Registrarse"
+                            android:backgroundTint="#BD22C1"
+                            android:text="@string/btn_registrarse"
                             android:textAllCaps="false"
                             android:textStyle="bold"
-                            app:cornerRadius="12dp" />
+                            app:cornerRadius="15dp" />
                     </LinearLayout>
 
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="20dp"
                 android:text="🛡 Tus datos están seguros"
                 android:textColor="#9CA3AF"
                 android:textSize="12sp" />
         </LinearLayout>
     </ScrollView>
+
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_margin="12dp"
+        android:padding="8dp"
+        android:src="@drawable/direccion_izquierda"
+        app:tint="#ffffff"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

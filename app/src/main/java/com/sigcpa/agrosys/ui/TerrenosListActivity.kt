@@ -43,10 +43,14 @@ class TerrenosListActivity : AppCompatActivity() {
         }
 
         // Ajustar el Header para que respete la barra de estado superior
-        val initialHeaderTopPadding = binding.header.paddingTop
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.header.setPadding(binding.header.paddingLeft, initialHeaderTopPadding + systemBars.top, binding.header.paddingRight, binding.header.paddingBottom)
+            binding.headerContainer.setPadding(
+                binding.headerContainer.paddingLeft,
+                systemBars.top,
+                binding.headerContainer.paddingRight,
+                binding.headerContainer.paddingBottom
+            )
             insets
         }
 
@@ -70,6 +74,8 @@ class TerrenosListActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        binding.btnBack.setOnClickListener { finish() }
+
         binding.btnAddHeader.setOnClickListener { goToRegister() }
         binding.btnEmptyAdd.setOnClickListener { goToRegister() }
         binding.fabAdd.setOnClickListener { goToRegister() }
@@ -88,7 +94,7 @@ class TerrenosListActivity : AppCompatActivity() {
                 startActivity(intent)
                 finish()
             } else {
-                Toast.makeText(this, "⚠️ Registra un terreno primero", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_no_terrenos), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -98,12 +104,12 @@ class TerrenosListActivity : AppCompatActivity() {
                 startActivity(intent)
                 finish()
             } else {
-                Toast.makeText(this, "⚠️ Registra un cultivo primero", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_require_siembra), Toast.LENGTH_SHORT).show()
             }
         }
         
         binding.navReportes.setOnClickListener {
-            Toast.makeText(this, "Módulo de Reportes en desarrollo", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.msg_reportes_dev), Toast.LENGTH_SHORT).show()
         }
     }
 

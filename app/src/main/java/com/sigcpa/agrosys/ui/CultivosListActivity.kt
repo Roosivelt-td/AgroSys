@@ -45,10 +45,14 @@ class CultivosListActivity : AppCompatActivity() {
         }
 
         // Ajustar el Header para que respete la barra de estado superior
-        val initialHeaderTopPadding = binding.header.paddingTop
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.header.setPadding(binding.header.paddingLeft, initialHeaderTopPadding + systemBars.top, binding.header.paddingRight, binding.header.paddingBottom)
+            binding.headerContainer.setPadding(
+                binding.headerContainer.paddingLeft,
+                systemBars.top,
+                binding.headerContainer.paddingRight,
+                binding.headerContainer.paddingBottom
+            )
             insets
         }
 
@@ -73,10 +77,11 @@ class CultivosListActivity : AppCompatActivity() {
             if (hasTerrenos) {
                 startActivity(Intent(this, RegisterCultivoActivity::class.java))
             } else {
-                Toast.makeText(this, "⚠️ Registra un terreno primero", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.error_no_terrenos), Toast.LENGTH_LONG).show()
             }
         }
 
+        binding.btnBack.setOnClickListener { finish() }
         binding.btnNuevoCultivo.setOnClickListener { goToRegister() }
         binding.btnEmptyAdd.setOnClickListener { goToRegister() }
         
@@ -97,16 +102,16 @@ class CultivosListActivity : AppCompatActivity() {
                 startActivity(Intent(this, LaboresListActivity::class.java))
                 finish()
             } else {
-                Toast.makeText(this, "⚠️ Registra un cultivo primero", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_require_siembra), Toast.LENGTH_SHORT).show()
             }
         }
 
         binding.navReportes.setOnClickListener {
             if (hasCultivos) {
                 // Ir a reportes (en desarrollo)
-                Toast.makeText(this, "Módulo de Reportes en desarrollo", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.msg_reportes_dev), Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "⚠️ Registra un cultivo primero", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_require_siembra), Toast.LENGTH_SHORT).show()
             }
         }
     }

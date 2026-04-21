@@ -1,11 +1,17 @@
 package com.sigcpa.agrosys.ui
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
+import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.database.entities.TerrenoEntity
 import com.sigcpa.agrosys.databinding.ActivityRegisterTerrenoBinding
 import com.sigcpa.agrosys.repository.AssetRepository
@@ -21,6 +27,22 @@ class RegisterTerrenoActivity : AppCompatActivity() {
         binding = ActivityRegisterTerrenoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Branding y Insets
+        window.statusBarColor = Color.parseColor("#15803D")
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        val initialHeaderTopPadding = binding.headerContainer.paddingTop
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.headerContainer.setPadding(
+                binding.headerContainer.paddingLeft,
+                initialHeaderTopPadding + systemBars.top,
+                binding.headerContainer.paddingRight,
+                binding.headerContainer.paddingBottom
+            )
+            insets
+        }
+
         assetRepository = AssetRepository(this)
         
         // Get agricultor ID from session
@@ -32,7 +54,7 @@ class RegisterTerrenoActivity : AppCompatActivity() {
             if (id != null) {
                 agricultorId = id
             } else {
-                Toast.makeText(this@RegisterTerrenoActivity, "Error: Perfil de agricultor no encontrado", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@RegisterTerrenoActivity, getString(R.string.error_profile_not_found), Toast.LENGTH_SHORT).show()
                 finish()
             }
         }
@@ -65,32 +87,32 @@ class RegisterTerrenoActivity : AppCompatActivity() {
 
         // VALIDACIONES OBLIGATORIAS
         if (nombre.isEmpty()) {
-            Toast.makeText(this, "⚠️ El nombre del terreno es obligatorio", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_nombre_required), Toast.LENGTH_SHORT).show()
             binding.etNombre.requestFocus()
             return
         }
 
         if (ubicacion.isEmpty()) {
-            Toast.makeText(this, "⚠️ La ubicación es obligatoria", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_ubicacion_required), Toast.LENGTH_SHORT).show()
             binding.etUbicacion.requestFocus()
             return
         }
 
         if (areaStr.isEmpty()) {
-            Toast.makeText(this, "⚠️ El área es obligatoria", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_area_required), Toast.LENGTH_SHORT).show()
             binding.etArea.requestFocus()
             return
         }
 
         val area = areaStr.toDoubleOrNull() ?: 0.0
         if (area <= 0) {
-            Toast.makeText(this, "⚠️ Ingrese un área válida mayor a 0", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_invalid_area), Toast.LENGTH_SHORT).show()
             binding.etArea.requestFocus()
             return
         }
 
         if (isAlquilado && costStr.isEmpty()) {
-            Toast.makeText(this, "⚠️ Ingrese el costo de alquiler", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_costo_required), Toast.LENGTH_SHORT).show()
             binding.etCostoAlquiler.requestFocus()
             return
         }
@@ -112,10 +134,10 @@ class RegisterTerrenoActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val success = assetRepository.saveTerreno(terreno)
             if (success) {
-                Toast.makeText(this@RegisterTerrenoActivity, "✅ Terreno guardado correctamente", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@RegisterTerrenoActivity, getString(R.string.msg_terreno_saved), Toast.LENGTH_SHORT).show()
                 finish()
             } else {
-                Toast.makeText(this@RegisterTerrenoActivity, "❌ Error al guardar en la base de datos", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@RegisterTerrenoActivity, getString(R.string.error_db_save), Toast.LENGTH_SHORT).show()
             }
         }
     }

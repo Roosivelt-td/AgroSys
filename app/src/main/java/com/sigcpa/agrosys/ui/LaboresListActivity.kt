@@ -56,10 +56,14 @@ class LaboresListActivity : AppCompatActivity() {
         }
 
         // Ajustar el Header para que respete la barra de estado superior
-        val initialHeaderTopPadding = binding.header.paddingTop
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.header.setPadding(binding.header.paddingLeft, initialHeaderTopPadding + systemBars.top, binding.header.paddingRight, binding.header.paddingBottom)
+            binding.headerContainer.setPadding(
+                binding.headerContainer.paddingLeft,
+                systemBars.top,
+                binding.headerContainer.paddingRight,
+                binding.headerContainer.paddingBottom
+            )
             insets
         }
 
@@ -76,12 +80,13 @@ class LaboresListActivity : AppCompatActivity() {
         val goToRegister = {
             if (hasTerrenos) {
                 // Ahora la lógica es seleccionar desde el terreno
-                Toast.makeText(this, "Selecciona un terreno para registrar labor", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.msg_select_terreno_labor), Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "⚠️ Registra un terreno primero", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_no_terrenos), Toast.LENGTH_SHORT).show()
             }
         }
 
+        binding.btnBack.setOnClickListener { finish() }
         binding.btnNuevaLabor.setOnClickListener { goToRegister() }
         binding.btnEmptyAdd.setOnClickListener { goToRegister() }
 
@@ -100,6 +105,10 @@ class LaboresListActivity : AppCompatActivity() {
         binding.navCultivos.setOnClickListener {
             startActivity(Intent(this, CultivosListActivity::class.java))
             finish()
+        }
+
+        binding.navReportes.setOnClickListener {
+            Toast.makeText(this, getString(R.string.msg_reportes_dev), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -150,8 +159,8 @@ class LaboresListActivity : AppCompatActivity() {
             val terreno = terrenos[position]
             
             holder.binding.tvNombreTerreno.text = terreno.nombre
-            holder.binding.tvUbicacion.text = terreno.direccion_referencia ?: "Sin ubicación"
-            holder.binding.tvAreaTotal.text = "${terreno.area_hectareas} ha"
+            holder.binding.tvUbicacion.text = terreno.direccion_referencia ?: getString(R.string.label_sin_ubicacion)
+            holder.binding.tvAreaTotal.text = "${terreno.area_hectareas} ${getString(R.string.unit_ha)}"
             
             holder.binding.chipEstado.text = terreno.estado.uppercase()
             holder.binding.chipEstado.chipBackgroundColor = ColorStateList.valueOf(
@@ -164,7 +173,7 @@ class LaboresListActivity : AppCompatActivity() {
                 val areaDisponible = terreno.area_hectareas - areaOcupada
                 
                 holder.binding.tvCantCultivos.text = cultivos.size.toString()
-                holder.binding.tvAreaDisponible.text = "${String.format("%.2f", areaDisponible)} ha"
+                holder.binding.tvAreaDisponible.text = "${String.format("%.2f", areaDisponible)} ${getString(R.string.unit_ha)}"
                 
                 holder.itemView.setOnClickListener {
                     showCultivosModal(terreno, cultivos, areaDisponible)
@@ -178,9 +187,10 @@ class LaboresListActivity : AppCompatActivity() {
             dialog.setContentView(modalBinding.root)
 
             modalBinding.tvTerrenoNombre.text = terreno.nombre
-            modalBinding.tvTerrenoDetalles.text = "${terreno.area_hectareas} ha totales | ${String.format("%.2f", disponible)} ha disponibles"
+            modalBinding.tvTerrenoDetalles.text = "${terreno.area_hectareas} ${getString(R.string.unit_ha)} ${getString(R.string.label_totales)} | ${String.format("%.2f", disponible)} ${getString(R.string.unit_ha)} ${getString(R.string.label_disponibles)}"
 
             if (cultivos.isEmpty()) {
+                modalBinding.tvNoCultivos.text = getString(R.string.msg_no_cultivos_terreno)
                 modalBinding.tvNoCultivos.visibility = View.VISIBLE
                 modalBinding.rvCultivos.visibility = View.GONE
             } else {
@@ -197,6 +207,7 @@ class LaboresListActivity : AppCompatActivity() {
                 }
             }
 
+            modalBinding.btnCerrar.text = getString(R.string.btn_cerrar)
             modalBinding.btnCerrar.setOnClickListener { dialog.dismiss() }
             dialog.show()
         }
@@ -213,8 +224,8 @@ class LaboresListActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val cultivo = cultivos[position]
-            holder.binding.tvNombreCultivo.text = cultivo.nombre_lote ?: "Lote #${cultivo.id}"
-            holder.binding.tvDetalleCultivo.text = "${cultivo.variedad} | ${cultivo.area_destinada} ha"
+            holder.binding.tvNombreCultivo.text = cultivo.nombre_lote ?: "${getString(R.string.label_cultivo)} #${cultivo.id}"
+            holder.binding.tvDetalleCultivo.text = "${cultivo.variedad} | ${cultivo.area_destinada} ${getString(R.string.unit_ha)}"
             
             holder.itemView.setOnClickListener { onClick(cultivo) }
         }

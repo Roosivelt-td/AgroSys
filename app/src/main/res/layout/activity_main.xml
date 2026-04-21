@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/header_gradient"
+    android:background="#00582a"
     android:fitsSystemWindows="true">
 
     <ScrollView
@@ -21,30 +20,31 @@
 
             <!-- Logo and Title -->
             <LinearLayout
+                android:id="@+id/headerContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
+                android:layout_marginBottom="24dp"
                 android:gravity="center"
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
                     android:src="@drawable/logo" />
 
                 <ImageView
-                    android:layout_width="150dp"
-                    android:layout_height="50dp"
+                    android:layout_width="120dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
                     android:src="@drawable/title_04" />
-
             </LinearLayout>
 
             <!-- Login Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="30dp"
-                app:cardElevation="4dp"
+                app:cardCornerRadius="40dp"
+                app:cardElevation="0dp"
                 app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
@@ -57,9 +57,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:text="Iniciar Sesión"
-                        android:textColor="#1F2937"
-                        android:textSize="26sp"
+                        android:text="@string/header_iniciar_sesion"
+                        android:textColor="#111827"
+                        android:textSize="28sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -67,7 +67,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_marginTop="4dp"
-                        android:text="Accede a tu cuenta agrícola"
+                        android:text="@string/label_accede_cuenta"
                         android:textColor="#6B7280"
                         android:textSize="14sp" />
 
@@ -76,106 +76,88 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="24dp"
-                        android:text="Correo electrónico"
+                        android:text="@string/label_email"
                         android:textColor="#374151"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
-                    <LinearLayout
+                    <EditText
+                        android:id="@+id/etLoginEmail"
                         android:layout_width="match_parent"
-                        android:layout_height="45dp"
-                        android:layout_marginTop="6dp"
+                        android:layout_height="55dp"
+                        android:layout_marginTop="8dp"
                         android:background="@drawable/edit_text_elegant"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="16dp">
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@android:drawable/ic_dialog_email"
-                            app:tint="#166534" />
-                        <EditText
-                            android:id="@+id/etLoginEmail"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_marginStart="12dp"
-                            android:background="@android:color/transparent"
-                            android:hint="agricultor@agrosys.com"
-                            android:inputType="textEmailAddress"
-                            android:textColor="#1F2937"
-                            android:textSize="14sp" />
-                    </LinearLayout>
+                        android:hint="@string/hint_email_placeholder"
+                        android:inputType="textEmailAddress"
+                        android:paddingHorizontal="16dp"
+                        android:textColor="#1F2937"
+                        android:textSize="14sp" />
 
                     <!-- Password Input -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:text="Contraseña"
+                        android:text="@string/label_password"
                         android:textColor="#374151"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
-                    <LinearLayout
+                    <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="45dp"
-                        android:layout_marginTop="6dp"
-                        android:background="@drawable/edit_text_elegant"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="16dp">
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@android:drawable/ic_lock_idle_lock"
-                            app:tint="#166534" />
+                        android:layout_height="55dp"
+                        android:layout_marginTop="8dp">
                         <EditText
                             android:id="@+id/etLoginPassword"
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:layout_marginStart="12dp"
-                            android:background="@android:color/transparent"
-                            android:hint="••••••••"
+                            android:background="@drawable/edit_text_elegant"
+                            android:hint="@string/hint_password_placeholder"
                             android:inputType="textPassword"
+                            android:paddingHorizontal="16dp"
                             android:textColor="#1F2937"
                             android:textSize="14sp" />
                         <ImageView
                             android:id="@+id/ivTogglePassword"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="end|center_vertical"
+                            android:layout_marginEnd="16dp"
                             android:src="@android:drawable/ic_menu_view"
                             app:tint="#9CA3AF"
                             android:clickable="true"
                             android:focusable="true" />
-                    </LinearLayout>
+                    </FrameLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:orientation="vertical">
+                        android:layout_marginTop="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <CheckBox
                             android:id="@+id/cbRemember"
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Recordar sesión"
+                            android:text="@string/label_recordar_sesion"
                             android:textColor="#4B5563"
                             android:textSize="12sp"
-                            android:buttonTint="#166534"
-                            android:paddingVertical="8dp" />
+                            android:buttonTint="#00582a" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
 
                         <TextView
                             android:id="@+id/tvForgotPassword"
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:text="¿Olvidaste tu contraseña?"
-                            android:textColor="#166534"
+                            android:text="@string/label_olvidaste_password"
+                            android:textColor="#00582a"
                             android:textSize="12sp"
-                            android:textStyle="bold"
-                            android:paddingVertical="8dp" />
+                            android:textStyle="bold" />
 
                     </LinearLayout>
 
@@ -183,34 +165,33 @@
                         android:id="@+id/btnLogin"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:layout_marginTop="15dp"
-                        android:backgroundTint="#a15fc1"
-                        android:text="Ingresar"
+                        android:layout_marginTop="24dp"
+                        android:backgroundTint="#BD22C1"
+                        android:text="@string/btn_ingresar"
                         android:textAllCaps="false"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        app:cornerRadius="12dp"
-                        app:elevation="4dp" />
+                        app:cornerRadius="15dp" />
 
                     <!-- Text link to Register -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
+                        android:layout_marginTop="24dp"
                         android:gravity="center"
                         android:orientation="horizontal">
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="¿Nuevo en AgroSys? "
+                            android:text="@string/label_nuevo_en_agrosys"
                             android:textColor="#9CA3AF"
                             android:textSize="13sp" />
                         <TextView
                             android:id="@+id/tvSwitchToRegister"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Regístrate aquí"
-                            android:textColor="#166534"
+                            android:text="@string/label_registrate_aqui"
+                            android:textColor="#00582a"
                             android:textSize="13sp"
                             android:textStyle="bold"
                             android:clickable="true"
@@ -222,9 +203,9 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_marginTop="24dp"
-                        android:text="🛡 Tus datos están seguros"
+                        android:text="@string/footer_datos_seguros"
                         android:textColor="#9CA3AF"
-                        android:textSize="11sp" />
+                        android:textSize="12sp" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -232,10 +213,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="© 2026 AgroSys - Gestión agrícola inteligente SIGPA"
+                android:layout_marginTop="20dp"
+                android:text="@string/footer_copyright"
                 android:textColor="#CCFFCC"
-                android:textSize="10sp" />
+                android:textSize="10sp"
+                android:alpha="0.7" />
 
         </LinearLayout>
     </ScrollView>

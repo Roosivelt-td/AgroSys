@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">AgroSys</string>
-    <string name="saludo_buenos_dias">Buenos días,</string>
+    <string name="saludo_buenos_dias">Buenos días</string>
+    <string name="saludo_buenas_tardes">Buenas tardes</string>
+    <string name="saludo_buenas_noches">Buenas noches</string>
+    <string name="default_city">Ayacucho</string>
     <string name="nombre_usuario_placeholder">Nombre Usuario</string>
     <string name="user_info_placeholder">Agricultor / Fundo El Edén · Hoy</string>
     <string name="notif_count_placeholder">3</string>
@@ -25,4 +28,227 @@
     <string name="label_inicio">Inicio</string>
     <string name="label_labores">Labores</string>
     <string name="label_reportes">Reportes</string>
+    <string name="label_admin_panel">Administración de Sistema</string>
+    <string name="btn_usuarios">Usuarios</string>
+    <string name="label_lista_de">Lista de</string>
+    <string name="msg_no_terrenos">No existe ningún terreno registrado</string>
+    <string name="btn_registrar_terreno_plus">+ Registrar terreno</string>
+    <string name="msg_no_cultivos">No hay cultivos registrados</string>
+    <string name="btn_nuevo_cultivo_plus">+ Nuevo cultivo</string>
+    <string name="msg_no_labores">No hay labores registradas</string>
+    <string name="btn_nueva_labor_plus">+ Nueva labor</string>
+    <string name="filter_todas">Todas</string>
+    <string name="msg_select_terreno_labor">Selecciona un terreno para registrar labor</string>
+    <string name="label_sin_ubicacion">Sin ubicación</string>
+    <string name="label_totales">totales</string>
+    <string name="label_disponibles">disponibles</string>
+    <string name="msg_no_cultivos_terreno">No hay cultivos activos en este terreno</string>
+    <string name="btn_cerrar">Cerrar</string>
+    <string name="filter_todos">Todos</string>
+    <string name="filter_cosechado">🍂 Cosechado</string>
+    <string name="filter_perdido">⚠️ Perdido</string>
+    <string name="msg_reportes_dev">Módulo de Reportes en desarrollo</string>
+    <string name="msg_location_permission_denied">Para clima exacto, activa la ubicación</string>
+    <string name="msg_select_cultivo_harvest">Selecciona un cultivo para cosechar</string>
+    <string name="msg_admin_users_enabled">Gestión de Usuarios habilitada</string>
+    <string name="msg_name_required">⚠️ El nombre es obligatorio</string>
+
+    <!-- Detalle Terreno -->
+    <string name="label_detalle_de">Detalle de</string>
+    <string name="label_cargando">Cargando...</string>
+    <string name="label_detalles_terreno">Detalles del Terreno</string>
+    <string name="label_ubicacion">Ubicación</string>
+    <string name="label_area_total">Área Total</string>
+    <string name="label_regimen">Régimen</string>
+    <string name="label_suelo">Suelo</string>
+    <string name="label_agua">Agua</string>
+    <string name="label_cultivos_count">Cultivos (%1$d)</string>
+    <string name="btn_nuevo">+ Nuevo</string>
+    <string name="btn_eliminar_terreno">Eliminar terreno</string>
+    <string name="dialog_eliminar_terreno_title">¿Eliminar terreno?</string>
+    <string name="dialog_eliminar_terreno_msg">¿Estás seguro de que deseas eliminar este terreno? Se eliminarán también todos los cultivos y labores asociados.</string>
+    <string name="btn_cancelar">Cancelar</string>
+    <string name="btn_eliminar">Eliminar</string>
+    <string name="msg_terreno_eliminado">Terreno eliminado correctamente</string>
+    <string name="label_disponible_ha">%1$.1f ha disponible</string>
+
+    <!-- Detalle Cultivo -->
+    <string name="label_area">Área</string>
+    <string name="label_estado_del_cultivo">Estado del cultivo</string>
+    <string name="label_costos_totales">Costos totales</string>
+    <string name="label_mantenimiento">Mantenimiento</string>
+    <string name="label_cosecha_venta">Cosecha/Venta</string>
+    <string name="label_ganancia_neta">Ganancia neta</string>
+    <string name="label_labores_count">Labores (%1$d)</string>
+    <string name="label_cosechas_count">Cosechas (%1$d)</string>
+    <string name="btn_agregar">+ Agregar</string>
+    <string name="btn_registrar">+ Registrar</string>
+    <string name="btn_eliminar_cultivo">Eliminar cultivo</string>
+    <string name="dialog_eliminar_cultivo_title">¿Eliminar cultivo?</string>
+    <string name="dialog_eliminar_cultivo_msg">¿Estás seguro de que deseas eliminar este cultivo? Se perderán todas las labores y cosechas registradas.</string>
+    <string name="msg_cultivo_eliminado">Cultivo eliminado correctamente</string>
+
+    <!-- General -->
+    <string name="label_registro_de">Registro de</string>
+    <string name="unit_ha">ha</string>
+    <string name="currency_symbol">S/</string>
+    <string name="label_opcional">Opcional</string>
+
+    <!-- Weather Detail -->
+    <string name="header_agroclima">AgroClima</string>
+    <string name="header_inteligente">Inteligente</string>
+    <string name="label_estado_actual">Estado Actual</string>
+    <string name="label_sensacion">Sensación</string>
+    <string name="label_humedad">Humedad</string>
+    <string name="label_viento">Viento</string>
+    <string name="label_visibilidad">Visibilidad</string>
+    <string name="label_recomendaciones_dia">📋 Recomendaciones del día</string>
+    <string name="label_evolucion_hoy"> Evolución hoy (cada 6h)</string>
+    <string name="label_ciudades_regionales"> Ciudades regionales más cercanas</string>
+    <string name="label_alertas_picos"> Alertas de picos térmicos</string>
+    <string name="label_pronostico_proximos"> Pronóstico próximos días</string>
+    <string name="footer_actualizado_agrosys">Datos actualizados · AgroSys Intel</string>
+    <string name="weather_loading">Cargando...</string>
+
+    <!-- Register Terreno -->
+    <string name="header_nuevo_terreno">Nuevo Terreno</string>
+    <string name="label_nombre_terreno">Nombre del terreno *</string>
+    <string name="hint_nombre_terreno">Ej: Fundo La Esperanza</string>
+    <string name="label_ubicacion_direccion">Ubicación / Dirección</string>
+    <string name="hint_ubicacion_direccion">Ej: Km 12 Carretera Piura</string>
+    <string name="label_area_hectareas">Área (hectáreas) *</string>
+    <string name="hint_area_hectareas">Ej: 5.5</string>
+    <string name="label_tipo_tenencia">Tipo de tenencia *</string>
+    <string name="label_propio">Propio</string>
+    <string name="label_alquilado">Alquilado</string>
+    <string name="label_costo_alquiler">Costo de alquiler anual (S/.)</string>
+    <string name="hint_costo_alquiler">Ej: 2500.00</string>
+    <string name="label_calidad_suelo">Calidad del suelo</string>
+    <string name="hint_calidad_suelo">Ej: buena, regular, mala, intermedia, otro... </string>
+    <string name="label_fuente_agua">Fuente de agua</string>
+    <string name="hint_fuente_agua">Ej: Canal de riego, Aspersion, Goteo</string>
+    <string name="btn_guardar_terreno">Guardar terreno</string>
+    <string name="footer_datos_locales">🛡 Los datos se guardarán localmente</string>
+
+    <!-- Register Cultivo -->
+    <string name="header_nuevo_cultivo">Nuevo Cultivo</string>
+    <string name="label_destino_siembra">Destino de Siembra</string>
+    <string name="label_area_disponible">Área Disponible</string>
+    <string name="label_tipo_cultivo">Tipo de cultivo *</string>
+    <string name="hint_busca_cultivo">Busca o selecciona un cultivo...</string>
+    <string name="label_ciclo_estimado">Ciclo productivo estimado: %1$s</string>
+    <string name="label_variedad_cultivo">Variedad del cultivo *</string>
+    <string name="hint_variedad_cultivo">Ej: Yungay, Híbrido, etc.</string>
+    <string name="label_fecha_planificada">Fecha planificada *</string>
+    <string name="hint_seleccionar_fecha">Seleccionar fecha</string>
+    <string name="label_fecha_siembra_real">Fecha siembra real (si ya sembró)</string>
+    <string name="hint_opcional_fecha">Opcional: Seleccionar fecha</string>
+    <string name="label_estado_cultivo">Estado del cultivo *</string>
+    <string name="label_planificado">📋 Planificado</string>
+    <string name="label_activo">🌱 Activo</string>
+    <string name="label_area_destinada">Área destinada (hectáreas) *</string>
+    <string name="label_observaciones_notas">Observaciones / Notas *</string>
+    <string name="hint_escribe_notas">Escribe notas sobre este cultivo...</string>
+    <string name="btn_registrar_cultivo">Registrar Cultivo</string>
+
+    <!-- Register Labor -->
+    <string name="label_selecciona_labor">Selecciona la labor a realizar:</string>
+    <string name="labor_preparar">Preparar</string>
+    <string name="labor_sembrar">Sembrar</string>
+    <string name="labor_riego">Riego</string>
+    <string name="labor_fumigar">Fumigar</string>
+    <string name="labor_aporque">Aporque</string>
+    <string name="labor_deshierbe">Deshierbe</string>
+    <string name="labor_abonar">Abonar</string>
+    <string name="labor_cosechar">Cosechar</string>
+    <string name="labor_otros">Otros</string>
+    <string name="label_labor_sesion">Labor para registrar en esta sesión:</string>
+    <string name="label_inversion_estimada">Inversión Estimada:</string>
+    <string name="msg_empty_labores">No has agregado labores todavía</string>
+    <string name="btn_confirmar_guardar">Confirmar y Guardar Todo</string>
+    <!-- Errors and Messages -->
+    <string name="error_profile_not_found">Error: Perfil de agricultor no encontrado</string>
+    <string name="error_nombre_required">⚠️ El nombre es obligatorio</string>
+    <string name="error_ubicacion_required">⚠️ La ubicación es obligatoria</string>
+    <string name="error_area_required">⚠️ El área es obligatoria</string>
+    <string name="error_invalid_area">⚠️ Ingrese un área válida mayor a 0</string>
+    <string name="error_costo_required">⚠️ Ingrese el costo de alquiler</string>
+    <string name="msg_terreno_saved">✅ Terreno guardado correctamente</string>
+    <string name="error_db_save">❌ Error al guardar en la base de datos</string>
+
+    <!-- Register Cultivo Strings -->
+    <string name="label_perenne">Perenne</string>
+    <string name="unit_days">días</string>
+    <string name="label_ha_free">%1$.2f Hectáreas Libres</string>
+    <string name="label_no_location">Ubicación no especificada</string>
+    <string name="error_no_terrenos">No tienes terrenos. Registra uno primero.</string>
+    <string name="error_terreno_required">⚠️ El terreno es obligatorio</string>
+    <string name="error_cultivo_type_required">⚠️ Selecciona un tipo de cultivo</string>
+    <string name="error_variedad_required">⚠️ La variedad es obligatoria</string>
+    <string name="error_fecha_planificada_required">⚠️ La fecha planificada es obligatoria</string>
+    <string name="error_insufficient_area">❌ Área insuficiente. Disponible: %1$.2f ha</string>
+    <string name="msg_cultivo_registered">✅ Cultivo registrado</string>
+
+    <!-- Register Labor Strings -->
+    <string name="label_last_time">Última vez: %1$s</string>
+    <string name="label_gasto">Gasto: S/ %1$.2f</string>
+    <string name="label_mo_peones">Mano de obra: %1$d peones</string>
+    <string name="error_prep_already_registered">La preparación ya ha sido registrada anteriormente.</string>
+    <string name="error_require_prep">⚠️ Primero debes registrar la Preparación del terreno</string>
+    <string name="error_require_siembra">⚠️ Primero debes registrar la Siembra</string>
+    <string name="label_labor_to_register">Labor a registrar: %1$s</string>
+    <string name="msg_no_labor_selected">No has seleccionado ninguna labor todavía</string>
+    <string name="label_subtotal">Subtotal: S/ %1$.2f</string>
+    <string name="msg_edit_insumo_confirm">¿Deseas editar este insumo?</string>
+    <string name="msg_edit_labor_confirm">¿Deseas editar esta labor?</string>
+    <string name="label_direct_costs">Costos Directos: S/ %1$.2f</string>
+    <string name="label_detailed_insumos">Insumos Detallados:</string>
+    <string name="label_total_to_register">\nTOTAL A REGISTRAR: S/ %1$.2f</string>
+    <string name="msg_labor_saved">✅ Registro de labor guardado</string>
+
+    <!-- Registration -->
+    <string name="header_crear_cuenta">Crear Cuenta</string>
+    <string name="label_datos_personales">Datos personales</string>
+    <string name="label_info_agricola">Información agrícola</string>
+    <string name="hint_nombre">Nombre</string>
+    <string name="hint_apellidos">Apellidos</string>
+    <string name="hint_email">Correo electrónico</string>
+    <string name="hint_telefono_opcional">Teléfono (Opcional)</string>
+    <string name="hint_password">Contraseña</string>
+    <string name="hint_confirm_password">Confirmar contraseña</string>
+    <string name="btn_continuar">Continuar</string>
+    <string name="label_switch_to_login">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="footer_datos_seguros">🛡 Tus datos están seguros</string>
+    <string name="label_step_personales">Personales</string>
+    <string name="label_step_informacion">Información</string>
+    <string name="label_rol_plataforma">Rol en la plataforma</string>
+    <string name="label_agricultor">Agricultor</string>
+    <string name="label_supervisor">Supervisor</string>
+    <string name="label_admin">Admin</string>
+    <string name="hint_dni">DNI / Documento</string>
+    <string name="hint_experiencia">Años de experiencia</string>
+    <string name="label_nivel_educativo">Nivel educativo</string>
+    <string name="hint_organizacion">Organización / Finca</string>
+    <string name="btn_atras">Atrás</string>
+    <string name="btn_registrarse">Registrarse</string>
+    <string name="msg_error_campos_obligatorios">⚠️ Completa los campos obligatorios</string>
+    <string name="msg_error_passwords_no_coinciden">❌ Las contraseñas no coinciden</string>
+    <string name="msg_error_email_registrado">❌ Este email ya está registrado</string>
+    <string name="msg_error_dni_obligatorio">⚠️ El DNI/Documento es obligatorio</string>
+    <string name="msg_registro_exitoso">✅ Registro exitoso</string>
+    <string name="msg_error_guardar_datos">❌ Error al guardar datos</string>
+    <!-- Login -->
+    <string name="header_iniciar_sesion">Iniciar Sesión</string>
+    <string name="label_accede_cuenta">Accede a tu cuenta agrícola</string>
+    <string name="label_email">Correo electrónico</string>
+    <string name="hint_email_placeholder">agricultor@agrosys.com</string>
+    <string name="label_password">Contraseña</string>
+    <string name="hint_password_placeholder">••••••••</string>
+    <string name="label_recordar_sesion">Recordar sesión</string>
+    <string name="label_olvidaste_password">¿Olvidaste tu contraseña?</string>
+    <string name="btn_ingresar">Ingresar</string>
+    <string name="label_nuevo_en_agrosys">¿Nuevo en AgroSys? </string>
+    <string name="label_registrate_aqui">Regístrate aquí</string>
+    <string name="footer_copyright">© 2026 AgroSys - Gestión agrícola inteligente SIGPA</string>
+
 </resources>

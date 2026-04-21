@@ -5,7 +5,7 @@
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#eef2ee">
+    android:background="#f8fafc">
 
     <!-- Header -->
     <LinearLayout
@@ -16,7 +16,7 @@
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
         android:paddingTop="32dp"
-        android:paddingBottom="20dp"
+        android:paddingBottom="16dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
@@ -41,17 +41,18 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tvHeaderLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Detalle de"
+                    android:text="@string/label_detalle_de"
                     android:textColor="#dcfce7"
                     android:textSize="12sp" />
 
                 <TextView
-                    android:id="@+id/tvCultivoNombreHeader"
+                    android:id="@+id/tvHeaderTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Cargando..."
+                    android:text="@string/label_cargando"
                     android:textColor="#ffffff"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -68,12 +69,12 @@
     </LinearLayout>
 
     <ScrollView
+        android:id="@+id/scroll_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingBottom="80dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header">
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintTop_toBottomOf="@id/header_container">
 
         <LinearLayout
             android:id="@+id/detalleContent"
@@ -86,7 +87,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="20dp"
+                app:cardCornerRadius="40dp"
                 app:cardElevation="0dp"
                 app:strokeWidth="1dp"
                 app:strokeColor="#d1fae5">
@@ -130,7 +131,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Área"
+                                android:text="@string/label_area"
                                 android:textColor="#6b7280"
                                 android:textSize="10sp" />
                             <TextView
@@ -150,7 +151,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Ganancia"
+                                android:text="@string/label_ganancia"
                                 android:textColor="#6b7280"
                                 android:textSize="10sp" />
                             <TextView
@@ -170,14 +171,14 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Estado"
+                                android:text="@string/label_estado_cultivo"
                                 android:textColor="#6b7280"
                                 android:textSize="10sp" />
                             <TextView
                                 android:id="@+id/tvEstado"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="🌱 Activo"
+                                android:text="@string/label_activo"
                                 android:textColor="#111827"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -190,7 +191,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Estado del cultivo"
+                android:text="@string/label_estado_del_cultivo"
                 android:textColor="#374151"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -247,7 +248,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="40dp"
                 app:cardElevation="0dp"
                 app:strokeWidth="1dp"
                 app:strokeColor="#e5e7eb">
@@ -261,7 +262,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Resumen financiero"
+                        android:text="@string/label_resumen_financiero"
                         android:textColor="#374151"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -278,7 +279,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="12dp">
                             <View android:id="@+id/dotCostos" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_red" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotCostos" android:layout_marginStart="8dp" android:text="Costos totales" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotCostos" android:layout_marginStart="8dp" android:text="@string/label_costos_totales" android:textColor="#6b7280" android:textSize="14sp"/>
                             <TextView android:id="@+id/tvCostosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#ef4444" android:textStyle="bold" android:textSize="14sp"/>
                         </RelativeLayout>
 
@@ -290,7 +291,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="12dp">
                             <View android:id="@+id/dotIngresos" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_green" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotIngresos" android:layout_marginStart="8dp" android:text="Ingresos" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotIngresos" android:layout_marginStart="8dp" android:text="@string/label_ingresos" android:textColor="#6b7280" android:textSize="14sp"/>
                             <TextView android:id="@+id/tvIngresosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#22c55e" android:textStyle="bold" android:textSize="14sp"/>
                         </RelativeLayout>
 
@@ -302,7 +303,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="12dp">
                             <View android:id="@+id/dotPrep" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_purple" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotPrep" android:layout_marginStart="8dp" android:text="Preparación" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotPrep" android:layout_marginStart="8dp" android:text="@string/labor_preparar" android:textColor="#6b7280" android:textSize="14sp"/>
                             <TextView android:id="@+id/tvCostoPreparacion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#a855f7" android:textStyle="bold" android:textSize="14sp"/>
                         </RelativeLayout>
 
@@ -314,7 +315,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="12dp">
                             <View android:id="@+id/dotSiembra" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_green_light" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotSiembra" android:layout_marginStart="8dp" android:text="Siembra" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotSiembra" android:layout_marginStart="8dp" android:text="@string/labor_sembrar" android:textColor="#6b7280" android:textSize="14sp"/>
                             <TextView android:id="@+id/tvCostoSiembra" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#4ade80" android:textStyle="bold" android:textSize="14sp"/>
                         </RelativeLayout>
 
@@ -326,7 +327,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="12dp">
                             <View android:id="@+id/dotMant" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_blue" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotMant" android:layout_marginStart="8dp" android:text="Mantenimiento" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotMant" android:layout_marginStart="8dp" android:text="@string/label_mantenimiento" android:textColor="#6b7280" android:textSize="14sp"/>
                             <TextView android:id="@+id/tvCostoMantenimiento" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#3b82f6" android:textStyle="bold" android:textSize="14sp"/>
                         </RelativeLayout>
 
@@ -338,7 +339,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="20dp">
                             <View android:id="@+id/dotCosecha" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_orange" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotCosecha" android:layout_marginStart="8dp" android:text="Cosecha/Venta" android:textColor="#6b7280" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotCosecha" android:layout_marginStart="8dp" android:text="@string/label_cosecha_venta" android:textColor="#6b7280" android:textSize="14sp"/>
                             <TextView android:id="@+id/tvCostoCosecha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#f59e0b" android:textStyle="bold" android:textSize="14sp"/>
                         </RelativeLayout>
 
@@ -357,7 +358,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Ganancia neta"
+                                    android:text="@string/label_ganancia_neta"
                                     android:textColor="#166534"
                                     android:textStyle="bold"
                                     android:textSize="16sp"/>
@@ -388,7 +389,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Labores (0)"
+                    android:text="@string/label_labores"
                     android:textColor="#374151"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -397,7 +398,7 @@
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="+ Agregar"
+                    android:text="@string/btn_agregar"
                     android:textAllCaps="false"
                     android:textColor="#15803d" />
             </LinearLayout>
@@ -421,7 +422,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Cosechas (0)"
+                    android:text="@string/label_cosecha"
                     android:textColor="#374151"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -430,7 +431,7 @@
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="+ Registrar"
+                    android:text="@string/btn_registrar"
                     android:textAllCaps="false"
                     android:textColor="#15803d" />
             </LinearLayout>
@@ -448,7 +449,7 @@
                 android:layout_height="60dp"
                 android:layout_marginTop="24dp"
                 android:backgroundTint="#fee2e2"
-                android:text="Eliminar cultivo"
+                android:text="@string/btn_eliminar_cultivo"
                 android:textAllCaps="false"
                 android:textColor="#b91c1c"
                 android:textStyle="bold"
@@ -487,7 +488,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Inicio"
+                android:text="@string/label_inicio"
                 android:textSize="10sp"
                 android:textColor="#9ca3af" />
         </LinearLayout>
@@ -507,7 +508,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Terrenos"
+                android:text="@string/label_terrenos"
                 android:textSize="10sp"
                 android:textColor="#9ca3af" />
         </LinearLayout>
@@ -527,7 +528,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cultivos"
+                android:text="@string/label_cultivos"
                 android:textSize="10sp"
                 android:textColor="#166534"
                 android:textStyle="bold" />
@@ -548,7 +549,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Labores"
+                android:text="@string/label_labores"
                 android:textSize="10sp"
                 android:textColor="#9ca3af" />
         </LinearLayout>
@@ -568,7 +569,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Reportes"
+                android:text="@string/label_reportes"
                 android:textSize="10sp"
                 android:textColor="#9ca3af" />
         </LinearLayout>

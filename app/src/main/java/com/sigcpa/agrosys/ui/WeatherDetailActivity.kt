@@ -8,6 +8,9 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -50,8 +53,34 @@ class WeatherDetailActivity : AppCompatActivity() {
         binding = ActivityWeatherDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Insets
+        window.statusBarColor = Color.parseColor("#15803D")
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        val initialHeaderPaddingTop = binding.headerContainer.paddingTop
+        val initialPaddingTop = binding.scrollContainer.paddingTop
+        val initialPaddingBottom = binding.scrollContainer.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.headerContainer.setPadding(
+                binding.headerContainer.paddingLeft,
+                initialHeaderPaddingTop + systemBars.top,
+                binding.headerContainer.paddingRight,
+                binding.headerContainer.paddingBottom
+            )
+            binding.scrollContainer.setPadding(
+                binding.scrollContainer.paddingLeft,
+                initialPaddingTop,
+                binding.scrollContainer.paddingRight,
+                initialPaddingBottom + systemBars.bottom
+            )
+            insets
+        }
+
         weatherViewModel = ViewModelProvider(this)[WeatherViewModel::class.java]
         setupObservers()
+
+        binding.btnBack.setOnClickListener { finish() }
 
         val lat = intent.getDoubleExtra("LAT", 0.0)
         val lon = intent.getDoubleExtra("LON", 0.0)

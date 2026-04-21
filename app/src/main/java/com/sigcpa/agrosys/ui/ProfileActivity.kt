@@ -74,19 +74,13 @@ class ProfileActivity : AppCompatActivity() {
         binding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        window.statusBarColor = android.graphics.Color.parseColor("#15803D")
+        window.statusBarColor = android.graphics.Color.parseColor("#00582a")
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
 
         // Aplicar Insets
-        val initialHeaderTopPadding = binding.headerContainer.paddingTop
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
             val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
-            binding.headerContainer.setPadding(
-                binding.headerContainer.paddingLeft,
-                initialHeaderTopPadding + systemBars.top,
-                binding.headerContainer.paddingRight,
-                binding.headerContainer.paddingBottom
-            )
+            binding.appBarLayout.setPadding(0, systemBars.top, 0, 0)
             insets
         }
 

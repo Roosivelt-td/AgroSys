@@ -12,6 +12,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.database.AppDatabase
 import com.sigcpa.agrosys.database.entities.*
 import com.sigcpa.agrosys.databinding.ActivityDetalleCultivoBinding
@@ -34,12 +38,35 @@ class DetalleCultivoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Hacer la barra de estado verde con iconos blancos
-        window.statusBarColor = Color.parseColor("#2d6a4f")
+        // Ajuste de StatusBar: Fondo Verde (#15803D) con iconos blancos
+        window.statusBarColor = Color.parseColor("#15803D")
         window.decorView.systemUiVisibility = 0 
         
         binding = ActivityDetalleCultivoBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Aplicar Insets para proteger la UI de la barra de estado y navegación del sistema
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            
+            // Padding superior para el header
+            binding.headerContainer.setPadding(
+                binding.headerContainer.paddingLeft,
+                systemBars.top,
+                binding.headerContainer.paddingRight,
+                binding.headerContainer.paddingBottom
+            )
+            
+            // Padding inferior para el bottomNav
+            binding.bottomNav.setPadding(
+                binding.bottomNav.paddingLeft,
+                binding.bottomNav.paddingTop,
+                binding.bottomNav.paddingRight,
+                systemBars.bottom
+            )
+            
+            insets
+        }
 
         currentCultivoId = intent.getIntExtra("CULTIVO_ID", -1)
         if (currentCultivoId == -1) {
@@ -177,16 +204,16 @@ class DetalleCultivoActivity : AppCompatActivity() {
     }
 
     private fun updateGeneralUI(cultivo: CultivoEntity, terreno: TerrenoEntity?) {
-        binding.tvCultivoNombreHeader.text = "${cultivo.nombre_lote} · ${terreno?.nombre ?: "Sin terreno"}"
+        binding.tvHeaderTitle.text = "${cultivo.nombre_lote} · ${terreno?.nombre ?: getString(R.string.label_no_location)}"
         binding.tvNombreLote.text = cultivo.nombre_lote
-        binding.tvTerrenoNombre.text = terreno?.nombre ?: "Sin terreno"
-        binding.tvArea.text = "${cultivo.area_destinada ?: 0.0} ha"
+        binding.tvTerrenoNombre.text = terreno?.nombre ?: getString(R.string.label_no_location)
+        binding.tvArea.text = "${cultivo.area_destinada ?: 0.0} ${getString(R.string.unit_ha)}"
         
         binding.tvEstado.text = when(cultivo.estado) {
-            "activo" -> "🌱 Activo"
-            "planificado" -> "📋 Planificado"
-            "cosechado" -> "🍂 Cosechado"
-            "perdido" -> "⚠️ Perdido"
+            "activo" -> getString(R.string.label_activo)
+            "planificado" -> getString(R.string.label_planificado)
+            "cosechado" -> getString(R.string.filter_cosechado)
+            "perdido" -> getString(R.string.filter_perdido)
             else -> cultivo.estado
         }
     }
@@ -250,8 +277,9 @@ class DetalleCultivoActivity : AppCompatActivity() {
             binding.tvCostoCosecha.text = "S/ ${String.format("%.2f", costoCosecha)}"
             
             val prefix = if (gananciaNeta >= 0) "+" else ""
-            binding.tvGananciaNeta.text = "$prefix S/ ${String.format("%.2f", gananciaNeta)}"
-            binding.tvGanancia.text = "$prefix S/ ${String.format("%.2f", gananciaNeta)}"
+            val formattedGanancia = "$prefix S/ ${String.format("%.2f", gananciaNeta)}"
+            binding.tvGananciaNeta.text = formattedGanancia
+            binding.tvGanancia.text = formattedGanancia
             
             val color = if (gananciaNeta >= 0) Color.parseColor("#22c55e") else Color.parseColor("#ef4444")
             binding.tvGananciaNeta.setTextColor(color)
@@ -260,7 +288,7 @@ class DetalleCultivoActivity : AppCompatActivity() {
     }
 
     private fun updateListas(labores: List<LaborRealizadaEntity>, cosechas: List<CosechaEntity>, ventas: List<VentaEntity>) {
-        binding.tvLaboresTitulo.text = "Labores (${labores.size})"
+        binding.tvLaboresTitulo.text = getString(R.string.label_labores_count, labores.size)
         
         lifecycleScope.launch {
             val catalogo = db.assetDao().getCatalogoLabores()
@@ -272,7 +300,7 @@ class DetalleCultivoActivity : AppCompatActivity() {
             binding.rvLabores.adapter = LaboresGroupAdapter(groupedLabores)
         }
 
-        binding.tvCosechasTitulo.text = "Cosechas (${cosechas.size})"
+        binding.tvCosechasTitulo.text = getString(R.string.label_cosechas_count, cosechas.size)
         binding.rvCosechas.adapter = CosechasAdapter(cosechas, ventas)
     }
 
@@ -343,15 +371,16 @@ class DetalleCultivoActivity : AppCompatActivity() {
 
     private fun mostrarDialogoEliminar() {
         AlertDialog.Builder(this)
-            .setTitle("¿Eliminar cultivo?")
-            .setMessage("Se perderán todos los datos asociados.")
-            .setPositiveButton("Eliminar") { _, _ ->
+            .setTitle(getString(R.string.dialog_eliminar_cultivo_title))
+            .setMessage(getString(R.string.dialog_eliminar_cultivo_msg))
+            .setPositiveButton(getString(R.string.btn_eliminar)) { _, _ ->
                 lifecycleScope.launch {
                     db.assetDao().deleteCultivo(currentCultivo!!)
+                    Toast.makeText(this@DetalleCultivoActivity, getString(R.string.msg_cultivo_eliminado), Toast.LENGTH_SHORT).show()
                     finish()
                 }
             }
-            .setNegativeButton("Cancelar", null).show()
+            .setNegativeButton(getString(R.string.btn_cancelar), null).show()
     }
 
     override fun onResume() {
