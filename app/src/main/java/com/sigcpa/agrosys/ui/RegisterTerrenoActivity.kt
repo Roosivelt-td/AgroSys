@@ -27,23 +27,22 @@ class RegisterTerrenoActivity : AppCompatActivity() {
         binding = ActivityRegisterTerrenoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Branding y Insets
+        // Branding
         window.statusBarColor = Color.parseColor("#15803D")
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
 
-        val initialHeaderTopPadding = binding.headerContainer.paddingTop
+        assetRepository = AssetRepository(this)
+        
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             binding.headerContainer.setPadding(
                 binding.headerContainer.paddingLeft,
-                initialHeaderTopPadding + systemBars.top,
+                systemBars.top,
                 binding.headerContainer.paddingRight,
                 binding.headerContainer.paddingBottom
             )
             insets
         }
-
-        assetRepository = AssetRepository(this)
         
         // Get agricultor ID from session
         val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)

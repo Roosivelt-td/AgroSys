@@ -192,7 +192,10 @@
                         android:hint="@string/hint_dni"
                         android:inputType="number"
                         android:paddingHorizontal="16dp"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:imeOptions="actionNext" />
 
                     <EditText
                         android:id="@+id/etRegExp"
@@ -203,7 +206,10 @@
                         android:hint="@string/hint_experiencia"
                         android:inputType="number"
                         android:paddingHorizontal="16dp"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:imeOptions="actionNext" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
@@ -231,7 +237,11 @@
                         android:background="@drawable/edit_text_elegant"
                         android:hint="@string/hint_organizacion"
                         android:paddingHorizontal="16dp"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:inputType="textCapSentences"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:imeOptions="actionDone" />
 
                     <LinearLayout
                         android:layout_width="match_parent"

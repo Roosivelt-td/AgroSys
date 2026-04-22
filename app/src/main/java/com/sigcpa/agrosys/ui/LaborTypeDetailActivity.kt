@@ -35,22 +35,25 @@ class LaborTypeDetailActivity : AppCompatActivity() {
 
         // Branding e Insets
         window.statusBarColor = Color.parseColor("#15803D")
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            window.navigationBarColor = Color.WHITE
+            isAppearanceLightNavigationBars = true
+        }
 
-        val initialHeaderPaddingTop = binding.headerContainer.paddingTop
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             binding.headerContainer.setPadding(
                 binding.headerContainer.paddingLeft,
-                initialHeaderPaddingTop + systemBars.top,
+                systemBars.top,
                 binding.headerContainer.paddingRight,
                 binding.headerContainer.paddingBottom
             )
-            binding.rvLabores.setPadding(
-                binding.rvLabores.paddingLeft,
-                binding.rvLabores.paddingTop,
-                binding.rvLabores.paddingRight,
-                systemBars.bottom + (16 * resources.displayMetrics.density).toInt()
+            binding.scrollContainer.setPadding(
+                binding.scrollContainer.paddingLeft,
+                binding.scrollContainer.paddingTop,
+                binding.scrollContainer.paddingRight,
+                systemBars.bottom
             )
             insets
         }
@@ -176,8 +179,8 @@ class LaborTypeDetailActivity : AppCompatActivity() {
                             insRow.tvInsumoNombre.text = cat?.nombre ?: "Insumo"
                             
                             val unidad = cat?.unidad_medida ?: ""
-                            val cantStr = if (ins.cantidad % 1.0 == 0.0) ins.cantidad.toInt().toString() else ins.cantidad.toString()
-                            insRow.tvInsumoCant.text = "$cantStr $unidad"
+                            val username_placeholder = if (ins.cantidad % 1.0 == 0.0) ins.cantidad.toInt().toString() else ins.cantidad.toString()
+                            insRow.tvInsumoCant.text = "$username_placeholder $unidad"
                             insRow.tvInsumoSubtotal.text = "S/ ${String.format("%.2f", (ins.cantidad * ins.costo_unitario) + ins.costo_flete)}"
                             
                             insRow.btnEditInsumo.visibility = View.GONE

@@ -70,6 +70,12 @@ interface AssetDao {
     suspend fun getTerrenoById(id: Int): TerrenoEntity?
 
     @Query("""
+        SELECT SUM(area_destinada) FROM cultivos 
+        WHERE terreno_id = :terrenoId AND estado != 'cosechado' AND deleted_at IS NULL
+    """)
+    suspend fun getAreaOcupadaByTerreno(terrenoId: Int): Double?
+
+    @Query("""
         SELECT lr.* FROM labores_realizadas lr
         JOIN cultivos c ON lr.cultivo_id = c.id
         JOIN terrenos t ON c.terreno_id = t.id

@@ -42,7 +42,11 @@ class DetalleTerrenoActivity : AppCompatActivity() {
         
         // Forzar barra de estado verde y iconos blancos
         window.statusBarColor = android.graphics.Color.parseColor("#15803D")
-        androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+        androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            window.navigationBarColor = android.graphics.Color.WHITE
+            isAppearanceLightNavigationBars = true
+        }
 
         // SOLUCIÓN: Ajustar el menú inferior para que no lo tapen los botones del sistema
         val initialBottomPadding = binding.bottomNav.paddingBottom
@@ -115,23 +119,48 @@ class DetalleTerrenoActivity : AppCompatActivity() {
         val areaOcupada = cultivos.filter { it.estado != "cosechado" && it.estado != "perdido" }.sumOf { it.area_destinada ?: 0.0 }
         val areaDisponible = totalArea - areaOcupada
 
-        val areaStr = if (totalArea % 1.0 == 0.0) totalArea.toInt().toString() else String.format("%.1f", totalArea)
-        val disponibleStr = String.format("%.1f", areaDisponible)
+        binding.tvAreaTotalInfo.text = getString(R.string.label_ha_count, totalArea)
+        binding.tvAreaDisponibleInfo.text = getString(R.string.label_ha_count, areaDisponible)
+
+        // Lógica de Barra de Progreso (Uso de Terreno)
+        val ratioOcupado = if (totalArea > 0) (areaOcupada / totalArea) else 0.0
+        binding.progressUsoTerreno.progress = (ratioOcupado * 100).toInt()
         
-        // Mostrar área disponible en el resumen
-        binding.tvTerrenoResumenCard.text = getString(R.string.label_disponible_ha, areaDisponible)
+        // Lógica de Colores basada en Disponibilidad (Terreno Libre):
+        // Rojo: 0% libre (quedan 0 terrenos)
+        // Verde: < 50% libre (Buen avance de ocupación)
+        // Naranja: >= 50% libre (Mucho terreno disponible aún)
+        val colorUso = when {
+            ratioOcupado >= 1.0 -> "#ef4444" // Rojo (Lleno / 0 libre)
+            ratioOcupado > 0.5  -> "#22c55e" // Verde (Libre < 50%)
+            else                -> "#f97316" // Naranja (Libre >= 50%)
+        }
+        binding.progressUsoTerreno.setIndicatorColor(android.graphics.Color.parseColor(colorUso))
+        
+        // Actualizar Badge de Estado (Propio / Alquilado)
+        if (terreno.tipo_tenencia == "alquilado") {
+            binding.tvCostoAlquilerBadge.text = getString(R.string.label_alquilado_badge)
+            binding.tvCostoAlquilerBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FEFCE8"))
+            binding.tvCostoAlquilerBadge.setTextColor(android.graphics.Color.parseColor("#A16207"))
+            
+            binding.layoutCostoInfo.visibility = android.view.View.VISIBLE
+            binding.tvCostoValor.text = "S/ ${terreno.costo_alquiler_anual}/año"
+        } else {
+            binding.tvCostoAlquilerBadge.text = getString(R.string.label_propio)
+            binding.tvCostoAlquilerBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#DCFCE7"))
+            binding.tvCostoAlquilerBadge.setTextColor(android.graphics.Color.parseColor("#15803D"))
+            
+            binding.layoutCostoInfo.visibility = android.view.View.GONE
+        }
         
         binding.tvUbicacion.text = terreno.direccion_referencia ?: getString(R.string.label_no_location)
-        binding.tvAreaInfo.text = "$disponibleStr ${getString(R.string.unit_ha)} (${getString(R.string.label_disponibles)})"
-        
-        binding.tvCostoAlquiler.text = if (terreno.tipo_tenencia == "alquilado") {
-            "S/ ${terreno.costo_alquiler_anual} anual"
-        } else {
-            getString(R.string.label_propio)
-        }
         
         binding.tvCalidadSuelo.text = terreno.calidad_suelo ?: getString(R.string.label_no_location)
         binding.tvFuenteAgua.text = terreno.fuente_agua ?: getString(R.string.label_no_location)
+        
+        // Mostrar resumen de cultivos activos
+        val activosCount = cultivos.count { it.estado == "activo" }
+        binding.tvTerrenoResumenCard.text = getString(R.string.label_activos_count, activosCount)
         
         binding.tvCultivosTitulo.text = getString(R.string.label_cultivos_count, cultivos.size)
         

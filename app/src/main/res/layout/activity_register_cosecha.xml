@@ -2,10 +2,11 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#00582a"
-    android:fitsSystemWindows="false">
+    android:background="#0f3b1f"
+    android:fitsSystemWindows="true">
 
     <!-- Header -->
     <LinearLayout
@@ -30,7 +31,6 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/direccion_izquierda"
-                android:rotation="180"
                 app:tint="#ffffff" />
 
             <LinearLayout
@@ -44,7 +44,7 @@
                     android:id="@+id/tvHeaderLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Registro de"
+                    android:text="@string/label_registro_de"
                     android:textColor="#dcfce7"
                     android:textSize="12sp" />
 
@@ -52,7 +52,7 @@
                     android:id="@+id/tvHeaderTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Cosecha"
+                    android:text="@string/label_cosecha"
                     android:textColor="#ffffff"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -94,13 +94,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cultivo"
+                android:text="@string/label_cultivo"
                 android:textColor="#374151"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="54dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/edit_text_elegant"
                 android:backgroundTint="#F3F4F6"
@@ -113,11 +114,12 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Cargando..."
-                    android:textColor="#374151" />
+                    android:textColor="#1f2937"
+                    android:textStyle="bold" />
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:src="@drawable/agro_planta_buena"
                     app:tint="#16a34a" />
             </LinearLayout>
@@ -127,8 +129,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Fecha de cosecha *"
+                android:text="@string/label_fecha_cosecha"
                 android:textColor="#374151"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <EditText
@@ -140,15 +143,17 @@
                 android:clickable="true"
                 android:focusable="false"
                 android:hint="dd/mm/aaaa"
-                android:paddingHorizontal="16dp" />
+                android:paddingHorizontal="16dp"
+                android:textColor="#1f2937" />
 
             <!-- Cantidad cosechada (kg) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Cantidad cosechada (kg) *"
+                android:text="@string/label_cantidad_cosechada_kg"
                 android:textColor="#374151"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <RelativeLayout
@@ -164,7 +169,8 @@
                     android:background="@android:color/transparent"
                     android:hint="0.00"
                     android:inputType="numberDecimal"
-                    android:paddingHorizontal="16dp" />
+                    android:paddingHorizontal="16dp"
+                    android:textColor="#1f2937" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -173,7 +179,8 @@
                     android:layout_centerVertical="true"
                     android:layout_marginEnd="16dp"
                     android:text="kg"
-                    android:textColor="#6B7280" />
+                    android:textColor="#6B7280"
+                    android:textStyle="bold" />
             </RelativeLayout>
 
             <!-- Código de Lote -->
@@ -181,8 +188,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Código de Lote"
+                android:text="@string/label_codigo_lote"
                 android:textColor="#374151"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <EditText
@@ -193,15 +201,17 @@
                 android:background="@drawable/edit_text_elegant"
                 android:hint="Ej: LOTE-001"
                 android:inputType="textCapCharacters"
-                android:paddingHorizontal="16dp" />
+                android:paddingHorizontal="16dp"
+                android:textColor="#1f2937" />
 
             <!-- Calidad -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Calidad del producto"
+                android:text="@string/label_calidad_producto"
                 android:textColor="#374151"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <GridLayout
@@ -219,6 +229,8 @@
                     android:layout_margin="4dp"
                     android:text="⭐ Extra"
                     android:textAllCaps="false"
+                    android:textColor="#374151"
+                    app:strokeColor="#e2e8f0"
                     app:cornerRadius="12dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -230,6 +242,8 @@
                     android:layout_margin="4dp"
                     android:text="✅ Primera"
                     android:textAllCaps="false"
+                    android:textColor="#374151"
+                    app:strokeColor="#e2e8f0"
                     app:cornerRadius="12dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -241,6 +255,8 @@
                     android:layout_margin="4dp"
                     android:text="📦 Segunda"
                     android:textAllCaps="false"
+                    android:textColor="#374151"
+                    app:strokeColor="#e2e8f0"
                     app:cornerRadius="12dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -252,6 +268,8 @@
                     android:layout_margin="4dp"
                     android:text="⚠️ Tercera"
                     android:textAllCaps="false"
+                    android:textColor="#374151"
+                    app:strokeColor="#e2e8f0"
                     app:cornerRadius="12dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -263,6 +281,8 @@
                     android:layout_margin="4dp"
                     android:text="🗑️ Descarte"
                     android:textAllCaps="false"
+                    android:textColor="#374151"
+                    app:strokeColor="#e2e8f0"
                     app:cornerRadius="12dp" />
             </GridLayout>
 
@@ -271,8 +291,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Costo operativo de cosecha (S/)"
+                android:text="@string/label_costo_operativo_cosecha"
                 android:textColor="#374151"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <RelativeLayout
@@ -287,7 +308,8 @@
                     android:layout_centerVertical="true"
                     android:layout_marginStart="16dp"
                     android:text="S/"
-                    android:textColor="#6B7280" />
+                    android:textColor="#6B7280"
+                    android:textStyle="bold" />
 
                 <EditText
                     android:id="@+id/etCostoOperativo"
@@ -297,7 +319,8 @@
                     android:hint="0.00"
                     android:inputType="numberDecimal"
                     android:paddingStart="40dp"
-                    android:paddingEnd="16dp" />
+                    android:paddingEnd="16dp"
+                    android:textColor="#1f2937" />
             </RelativeLayout>
 
             <!-- Observaciones -->
@@ -305,8 +328,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Observaciones"
+                android:text="@string/label_observaciones"
                 android:textColor="#374151"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <EditText
@@ -316,16 +340,17 @@
                 android:layout_marginTop="8dp"
                 android:background="@drawable/edit_text_elegant"
                 android:gravity="top"
-                android:hint="Notas adicionales..."
+                android:hint="@string/hint_notas_adicionales"
                 android:inputType="textMultiLine"
                 android:minLines="3"
-                android:padding="16dp" />
+                android:padding="16dp"
+                android:textColor="#1f2937" />
 
             <!-- Marcar como Cosechado -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="24dp"
                 android:background="@drawable/rounded_background"
                 android:backgroundTint="#fffbeb"
                 android:gravity="center_vertical"
@@ -342,28 +367,35 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="Marcar cultivo como 'Cosechado'"
+                    android:text="@string/label_marcar_como_cosechado"
                     android:textColor="#92400e"
                     android:textSize="14sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
             <!-- Guardar -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSaveCosecha"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginTop="32dp"
                 android:backgroundTint="#BD22C1"
-                android:text="Registrar cosecha"
+                android:text="@string/btn_registrar_cosecha"
                 android:textAllCaps="false"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:cornerRadius="16dp" />
+                app:cornerRadius="16dp"
+                app:elevation="4dp" />
 
-            <View
+            <TextView
                 android:layout_width="match_parent"
-                android:layout_height="40dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:paddingBottom="40dp"
+                android:gravity="center"
+                android:text="@string/footer_datos_locales"
+                android:textColor="#9CA3AF"
+                android:textSize="11sp" />
 
         </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

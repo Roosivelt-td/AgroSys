@@ -45,19 +45,26 @@ class RegisterCultivoActivity : AppCompatActivity() {
         binding = ActivityRegisterCultivoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Branding y Insets
+        // Branding
         window.statusBarColor = Color.parseColor("#15803D")
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            window.navigationBarColor = Color.WHITE
+            isAppearanceLightNavigationBars = true
+        }
 
-        val initialHeaderTopPadding = binding.headerContainer.paddingTop
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            
             binding.headerContainer.setPadding(
                 binding.headerContainer.paddingLeft,
-                initialHeaderTopPadding + systemBars.top,
+                systemBars.top,
                 binding.headerContainer.paddingRight,
                 binding.headerContainer.paddingBottom
             )
+            
+            binding.scrollContainer.setPadding(0, 0, 0, systemBars.bottom)
+
             insets
         }
 
@@ -210,6 +217,11 @@ class RegisterCultivoActivity : AppCompatActivity() {
             val userId = sharedPref.getInt("USER_ID", -1)
             val agricultor = db.userDao().getAgricultorByUserId(userId) ?: return@launch
             val terrenos = db.assetDao().getTerrenosByAgricultor(agricultor.id)
+            
+            val terrenosConArea = terrenos.map { terreno ->
+                val areaOcupada = db.assetDao().getAreaOcupadaByTerreno(terreno.id) ?: 0.0
+                Pair(terreno, areaOcupada)
+            }
 
             if (terrenos.isEmpty()) {
                 Toast.makeText(this@RegisterCultivoActivity, getString(R.string.error_no_terrenos), Toast.LENGTH_LONG).show()
@@ -219,7 +231,7 @@ class RegisterCultivoActivity : AppCompatActivity() {
 
             var tempSelected: TerrenoEntity? = null
             
-            val adapter = TerrenoSelectorAdapter(terrenos) { terreno ->
+            val adapter = TerrenoSelectorAdapter(terrenosConArea) { terreno ->
                 tempSelected = terreno
                 dialogBinding.btnConfirmarSeleccion.isEnabled = true
             }

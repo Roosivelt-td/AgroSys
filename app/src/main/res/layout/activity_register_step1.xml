@@ -149,7 +149,11 @@
                             android:background="@drawable/edit_text_elegant"
                             android:hint="@string/hint_nombre"
                             android:paddingHorizontal="16dp"
-                            android:textSize="14sp" />
+                            android:textSize="14sp"
+                            android:inputType="textCapWords"
+                            android:maxLines="1"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext" />
                         <EditText
                             android:id="@+id/etRegLastName"
                             android:layout_width="0dp"
@@ -158,7 +162,11 @@
                             android:background="@drawable/edit_text_elegant"
                             android:hint="@string/hint_apellidos"
                             android:paddingHorizontal="16dp"
-                            android:textSize="14sp" />
+                            android:textSize="14sp"
+                            android:inputType="textCapWords"
+                            android:maxLines="1"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext" />
                     </LinearLayout>
 
                     <EditText
@@ -170,7 +178,10 @@
                         android:hint="@string/hint_email"
                         android:inputType="textEmailAddress"
                         android:paddingHorizontal="16dp"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:imeOptions="actionNext" />
 
                     <EditText
                         android:id="@+id/etRegPhone"
@@ -181,7 +192,10 @@
                         android:hint="@string/hint_telefono_opcional"
                         android:inputType="phone"
                         android:paddingHorizontal="16dp"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:imeOptions="actionNext" />
 
                     <EditText
                         android:id="@+id/etRegPassword"
@@ -192,7 +206,10 @@
                         android:hint="@string/hint_password"
                         android:inputType="textPassword"
                         android:paddingHorizontal="16dp"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:imeOptions="actionNext" />
 
                     <EditText
                         android:id="@+id/etRegConfirmPassword"
@@ -203,7 +220,10 @@
                         android:hint="@string/hint_confirm_password"
                         android:inputType="textPassword"
                         android:paddingHorizontal="16dp"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:imeOptions="actionDone" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNextStep"

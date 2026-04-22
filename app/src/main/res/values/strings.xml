@@ -57,8 +57,17 @@
     <string name="msg_name_required">⚠️ El nombre es obligatorio</string>
 
     <!-- Detalle Terreno -->
-    <string name="label_detalle_de">Detalle de</string>
+    <string name="label_area_total_prefix">Área Total: </string>
+    <string name="label_area_disponible_prefix">Área disponible: </string>
+    <string name="label_suelo_prefix">Suelo: </string>
+    <string name="label_agua_prefix">Agua: </string>
+    <string name="label_alquiler_prefix">Alquiler: </string>
+    <string name="label_cultivos_prefix">Cultivos: </string>
+    <string name="label_ha_count">%1$.1f hectáreas</string>
+    <string name="label_activos_count">%1$d activos</string>
+    <string name="label_alquilado_badge">alquilado</string>
     <string name="label_cargando">Cargando...</string>
+    <string name="label_detalle_de">Detalle de</string>
     <string name="label_detalles_terreno">Detalles del Terreno</string>
     <string name="label_ubicacion">Ubicación</string>
     <string name="label_area_total">Área Total</string>
@@ -73,8 +82,30 @@
     <string name="btn_cancelar">Cancelar</string>
     <string name="btn_eliminar">Eliminar</string>
     <string name="msg_terreno_eliminado">Terreno eliminado correctamente</string>
-    <string name="label_disponible_ha">%1$.1f ha disponible</string>
+    <string name="label_fecha_siembra_prefix">Fecha Siembra</string>
+    <string name="label_area_prefix">Área</string>
+    <string name="label_costo_total_prefix">Costo Total</string>
+    <string name="label_labores_prefix">Labores</string>
+    <string name="label_dia_count">Día %1$d</string>
+    <string name="label_dias_restantes">%1$d días restantes</string>
+    <string name="label_area_total_terreno">Área Total del Terreno</string>
+    <string name="label_labores_realizadas">Labores Realizadas</string>
+    <string name="label_cosechas_ventas">Cosechas y Ventas</string>
+    <string name="label_resumen_financiero_title">Resumen Financiero</string>
+    <string name="label_costos_totales_title">Costos Totales</string>
+    <string name="label_ingresos_estimados">Ingresos Estimados</string>
+    <string name="label_ganancia_neta_title">Ganancia Neta</string>
+    <string name="btn_labor_plus">+ Labor</string>
+    <string name="btn_cosecha_plus">+ Cosecha</string>
+    <string name="btn_ver_historial">Ver todo el historial</string>
 
+    <string name="label_planificado_short">Planificado</string>
+    <string name="label_activo_short">Activo</string>
+    <string name="label_cosechado_short">Cosechado</string>
+    <string name="label_perdido_short">Perdido</string>
+    <string name="label_informacion_terreno">Información del Terreno</string>
+    <string name="label_fecha_siembra">Fecha Siembra</string>
+    <string name="label_area_lote">Área</string>
     <!-- Detalle Cultivo -->
     <string name="label_area">Área</string>
     <string name="label_estado_del_cultivo">Estado del cultivo</string>
@@ -154,6 +185,17 @@
     <string name="label_observaciones_notas">Observaciones / Notas *</string>
     <string name="hint_escribe_notas">Escribe notas sobre este cultivo...</string>
     <string name="btn_registrar_cultivo">Registrar Cultivo</string>
+
+    <!-- Register Cosecha -->
+    <string name="label_fecha_cosecha">Fecha de cosecha *</string>
+    <string name="label_cantidad_cosechada_kg">Cantidad cosechada (kg) *</string>
+    <string name="label_codigo_lote">Código de Lote</string>
+    <string name="label_calidad_producto">Calidad del producto</string>
+    <string name="label_costo_operativo_cosecha">Costo operativo de cosecha (S/)</string>
+    <string name="label_observaciones">Observaciones</string>
+    <string name="hint_notas_adicionales">Notas adicionales...</string>
+    <string name="label_marcar_como_cosechado">Marcar cultivo como \'Cosechado\'</string>
+    <string name="btn_registrar_cosecha">Registrar cosecha</string>
 
     <!-- Register Labor -->
     <string name="label_selecciona_labor">Selecciona la labor a realizar:</string>

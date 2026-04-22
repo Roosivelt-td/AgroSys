@@ -5,18 +5,18 @@
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#f8fafc">
+    android:background="#0f3b1f">
 
-    <!-- Header -->
+    <!-- Header Moderno con Gradiente -->
     <LinearLayout
-        android:id="@+id/header_container"
+        android:id="@+id/headerContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/header_gradient_bg"
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
         android:paddingTop="32dp"
-        android:paddingBottom="16dp"
+        android:paddingBottom="24dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
@@ -30,8 +30,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/direccion_izquierda"
-                app:tint="#ffffff"
-                android:rotation="180"/>
+                app:tint="#ffffff" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -52,70 +51,262 @@
                     android:id="@+id/tvHeaderTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/label_cargando"
                     android:textColor="#ffffff"
                     android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    tools:text="Lote 01 - Maiz" />
+
+                <TextView
+                    android:id="@+id/tvHeaderVariedad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#dcfce7"
+                    android:textSize="13sp"
+                    tools:text="Híbrido Dekalb 7088" />
             </LinearLayout>
 
             <ImageView
+                android:id="@+id/btnMasOpciones"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:background="@drawable/circle_bg_green_light"
+                android:background="@drawable/circle_bg_white"
                 android:padding="8dp"
-                android:src="@drawable/agro_planta_buena"
+                android:src="@drawable/ic_lista"
                 app:tint="#15803d" />
         </LinearLayout>
     </LinearLayout>
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
+        android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@id/bottomNav"
-        app:layout_constraintTop_toBottomOf="@id/header_container">
+        app:layout_constraintTop_toBottomOf="@id/headerContainer">
 
-        <LinearLayout
-            android:id="@+id/detalleContent"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            app:cardCornerRadius="40dp"
+            app:cardElevation="0dp"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.Card.TopOnly">
 
-            <!-- Card Principal -->
-            <com.google.android.material.card.MaterialCardView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="40dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="#d1fae5">
+                android:background="#ffffff"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <!-- Card Principal: KPI de Campaña -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="2dp"
+                    app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="#f0fdf4"
+                    android:background="#ffffff"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_toStartOf="@id/tvEstadoBadge"
+                            android:layout_marginEnd="12dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvNombreLote"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="#111827"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                tools:text="Lote 01" />
+
+                            <TextView
+                                android:id="@+id/tvVariedad"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textColor="#6b7280"
+                                android:textSize="14sp"
+                                tools:text="Variedad: Maiz Híbrido" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvEstadoBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:background="@drawable/chip_bg_green"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="6dp"
+                            android:text="activo"
+                            android:textAllCaps="true"
+                            android:textColor="#15803d"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+
+                    <!-- Progreso de Campaña -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:orientation="vertical">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp">
+
+                            <TextView
+                                android:id="@+id/tvDiaActual"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="#1e293b"
+                                android:textStyle="bold"
+                                tools:text="Día 45" />
+
+                            <TextView
+                                android:id="@+id/tvDiasRestantes"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:textColor="#64748b"
+                                android:textSize="13sp"
+                                tools:text="75 días restantes" />
+                        </RelativeLayout>
+
+                        <com.google.android.material.progressindicator.LinearProgressIndicator
+                            android:id="@+id/progressCampania"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:progress="35"
+                            app:indicatorColor="#15803d"
+                            app:trackColor="#f1f5f9"
+                            app:trackCornerRadius="4dp"
+                            app:trackThickness="8dp" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="20dp"
+                        android:background="#f1f5f9" />
+
+                    <!-- Stats Grid -->
+                    <GridLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:columnCount="3">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_area_lote"
+                                android:textColor="#64748b"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvArea"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="#1e293b"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                tools:text="2.5 ha" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1.2"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_fecha_siembra"
+                                android:textColor="#64748b"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvFechaSiembra"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="#1e293b"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                tools:text="15/05/2026" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="0.8"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_labores"
+                                android:textColor="#64748b"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvCantLabores"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="#1e293b"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                tools:text="8" />
+                        </LinearLayout>
+                    </GridLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card de Finanzas: Estilo KPI -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#ffffff"
+                    android:orientation="vertical"
+                    android:padding="24dp">
 
                     <TextView
-                        android:id="@+id/tvNombreLote"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Papa - Canchan"
-                        android:textColor="#1f2937"
-                        android:textSize="22sp"
+                        android:text="@string/label_resumen_financiero_title"
+                        android:textColor="#111827"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvTerrenoNombre"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Fundo El Edén"
-                        android:textColor="#4b5563"
-                        android:textSize="14sp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -128,19 +319,29 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/label_area"
-                                android:textColor="#6b7280"
-                                android:textSize="10sp" />
+                                android:text="@string/label_costos"
+                                android:textColor="#64748b"
+                                android:textSize="12sp" />
+
                             <TextView
-                                android:id="@+id/tvArea"
+                                android:id="@+id/tvCostosTotales"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="2.0 ha"
-                                android:textColor="#111827"
-                                android:textStyle="bold" />
+                                android:textColor="#dc2626"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                tools:text="S/ 4,250" />
+
+                            <!-- Hidden secondary ID for activity compatibility -->
+                            <TextView
+                                android:id="@+id/tvCostosTotalesCard"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:visibility="gone" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -148,110 +349,222 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/label_ganancia"
-                                android:textColor="#6b7280"
-                                android:textSize="10sp" />
+                                android:text="@string/label_ingresos"
+                                android:textColor="#64748b"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvIngresosTotales"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="#15803d"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                tools:text="S/ 8,000" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_neto"
+                                android:textColor="#64748b"
+                                android:textSize="12sp" />
+
                             <TextView
                                 android:id="@+id/tvGanancia"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="S/ 0.00"
-                                android:textColor="#15803d"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_estado_cultivo"
-                                android:textColor="#6b7280"
-                                android:textSize="10sp" />
-                            <TextView
-                                android:id="@+id/tvEstado"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_activo"
-                                android:textColor="#111827"
-                                android:textStyle="bold" />
+                                android:textColor="#1e293b"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                tools:text="S/ 3,750" />
                         </LinearLayout>
                     </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="20dp"
+                        android:background="#f1f5f9" />
+
+                    <!-- Desglose de Finanzas via include -->
+                    <include
+                        android:id="@+id/rowPrep"
+                        layout="@layout/row_finanzas_detalle" />
+
+                    <include
+                        android:id="@+id/rowSiembra"
+                        layout="@layout/row_finanzas_detalle" />
+
+                    <include
+                        android:id="@+id/rowMant"
+                        layout="@layout/row_finanzas_detalle" />
+
+                    <include
+                        android:id="@+id/rowCosecha"
+                        layout="@layout/row_finanzas_detalle" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Estados -->
+            <!-- Selector de Estado Rápido -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="12dp"
                 android:text="@string/label_estado_del_cultivo"
-                android:textColor="#374151"
-                android:textSize="14sp"
+                android:textColor="#111827"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <GridLayout
+            <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:columnCount="4">
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnStatusPlanificado"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="2dp"
-                    android:text="📋"
-                    android:padding="0dp"
-                    app:cornerRadius="8dp" />
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnStatusActivo"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="2dp"
-                    android:text="🌱"
-                    android:padding="0dp"
-                    app:cornerRadius="8dp" />
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnStatusCosechado"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="2dp"
-                    android:text="🍂"
-                    android:padding="0dp"
-                    app:cornerRadius="8dp" />
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnStatusPerdido"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="2dp"
-                    android:text="⚠️"
-                    android:padding="0dp"
-                    app:cornerRadius="8dp" />
-            </GridLayout>
+                android:scrollbars="none">
 
-            <!-- Resumen Financiero -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnStatusPlanificado"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/label_planificado_short"
+                        android:textAllCaps="false"
+                        app:cornerRadius="12dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnStatusActivo"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/label_activo_short"
+                        android:textAllCaps="false"
+                        app:cornerRadius="12dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnStatusCosechado"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/label_cosechado_short"
+                        android:textAllCaps="false"
+                        app:cornerRadius="12dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnStatusPerdido"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_perdido_short"
+                        android:textAllCaps="false"
+                        app:cornerRadius="12dp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- Sección de Labores -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvLaboresTitulo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="#111827"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    tools:text="Labores (0)" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAgregarLabor"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btn_agregar"
+                    android:textAllCaps="false"
+                    android:textColor="#15803d"
+                    app:icon="@android:drawable/ic_input_add"
+                    app:iconTint="#15803d" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvLabores"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_labor_group" />
+
+            <!-- Sección de Cosechas -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvCosechasTitulo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="#111827"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    tools:text="Cosechas (0)" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAgregarCosecha"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btn_registrar"
+                    android:textAllCaps="false"
+                    android:textColor="#15803d"
+                    app:icon="@android:drawable/ic_input_add"
+                    app:iconTint="#15803d" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvCosechas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_cosecha_detalle" />
+
+            <!-- Info Adicional de Terreno -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                app:cardCornerRadius="40dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="#e5e7eb">
+                app:strokeColor="#e2e8f0"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -262,214 +575,64 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/label_resumen_financiero"
-                        android:textColor="#374151"
-                        android:textSize="16sp"
+                        android:text="@string/label_informacion_terreno"
+                        android:textColor="#1e293b"
                         android:textStyle="bold" />
 
-                    <LinearLayout
+                    <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:orientation="vertical">
+                        android:layout_marginTop="16dp">
 
-                        <!-- Costos totales -->
-                        <RelativeLayout
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="12dp">
-                            <View android:id="@+id/dotCostos" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_red" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotCostos" android:layout_marginStart="8dp" android:text="@string/label_costos_totales" android:textColor="#6b7280" android:textSize="14sp"/>
-                            <TextView android:id="@+id/tvCostosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#ef4444" android:textStyle="bold" android:textSize="14sp"/>
-                        </RelativeLayout>
+                            android:text="@string/label_area_total_terreno"
+                            android:textColor="#64748b"
+                            android:textSize="14sp" />
 
-                        <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#f3f4f6" android:layout_marginBottom="12dp"/>
-
-                        <!-- Ingresos -->
-                        <RelativeLayout
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:id="@+id/tvAreaTotalTerreno"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="12dp">
-                            <View android:id="@+id/dotIngresos" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_green" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotIngresos" android:layout_marginStart="8dp" android:text="@string/label_ingresos" android:textColor="#6b7280" android:textSize="14sp"/>
-                            <TextView android:id="@+id/tvIngresosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#22c55e" android:textStyle="bold" android:textSize="14sp"/>
-                        </RelativeLayout>
-
-                        <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#f3f4f6" android:layout_marginBottom="12dp"/>
-
-                        <!-- Preparación -->
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="12dp">
-                            <View android:id="@+id/dotPrep" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_purple" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotPrep" android:layout_marginStart="8dp" android:text="@string/labor_preparar" android:textColor="#6b7280" android:textSize="14sp"/>
-                            <TextView android:id="@+id/tvCostoPreparacion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#a855f7" android:textStyle="bold" android:textSize="14sp"/>
-                        </RelativeLayout>
-
-                        <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#f3f4f6" android:layout_marginBottom="12dp"/>
-
-                        <!-- Siembra -->
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="12dp">
-                            <View android:id="@+id/dotSiembra" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_green_light" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotSiembra" android:layout_marginStart="8dp" android:text="@string/labor_sembrar" android:textColor="#6b7280" android:textSize="14sp"/>
-                            <TextView android:id="@+id/tvCostoSiembra" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#4ade80" android:textStyle="bold" android:textSize="14sp"/>
-                        </RelativeLayout>
-
-                        <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#f3f4f6" android:layout_marginBottom="12dp"/>
-
-                        <!-- Mantenimiento -->
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="12dp">
-                            <View android:id="@+id/dotMant" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_blue" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotMant" android:layout_marginStart="8dp" android:text="@string/label_mantenimiento" android:textColor="#6b7280" android:textSize="14sp"/>
-                            <TextView android:id="@+id/tvCostoMantenimiento" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#3b82f6" android:textStyle="bold" android:textSize="14sp"/>
-                        </RelativeLayout>
-
-                        <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#f3f4f6" android:layout_marginBottom="12dp"/>
-
-                        <!-- Cosecha/Venta -->
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="20dp">
-                            <View android:id="@+id/dotCosecha" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/circle_bg_orange" android:layout_centerVertical="true"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/dotCosecha" android:layout_marginStart="8dp" android:text="@string/label_cosecha_venta" android:textColor="#6b7280" android:textSize="14sp"/>
-                            <TextView android:id="@+id/tvCostoCosecha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="S/ 0" android:textColor="#f59e0b" android:textStyle="bold" android:textSize="14sp"/>
-                        </RelativeLayout>
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:cardBackgroundColor="#f0fdf4"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp"
-                            app:strokeColor="#d1fae5"
-                            app:strokeWidth="1dp">
-                            <RelativeLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:padding="16dp">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/label_ganancia_neta"
-                                    android:textColor="#166534"
-                                    android:textStyle="bold"
-                                    android:textSize="16sp"/>
-                                <TextView
-                                    android:id="@+id/tvGananciaNeta"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignParentEnd="true"
-                                    android:text="+S/ 0.00"
-                                    android:textColor="#166534"
-                                    android:textStyle="bold"
-                                    android:textSize="16sp"/>
-                            </RelativeLayout>
-                        </com.google.android.material.card.MaterialCardView>
-                    </LinearLayout>
+                            android:layout_alignParentEnd="true"
+                            android:textColor="#1e293b"
+                            android:textStyle="bold"
+                            tools:text="5.0 ha" />
+                    </RelativeLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Labores -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-                <TextView
-                    android:id="@+id/tvLaboresTitulo"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/label_labores"
-                    android:textColor="#374151"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-                <Button
-                    android:id="@+id/btnAgregarLabor"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/btn_agregar"
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEliminarCultivo"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="32dp"
+                    android:layout_marginBottom="16dp"
+                    android:backgroundTint="#BD22C1"
+                    android:text="@string/btn_eliminar_cultivo"
                     android:textAllCaps="false"
-                    android:textColor="#15803d" />
-            </LinearLayout>
+                    android:textColor="#ffffff"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    app:cornerRadius="16dp"
+                    app:icon="@android:drawable/ic_menu_delete"
+                    app:iconTint="#ffffff"
+                    app:elevation="4dp" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvLabores"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_labor_detalle" />
-
-            <Button
-                android:id="@+id/btnVerTodoHistorial"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_ver_todo_historial"
-                android:textAllCaps="false"
-                android:textColor="#4b5563"
-                android:visibility="gone"
-                tools:visibility="visible" />
-
-            <!-- Cosechas -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
                 <TextView
-                    android:id="@+id/tvCosechasTitulo"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/label_cosecha"
-                    android:textColor="#374151"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-                <Button
-                    android:id="@+id/btnAgregarCosecha"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/btn_registrar"
-                    android:textAllCaps="false"
-                    android:textColor="#15803d" />
+                    android:layout_marginTop="8dp"
+                    android:paddingBottom="40dp"
+                    android:gravity="center"
+                    android:text="@string/footer_datos_locales"
+                    android:textColor="#9CA3AF"
+                    android:textSize="11sp" />
+
             </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvCosechas"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_cosecha_detalle" />
-
-            <Button
-                android:id="@+id/btnEliminarCultivo"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="24dp"
-                android:backgroundTint="#fee2e2"
-                android:text="@string/btn_eliminar_cultivo"
-                android:textAllCaps="false"
-                android:textColor="#b91c1c"
-                android:textStyle="bold"
-                app:cornerRadius="16dp"
-                app:icon="@android:drawable/ic_menu_delete"
-                app:iconTint="#b91c1c" />
-
-        </LinearLayout>
-    </ScrollView>
+        </com.google.android.material.card.MaterialCardView>
+    </androidx.core.widget.NestedScrollView>
 
     <!-- Bottom Navigation -->
     <LinearLayout
@@ -477,7 +640,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/white"
-        android:elevation="8dp"
+        android:elevation="16dp"
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingTop="12dp"

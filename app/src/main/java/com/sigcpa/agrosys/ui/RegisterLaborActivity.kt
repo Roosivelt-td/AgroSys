@@ -43,10 +43,12 @@ class RegisterLaborActivity : AppCompatActivity() {
 
         // Branding y Insets
         window.statusBarColor = Color.parseColor("#15803D")
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            window.navigationBarColor = Color.WHITE
+            isAppearanceLightNavigationBars = true
+        }
 
-        val initialFooterBottomPadding = binding.footerContainer.paddingBottom
-        
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             
@@ -54,15 +56,11 @@ class RegisterLaborActivity : AppCompatActivity() {
                 binding.headerContainer.paddingLeft,
                 systemBars.top,
                 binding.headerContainer.paddingRight,
-                binding.headerContainer.paddingBottom
+                (24 * resources.displayMetrics.density).toInt()
             )
-            
-            binding.footerContainer.setPadding(
-                binding.footerContainer.paddingLeft,
-                binding.footerContainer.paddingTop,
-                binding.footerContainer.paddingRight,
-                initialFooterBottomPadding + systemBars.bottom
-            )
+
+            // Ajuste para el contenedor de scroll
+            binding.scrollContainer.setPadding(0, 0, 0, systemBars.bottom)
             
             insets
         }

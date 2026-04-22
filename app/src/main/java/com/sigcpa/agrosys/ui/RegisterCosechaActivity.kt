@@ -28,7 +28,12 @@ class RegisterCosechaActivity : AppCompatActivity() {
         
         // Forzar barra de estado verde y iconos blancos
         window.statusBarColor = android.graphics.Color.parseColor("#15803D")
-        androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+        androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            // Consistencia en barra de navegación
+            window.navigationBarColor = android.graphics.Color.WHITE
+            isAppearanceLightNavigationBars = true
+        }
 
         binding = ActivityRegisterCosechaBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -36,12 +41,18 @@ class RegisterCosechaActivity : AppCompatActivity() {
         // Manejo dinámico de Insets
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            
+            // Ajuste para el Header
             binding.headerContainer.setPadding(
                 binding.headerContainer.paddingLeft,
                 systemBars.top,
                 binding.headerContainer.paddingRight,
                 binding.headerContainer.paddingBottom
             )
+
+            // Ajuste para que el contenido no quede tras la barra de navegación
+            binding.scrollContainer.setPadding(0, 0, 0, systemBars.bottom)
+
             insets
         }
 
