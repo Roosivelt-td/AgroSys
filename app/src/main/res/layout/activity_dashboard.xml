@@ -149,7 +149,7 @@
                         android:src="@drawable/ic_perfil"
                         android:padding="6dp"
                         android:scaleType="centerCrop"
-                        app:tint="#15803d" />
+                        app:tint="#00582a" />
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
         </RelativeLayout>
@@ -210,7 +210,7 @@
                     android:gravity="center"
                     android:padding="10dp"
                     android:orientation="vertical">
-                    <TextView android:id="@+id/tvStatProfit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_currency_zero" android:textStyle="bold" android:textSize="16sp" android:textColor="#16a34a" />
+                    <TextView android:id="@+id/tvStatProfit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_currency_zero" android:textStyle="bold" android:textSize="16sp" android:textColor="#00582a" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_ganancia" android:textSize="10sp" android:textColor="#64748b"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -263,7 +263,7 @@
                         android:layout_marginStart="12dp"
                         android:orientation="vertical">
                         <TextView android:id="@+id/tvCityName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/weather_loading" android:textStyle="bold" android:textColor="#1e293b" />
-                        <TextView android:id="@+id/tvTemperature" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--°C" android:textColor="#16a34a" android:textSize="20sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/tvTemperature" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--°C" android:textColor="#00582a" android:textSize="20sp" android:textStyle="bold" />
                         <TextView android:id="@+id/tvWeatherDescription" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textSize="12sp" android:textColor="#64748b" />
                     </LinearLayout>
                     <ProgressBar
@@ -281,19 +281,19 @@
                 android:layout_marginTop="20dp"
                 android:columnCount="4">
                 <LinearLayout android:id="@+id/navTerrenoQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
-                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_ubicacion_terreno" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
+                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_ubicacion_terreno" app:tint="#00582a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_terreno" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
                 </LinearLayout>
                 <LinearLayout android:id="@+id/navCultivoQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
-                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/agro_planta_buena" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
+                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/agro_planta_buena" app:tint="#00582a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_cultivo" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
                 </LinearLayout>
                 <LinearLayout android:id="@+id/navLaborQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
-                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_lista" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
+                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_lista" app:tint="#00582a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_labor" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
                 </LinearLayout>
                 <LinearLayout android:id="@+id/navCosechaQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
-                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/agro_cosecha" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
+                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/agro_cosecha" app:tint="#00582a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_cosecha" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
                 </LinearLayout>
             </GridLayout>
@@ -324,7 +324,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_admin"
-                            app:tint="#15803d" />
+                            app:tint="#00582a" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -346,11 +346,11 @@
                             android:layout_weight="1"
                             android:text="@string/label_cultivos"
                             android:textAllCaps="false"
-                            android:textColor="#166534"
+                            android:textColor="#00582a"
                             android:textSize="12sp"
                             app:icon="@drawable/agro_planta_buena"
                             app:iconSize="18dp"
-                            app:iconTint="#166534" />
+                            app:iconTint="#00582a" />
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnManageUsers"
                             style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -359,11 +359,11 @@
                             android:layout_weight="1"
                             android:text="@string/btn_usuarios"
                             android:textAllCaps="false"
-                            android:textColor="#166534"
+                            android:textColor="#00582a"
                             android:textSize="12sp"
                             app:icon="@drawable/ic_perfil"
                             app:iconSize="18dp"
-                            app:iconTint="#166534" />
+                            app:iconTint="#00582a" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -390,7 +390,7 @@
                         android:layout_marginTop="16dp"
                         android:orientation="horizontal">
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-                            <TextView android:id="@+id/ingresosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_currency_zero" android:textColor="#16a34a" android:textStyle="bold" android:textSize="14sp" />
+                            <TextView android:id="@+id/ingresosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_currency_zero" android:textColor="#00582a" android:textStyle="bold" android:textSize="14sp" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_ingresos" android:textSize="9sp" android:textColor="#64748b" android:layout_marginTop="2dp" />
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
@@ -414,7 +414,7 @@
                 android:padding="12dp"
                 android:text="@string/msg_bienvenida"
                 android:textSize="12sp"
-                android:textColor="#166534" />
+                android:textColor="#00582a" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
@@ -446,13 +446,13 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_casa"
-                app:tint="#166534" />
+                app:tint="#00582a" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_inicio"
                 android:textSize="10sp"
-                android:textColor="#166534"
+                android:textColor="#00582a"
                 android:textStyle="bold" />
         </LinearLayout>
 

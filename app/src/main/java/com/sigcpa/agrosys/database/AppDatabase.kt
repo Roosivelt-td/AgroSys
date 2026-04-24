@@ -11,16 +11,17 @@ import com.sigcpa.agrosys.database.entities.*
 
 @Database(
     entities = [
-        OrganizacionEntity::class, UsuarioEntity::class, AgricultorEntity::class,
-        AsignacionSupervisorEntity::class, TerrenoEntity::class, CatalogoCultivoEntity::class,
+        OrganizacionEntity::class, UsuarioEntity::class, RolEntity::class, 
+        MiembroOrganizacionEntity::class, InvitacionEntity::class, SolicitudUnionEntity::class,
+        VotoEliminacionEntity::class, NotificacionEntity::class, ActividadEntity::class,
+        TerrenoEntity::class, CatalogoCultivoEntity::class,
         CultivoEntity::class, CatalogoLaborEntity::class, LaborRealizadaEntity::class,
         CatalogoInsumoEntity::class, ProveedorEntity::class, InsumoUsadoEntity::class,
         CosechaEntity::class, CompradorEntity::class, VentaEntity::class,
-        ArchivoMultimediaEntity::class, NotificacionEntity::class,
-        ManoObraTipoEntity::class, ManoObraEntity::class,
+        ArchivoMultimediaEntity::class, ManoObraTipoEntity::class, ManoObraEntity::class,
         TipoRedSocialEntity::class, RedSocialEntity::class
     ],
-    version = 8,
+    version = 11,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -52,9 +53,12 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private fun insertInitialData(db: SupportSQLiteDatabase) {
-            val now = System.currentTimeMillis() / 1000
             try {
-                // Catálogo de labores base
+                // Roles Jerárquicos
+                db.execSQL("INSERT INTO roles (id, nombre, nivel, descripcion) VALUES (1, 'agricultor', 1, 'Usuario base de la organización')")
+                db.execSQL("INSERT INTO roles (id, nombre, nivel, descripcion) VALUES (2, 'supervisor', 2, 'Vela por el trabajo de los agricultores')")
+                db.execSQL("INSERT INTO roles (id, nombre, nivel, descripcion) VALUES (3, 'admin', 3, 'Control administrativo de la organización')")
+                db.execSQL("INSERT INTO roles (id, nombre, nivel, descripcion) VALUES (4, 'super_admin', 4, 'Creador y control total de la organización')")
                 db.execSQL("INSERT INTO catalogo_labores (nombre, categoria, descripcion, sincronizado) VALUES ('Preparación de terreno', 'preparacion', 'Arado, rastra y nivelación', 1)")
                 db.execSQL("INSERT INTO catalogo_labores (nombre, categoria, descripcion, sincronizado) VALUES ('Siembra', 'preparacion', 'Colocación de semillas o plantones', 1)")
                 db.execSQL("INSERT INTO catalogo_labores (nombre, categoria, descripcion, sincronizado) VALUES ('Riego', 'mantenimiento', 'Aplicación de agua', 1)")

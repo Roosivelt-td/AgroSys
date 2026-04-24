@@ -30,27 +30,3 @@ data class ArchivoMultimediaEntity(
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
     @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0
 )
-
-@Entity(
-    tableName = "notificaciones",
-    foreignKeys = [
-        ForeignKey(
-            entity = UsuarioEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["usuario_id"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
-    indices = [Index(value = ["usuario_id"])]
-)
-data class NotificacionEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val usuario_id: Int,
-    val titulo: String,
-    val mensaje: String,
-    @ColumnInfo(defaultValue = "info") val tipo: String = "info",
-    @ColumnInfo(defaultValue = "0") val leido: Int = 0,
-    val fecha_programada: Long?,
-    @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
-    @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0
-)

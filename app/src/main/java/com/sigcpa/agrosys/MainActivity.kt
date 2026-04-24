@@ -103,9 +103,13 @@ class MainActivity : AppCompatActivity() {
     private fun navigateToDashboard(userId: Int) {
         lifecycleScope.launch {
             val user = authRepository.getUserById(userId)
+            val roles = authRepository.getRoles()
+            // Buscamos el rol global o el primero asignado
+            val roleName = roles.find { it.id == user?.rol_global_id }?.nombre ?: "agricultor"
+
             val intent = Intent(this@MainActivity, DashboardActivity::class.java).apply {
                 putExtra("USER_NAME", user?.nombre ?: "Usuario")
-                putExtra("USER_ROLE", user?.rol ?: "agricultor")
+                putExtra("USER_ROLE", roleName)
             }
             startActivity(intent)
             finish()

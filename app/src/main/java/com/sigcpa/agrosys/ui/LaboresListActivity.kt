@@ -113,7 +113,7 @@ class LaboresListActivity : AppCompatActivity() {
         val userId = sharedPref.getInt("USER_ID", -1)
 
         lifecycleScope.launch {
-            val agricultor = db.userDao().getAgricultorByUserId(userId) ?: return@launch
+            val agricultor = db.userDao().getUsuarioById(userId) ?: return@launch
             val cultivos = db.assetDao().getCultivosByAgricultor(agricultor.id)
                 .filter { it.estado == "activo" || it.estado == "planificado" }
                 .sortedByDescending { it.fecha_siembra }
@@ -172,7 +172,7 @@ class LaboresListActivity : AppCompatActivity() {
         val userId = sharedPref.getInt("USER_ID", -1)
 
         lifecycleScope.launch {
-            val agricultor = db.userDao().getAgricultorByUserId(userId)
+            val agricultor = db.userDao().getUsuarioById(userId)
             if (agricultor != null) {
                 if (filterCultivoId != -1) {
                     val cultivo = db.assetDao().getCultivoById(filterCultivoId)

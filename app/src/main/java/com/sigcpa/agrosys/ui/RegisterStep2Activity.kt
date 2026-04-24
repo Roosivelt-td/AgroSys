@@ -40,11 +40,28 @@ class RegisterStep2Activity : AppCompatActivity() {
         setupUI()
     }
 
+    private var selectedOrgId: Int? = null
+
     private fun setupUI() {
         // Setup Education Spinner
         val educationLevels = arrayOf("Primaria", "Secundaria", "Técnico", "Universitario", "Ninguno")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, educationLevels)
-        binding.spinnerEducation.setAdapter(adapter)
+        val adapterEdu = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, educationLevels)
+        binding.spinnerEducation.setAdapter(adapterEdu)
+
+        // Setup Organizations Spinner (Búsqueda)
+        lifecycleScope.launch {
+            val orgs = authRepository.getOrganizaciones("")
+            if (orgs.isEmpty()) {
+                binding.layoutRegOrg.visibility = View.GONE // Si no hay orgs, el admin las creará luego
+            } else {
+                val orgNames = orgs.map { it.nombre }
+                val adapterOrg = ArrayAdapter(this@RegisterStep2Activity, android.R.layout.simple_dropdown_item_1line, orgNames)
+                binding.etRegOrg.setAdapter(adapterOrg)
+                binding.etRegOrg.setOnItemClickListener { _, _, position, _ ->
+                    selectedOrgId = orgs[position].id
+                }
+            }
+        }
 
         // Role Selection Logic
         binding.toggleRoleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
@@ -53,10 +70,12 @@ class RegisterStep2Activity : AppCompatActivity() {
                     binding.btnRoleAgri.id -> {
                         binding.etRegExp.visibility = View.VISIBLE
                         binding.spinnerEducation.visibility = View.VISIBLE
+                        binding.layoutRegOrg.visibility = View.VISIBLE
                     }
                     else -> {
                         binding.etRegExp.visibility = View.GONE
                         binding.spinnerEducation.visibility = View.GONE
+                        binding.layoutRegOrg.visibility = View.VISIBLE
                     }
                 }
             }
@@ -89,25 +108,21 @@ class RegisterStep2Activity : AppCompatActivity() {
         }
 
         val userData = mapOf(
-            "name" to (intent.getStringExtra("REG_NAME") ?: ""),
-            "lastName" to (intent.getStringExtra("REG_LASTNAME") ?: ""),
+            "nombre" to (intent.getStringExtra("REG_NAME") ?: ""),
+            "apellidos" to (intent.getStringExtra("REG_LASTNAME") ?: ""),
             "email" to (intent.getStringExtra("REG_EMAIL") ?: ""),
             "password" to (intent.getStringExtra("REG_PASSWORD") ?: ""),
-            "phone" to (intent.getStringExtra("REG_PHONE") ?: "")
-        )
-
-        val orgData = mapOf(
-            "name" to binding.etRegOrg.text.toString().trim()
+            "telefono" to (intent.getStringExtra("REG_PHONE") ?: ""),
+            "dni" to dni
         )
 
         val extraData = mapOf(
-            "dni" to dni,
             "experience" to binding.etRegExp.text.toString().trim(),
             "education" to binding.spinnerEducation.text.toString()
         )
 
         lifecycleScope.launch {
-            val userId = authRepository.registerFullUser(userData, role, orgData, extraData)
+            val userId = authRepository.registerFullUser(userData, role, selectedOrgId, extraData)
             if (userId != -1) {
                 Toast.makeText(this@RegisterStep2Activity, getString(R.string.msg_registro_exitoso), Toast.LENGTH_SHORT).show()
                 

@@ -160,10 +160,10 @@ class CultivosListActivity : AppCompatActivity() {
         val userId = sharedPref.getInt("USER_ID", -1)
 
         lifecycleScope.launch {
-            val agricultor = db.userDao().getAgricultorByUserId(userId)
-            if (agricultor != null) {
-                val terrenos = db.assetDao().getTerrenosByAgricultor(agricultor.id)
-                var cultivos = db.assetDao().getCultivosByAgricultor(agricultor.id)
+            val user = db.userDao().getUsuarioById(userId)
+            if (user != null) {
+                val terrenos = db.assetDao().getTerrenosByAgricultor(user.id)
+                var cultivos = db.assetDao().getCultivosByAgricultor(user.id)
                 
                 hasTerrenos = terrenos.isNotEmpty()
                 hasCultivos = cultivos.isNotEmpty()

@@ -118,7 +118,7 @@ class TerrenosListActivity : AppCompatActivity() {
         val userId = sharedPref.getInt("USER_ID", -1)
 
         lifecycleScope.launch {
-            val agricultor = db.userDao().getAgricultorByUserId(userId)
+            val agricultor = db.userDao().getUsuarioById(userId)
             if (agricultor != null) {
                 val terrenos = db.assetDao().getTerrenosByAgricultor(agricultor.id)
                 val cultivos = db.assetDao().getCultivosByAgricultor(agricultor.id)

@@ -27,24 +27,37 @@ class RegisterTerrenoActivity : AppCompatActivity() {
         binding = ActivityRegisterTerrenoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Branding
-        window.statusBarColor = Color.parseColor("#15803D")
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+        // Configuración Edge-to-Edge profesional
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        
+        val controller = androidx.core.view.WindowInsetsControllerCompat(window, window.decorView)
+        controller.isAppearanceLightStatusBars = false // Iconos blancos en status bar
+        controller.isAppearanceLightNavigationBars = true // Iconos oscuros en nav bar (fondo blanco)
 
         assetRepository = AssetRepository(this)
         
-        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            
             binding.headerContainer.setPadding(
                 binding.headerContainer.paddingLeft,
                 systemBars.top,
                 binding.headerContainer.paddingRight,
                 binding.headerContainer.paddingBottom
             )
+            
+            // Si el teclado está visible, aplicamos su altura como padding inferior al ROOT.
+            // Esto reduce el tamaño real del layout y el ScrollView sube automáticamente el campo enfocado.
+            val bottomPadding = if (ime.bottom > 0) ime.bottom else systemBars.bottom
+            v.setPadding(0, 0, 0, bottomPadding)
+
             insets
         }
         
-        // Get agricultor ID from session
+        // Cargar ID del agricultor
         val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
         val userId = sharedPref.getInt("USER_ID", -1)
         

@@ -22,6 +22,6 @@ class AssetRepository(context: Context) {
     }
 
     suspend fun getAgricultorIdByUserId(userId: Int): Int? = withContext(Dispatchers.IO) {
-        userDao.getAgricultorByUserId(userId)?.id
+        userDao.getUsuarioById(userId)?.id
     }
 }

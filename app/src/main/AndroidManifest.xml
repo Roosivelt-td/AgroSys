@@ -108,6 +108,12 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.ManageMembersActivity"
+            android:exported="false"
+            android:label="Gestión de Miembros"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- Actividad para el recorte de imágenes -->
         <activity
             android:name="com.canhub.cropper.CropImageActivity"

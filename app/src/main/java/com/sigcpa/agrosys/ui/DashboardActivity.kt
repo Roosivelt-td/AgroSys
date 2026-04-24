@@ -24,13 +24,15 @@ import com.sigcpa.agrosys.database.entities.CatalogoCultivoEntity
 import com.sigcpa.agrosys.databinding.ActivityDashboardBinding
 import com.sigcpa.agrosys.databinding.DialogAddCatalogoCultivoBinding
 import com.sigcpa.agrosys.databinding.DialogUserMenuBinding
-import android.view.LayoutInflater
+import android.view.View
 import android.widget.PopupWindow
 import android.widget.LinearLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.sigcpa.agrosys.R
+import com.sigcpa.agrosys.database.entities.UsuarioEntity
+import com.sigcpa.agrosys.database.entities.RolEntity
 import com.sigcpa.agrosys.network.GeocodingService
 import com.sigcpa.agrosys.ui.viewModel.WeatherViewModel
 import com.sigcpa.agrosys.utils.CatalogImporter
@@ -51,27 +53,16 @@ class DashboardActivity : AppCompatActivity() {
     private var currentLat: Double = 0.0
     private var currentLon: Double = 0.0
 
-    private var userName: String = ""
-    private var userRole: String = ""
-    private var currentUser: com.sigcpa.agrosys.database.entities.UsuarioEntity? = null
+    private var currentUser: UsuarioEntity? = null
+    private var currentRol: RolEntity? = null
 
-    // Launcher para importar JSON
-    private val importJsonLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri ->
+    private val importJsonLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { importCatalog(it) }
     }
 
-    // Permisos de ubicación
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            getLocationAndWeather()
-        } else {
-            Toast.makeText(this, getString(R.string.msg_location_permission_denied), Toast.LENGTH_LONG).show()
-            weatherViewModel.fetchWeatherByCity(getString(R.string.default_city))
-        }
+    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) getLocationAndWeather()
+        else weatherViewModel.fetchWeatherByCity(getString(R.string.default_city))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,11 +70,22 @@ class DashboardActivity : AppCompatActivity() {
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Forzar barra de estado verde y iconos blancos
         window.statusBarColor = android.graphics.Color.parseColor("#15803D")
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
 
-        // SOLUCIÓN: Ajustar el menú inferior para que no lo tapen los botones del sistema (triángulo/círculo)
+        weatherViewModel = ViewModelProvider(this)[WeatherViewModel::class.java]
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        geocodingService = GeocodingService(this)
+
+        setupInsets()
+        actualizarSaludo()
+        loadWeatherWithLocation()
+        observeWeatherData()
+        
+        loadUserData()
+    }
+
+    private fun setupInsets() {
         val initialBottomPadding = binding.bottomNav.paddingBottom
         ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNav) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -91,42 +93,111 @@ class DashboardActivity : AppCompatActivity() {
             insets
         }
 
-        // También ajustamos el Header para que respete la barra de estado superior
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             val header = binding.root.findViewById<LinearLayout>(R.id.header_container)
-            header?.setPadding(
-                header.paddingLeft,
-                systemBars.top,
-                header.paddingRight,
-                header.paddingBottom
-            )
+            header?.setPadding(header.paddingLeft, systemBars.top, header.paddingRight, header.paddingBottom)
             insets
         }
-
-        weatherViewModel = ViewModelProvider(this)[WeatherViewModel::class.java]
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        geocodingService = GeocodingService(this)
-
-        actualizarSaludo()
-        loadWeatherWithLocation()
-        
-        userName = intent.getStringExtra("USER_NAME") ?: "Usuario"
-        userRole = intent.getStringExtra("USER_ROLE") ?: "agricultor"
-        
-        setupUI(userName, userRole)
-        observeWeatherData()
-        checkAdminAccess(userRole)
     }
 
-    private fun checkAdminAccess(role: String) {
-        if (role == "admin" || role == "administrador" || role == "supervisor") {
-            binding.cvAdminPanel.visibility = android.view.View.VISIBLE
-            binding.btnManageCatalogs.setOnClickListener {
-                showAddCatalogDialog()
-            }
+    private fun loadUserData() {
+        val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
+        val userId = sharedPref.getInt("USER_ID", -1)
+        
+        lifecycleScope.launch {
+            val user = db.userDao().getUsuarioById(userId)
+            currentUser = user
+            
+            // Buscar el rol global del usuario
+            val rol = user?.let { db.userDao().getRolById(it.rol_global_id) }
+            currentRol = rol
+            
+            updatePermissionsUI(user, rol)
+            setupStaticUI(user, rol)
+            loadProfileImage(user)
+        }
+    }
+
+    private fun updatePermissionsUI(user: UsuarioEntity?, rol: RolEntity?) {
+        val nivel = rol?.nivel ?: 1
+        val isAdmin = nivel >= 3 // Admin (3) o Super Admin (4)
+        val isSupervisor = nivel >= 2
+        val isAgricultor = nivel >= 1
+
+        // Panel de Administración
+        binding.cvAdminPanel.visibility = if (isAdmin) View.VISIBLE else View.GONE
+        if (isAdmin) {
+            binding.btnManageCatalogs.setOnClickListener { showAddCatalogDialog() }
             binding.btnManageUsers.setOnClickListener {
-                Toast.makeText(this, getString(R.string.msg_admin_users_enabled), Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, ManageMembersActivity::class.java)
+                // Buscamos la primera organización del usuario
+                lifecycleScope.launch {
+                    val org = db.userDao().getOrganizacionActivaByCreador(user?.id ?: 0)
+                    intent.putExtra("ORG_ID", org?.id ?: 1)
+                    startActivity(intent)
+                }
+            }
+        }
+
+        // Visibilidad según rol
+        val agricultureVisibility = if (isAgricultor) View.VISIBLE else View.GONE
+        binding.navTerrenoQuick.visibility = agricultureVisibility
+        binding.navCultivoQuick.visibility = agricultureVisibility
+        binding.navLaborQuick.visibility = agricultureVisibility
+        binding.navCosechaQuick.visibility = agricultureVisibility
+        
+        binding.navTerrenos.visibility = agricultureVisibility
+        binding.navCultivos.visibility = agricultureVisibility
+        binding.navLabores.visibility = agricultureVisibility
+
+        // Información de Header
+        user?.let {
+            binding.tvWelcomeUser.text = it.nombre
+            binding.tvUserInfoLine.text = rol?.nombre?.replaceFirstChar { c -> c.uppercase() } ?: "Agricultor"
+        }
+    }
+
+    private fun setupStaticUI(user: UsuarioEntity?, rol: RolEntity?) {
+        binding.ivUserAvatar.setOnClickListener { showUserMenu() }
+        binding.btnProfileCard.setOnClickListener { showUserMenu() }
+
+        binding.cvWeatherCard.setOnClickListener {
+            startActivity(Intent(this, WeatherDetailActivity::class.java).apply {
+                putExtra("CITY_NAME", binding.tvCityName.text.toString())
+                putExtra("LAT", currentLat)
+                putExtra("LON", currentLon)
+            })
+        }
+
+        binding.navTerrenos.setOnClickListener { startActivity(Intent(this, TerrenosListActivity::class.java)) }
+        binding.navTerrenoQuick.setOnClickListener { startActivity(Intent(this, TerrenosListActivity::class.java)) }
+        
+        binding.navCultivos.setOnClickListener {
+            if (hasTerrenos) startActivity(Intent(this, CultivosListActivity::class.java))
+            else showLockMessage("terreno")
+        }
+
+        binding.navLabores.setOnClickListener {
+            if (hasCultivos) startActivity(Intent(this, LaboresListActivity::class.java))
+            else showLockMessage("cultivo")
+        }
+
+        binding.navReportes.setOnClickListener {
+            Toast.makeText(this, getString(R.string.msg_reportes_dev), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadProfileImage(user: UsuarioEntity?) {
+        user?.foto_perfil_url?.let { path ->
+            val file = File(path)
+            if (file.exists()) {
+                Glide.with(this).load(file).circleCrop()
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .into(binding.ivUserAvatar)
+                binding.ivUserAvatar.imageTintList = null
+                binding.ivUserAvatar.setPadding(0, 0, 0, 0)
             }
         }
     }
@@ -134,57 +205,44 @@ class DashboardActivity : AppCompatActivity() {
     private fun showAddCatalogDialog() {
         val dialogBinding = DialogAddCatalogoCultivoBinding.inflate(layoutInflater)
         val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
-            .setView(dialogBinding.root)
-            .create()
-
+            .setView(dialogBinding.root).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         dialogBinding.btnImportJson.setOnClickListener {
             importJsonLauncher.launch("application/json")
             dialog.dismiss()
         }
-
-        dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
-
         dialogBinding.btnSave.setOnClickListener {
             val nombre = dialogBinding.etCatNombre.text.toString().trim()
             val cientifico = dialogBinding.etCatCientifico.text.toString().trim()
             val ciclo = dialogBinding.etCatCiclo.text.toString().trim()
-            val dias = dialogBinding.etCatDias.text.toString().toIntOrNull()
-            val riego = dialogBinding.etCatRiego.text.toString().trim()
-            val plagas = dialogBinding.etCatPlagas.text.toString().trim()
 
             if (nombre.isNotEmpty()) {
                 lifecycleScope.launch {
                     val nuevo = CatalogoCultivoEntity(
                         nombre = nombre,
                         nombre_cientifico = if (cientifico.isEmpty()) null else cientifico,
-                        tipo_ciclo = ciclo,
+                        tipo_ciclo = if (ciclo.isEmpty()) "ciclo_corto" else ciclo,
                         vida_util_estimada_meses = if (ciclo.lowercase().contains("perenne")) 60 else null,
-                        dias_a_cosecha_promedio = dias,
-                        instrucciones_base_riego = if (riego.isEmpty()) null else riego,
-                        instrucciones_base_plagas = if (plagas.isEmpty()) null else plagas
+                        dias_a_cosecha_promedio = dialogBinding.etCatDias.text.toString().toIntOrNull(),
+                        instrucciones_base_riego = null,
+                        instrucciones_base_plagas = null
                     )
                     db.assetDao().insertCatalogoCultivo(nuevo)
-                    Toast.makeText(this@DashboardActivity, "✅ $nombre", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DashboardActivity, "✅ $nombre añadido", Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
                 }
             } else {
-                Toast.makeText(this, getString(R.string.msg_name_required), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "⚠️ El nombre es obligatorio", Toast.LENGTH_SHORT).show()
             }
         }
-
         dialog.show()
     }
 
     private fun importCatalog(uri: android.net.Uri) {
         lifecycleScope.launch {
             val result = catalogImporter.importCultivosFromJson(uri)
-            if (result.isSuccess) {
-                Toast.makeText(this@DashboardActivity, "✅ Importados ${result.getOrNull()} cultivos", Toast.LENGTH_LONG).show()
-            } else {
-                Toast.makeText(this@DashboardActivity, "❌ Error al importar: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
-            }
+            if (result.isSuccess) Toast.makeText(this@DashboardActivity, "✅ Importados", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -195,217 +253,14 @@ class DashboardActivity : AppCompatActivity() {
         loadUserData()
     }
 
-    private fun loadUserData() {
-        val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
-        val userId = sharedPref.getInt("USER_ID", -1)
-        
-        lifecycleScope.launch {
-            val user = db.userDao().getUsuarioById(userId)
-            currentUser = user
-            user?.let {
-                binding.tvWelcomeUser.text = it.nombre
-                binding.tvUserInfoLine.text = it.rol.replaceFirstChar { char -> char.uppercase() }
-                
-                // Cargar foto de perfil
-                it.foto_perfil_url?.let { path ->
-                    val file = java.io.File(path)
-                    if (file.exists()) {
-                        Glide.with(this@DashboardActivity)
-                            .load(file)
-                            .circleCrop()
-                            .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
-                            .skipMemoryCache(true)
-                            .into(binding.ivUserAvatar)
-                        
-                        // Eliminar tinte para ver la foto real
-                        binding.ivUserAvatar.imageTintList = null
-                        binding.ivUserAvatar.setPadding(0, 0, 0, 0)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun loadWeatherWithLocation() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            getLocationAndWeather()
-        } else {
-            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
-    }
-
-    private fun getLocationAndWeather() {
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            weatherViewModel.fetchWeatherByCity(getString(R.string.default_city))
-            return
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
-
-        binding.progressWeather.visibility = android.view.View.VISIBLE
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-            if (location != null) {
-                currentLat = location.latitude
-                currentLon = location.longitude
-                lifecycleScope.launch {
-                    val locationInfo = geocodingService.getLocationInfo(currentLat, currentLon)
-                    if (locationInfo != null) {
-                        weatherViewModel.fetchWeatherByLocation(currentLat, currentLon, locationInfo)
-                    } else {
-                        weatherViewModel.fetchWeatherByLocation(currentLat, currentLon)
-                    }
-                }
-            } else {
-                weatherViewModel.fetchWeatherByCity(getString(R.string.default_city))
-            }
-        }.addOnFailureListener {
-            weatherViewModel.fetchWeatherByCity(getString(R.string.default_city))
-        }
-    }
-
-    private fun observeWeatherData() {
-        weatherViewModel.weatherData.observe(this) { weather ->
-            weather?.let { updateWeatherUI(it) }
-        }
-        weatherViewModel.locationName.observe(this) { location ->
-            binding.tvCityName.text = location
-        }
-        weatherViewModel.isLoading.observe(this) { isLoading ->
-            if (!isLoading) binding.progressWeather.visibility = android.view.View.GONE
-        }
-    }
-
-    private fun updateWeatherUI(weather: com.sigcpa.agrosys.models.WeatherResponse) {
-        binding.tvTemperature.text = weatherViewModel.formatTemperature(weather.main.temp)
-        binding.tvWeatherDescription.text = weatherViewModel.getWeatherDescription(weather.weather.firstOrNull()?.description ?: "")
-        Glide.with(this).load(weatherViewModel.getWeatherIconUrl(weather.weather.firstOrNull()?.icon ?: "01d")).into(binding.ivWeatherIcon)
-    }
-
-    private fun actualizarSaludo() {
-        val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        val (saludoRes, icono) = when (hora) {
-            in 0..5 -> R.string.saludo_buenas_noches to "🌙"
-            in 6..11 -> R.string.saludo_buenos_dias to "🌅"
-            in 12..18 -> R.string.saludo_buenas_tardes to "🌤️"
-            else -> R.string.saludo_buenas_noches to "🌙"
-        }
-        binding.saludoTexto.text = getString(saludoRes)
-        binding.ivSaludoIcono.text = icono
-    }
-
-    private fun setupUI(name: String, role: String) {
-        binding.tvWelcomeUser.text = name
-        binding.tvUserInfoLine.text = role.replaceFirstChar { it.uppercase() }
-        
-        binding.ivUserAvatar.setOnClickListener { showUserMenu() }
-        binding.btnProfileCard.setOnClickListener { showUserMenu() }
-
-        // Abrir detalles del clima al tocar la tarjeta
-        binding.cvWeatherCard.setOnClickListener {
-            val intent = Intent(this, WeatherDetailActivity::class.java)
-            intent.putExtra("CITY_NAME", binding.tvCityName.text.toString())
-            intent.putExtra("LAT", currentLat)
-            intent.putExtra("LON", currentLon)
-            startActivity(intent)
-        }
-
-        // Navegación a Terrenos
-        val goToTerrenos = { startActivity(Intent(this, TerrenosListActivity::class.java)) }
-        binding.navTerrenoQuick.setOnClickListener { goToTerrenos() }
-        binding.navTerrenos.setOnClickListener { goToTerrenos() }
-        
-        // Navegación a Cultivos
-        val goToCultivos = {
-            if (hasTerrenos) startActivity(Intent(this, CultivosListActivity::class.java))
-            else showLockMessage("terreno")
-        }
-        binding.navCultivoQuick.setOnClickListener { goToCultivos() }
-        binding.navCultivos.setOnClickListener { goToCultivos() }
-
-        // Navegación a Labores
-        val goToLabores = {
-            if (hasCultivos) startActivity(Intent(this, LaboresListActivity::class.java))
-            else showLockMessage("cultivo")
-        }
-        binding.navLaborQuick.setOnClickListener { goToLabores() }
-        binding.navLabores.setOnClickListener { goToLabores() }
-
-        binding.navCosechaQuick.setOnClickListener { 
-            if (hasCultivos) {
-                startActivity(Intent(this, CultivosListActivity::class.java))
-                Toast.makeText(this, getString(R.string.msg_select_cultivo_harvest), Toast.LENGTH_SHORT).show()
-            } else {
-                showLockMessage("cultivo")
-            }
-        }
-
-        binding.navReportes.setOnClickListener {
-            Toast.makeText(this, getString(R.string.msg_reportes_dev), Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun showUserMenu() {
-        val popupBinding = DialogUserMenuBinding.inflate(layoutInflater)
-        val popupView = popupBinding.root
-
-        val popupWindow = PopupWindow(
-            popupView,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            true
-        )
-
-        popupWindow.elevation = 20f
-
-        // Cargar foto de perfil en el menú
-        val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
-        val userId = sharedPref.getInt("USER_ID", -1)
-        
-        lifecycleScope.launch {
-            val user = db.userDao().getUsuarioById(userId)
-            val fotoUrl = user?.foto_perfil_url
-            
-            val file = if (fotoUrl != null) File(fotoUrl) else {
-                val safeName = userName.replace(" ", "_")
-                File(getExternalFilesDir(null), "perfil/${userId}_${safeName}/profile.jpg")
-            }
-
-            if (file.exists()) {
-                Glide.with(this@DashboardActivity)
-                    .load(file)
-                    .circleCrop()
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .skipMemoryCache(true)
-                    .into(popupBinding.imgMenuProfile)
-                
-                // Limpiar padding y tinte para que la foto se vea a pantalla completa
-                popupBinding.imgMenuProfile.setPadding(0, 0, 0, 0)
-                popupBinding.imgMenuProfile.imageTintList = null
-            }
-        }
-
-        popupBinding.btnViewProfile.setOnClickListener {
-            popupWindow.dismiss()
-            startActivity(Intent(this, ProfileActivity::class.java))
-        }
-
-        popupBinding.btnLogout.setOnClickListener {
-            popupWindow.dismiss()
-            logout()
-        }
-
-        popupWindow.showAsDropDown(binding.ivUserAvatar, 0, 10)
-    }
-
     private fun updateStatsAndLocks() {
         val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
         val userId = sharedPref.getInt("USER_ID", -1)
         lifecycleScope.launch {
-            val agricultor = db.userDao().getAgricultorByUserId(userId)
-            if (agricultor != null) {
-                val numTerrenos = db.assetDao().countTerrenosByAgricultor(agricultor.id)
-                val cultivos = db.assetDao().getCultivosByAgricultor(agricultor.id)
+            val user = db.userDao().getUsuarioById(userId)
+            user?.let {
+                val numTerrenos = db.assetDao().countTerrenosByAgricultor(it.id)
+                val cultivos = db.assetDao().getCultivosByAgricultor(it.id)
                 hasTerrenos = numTerrenos > 0
                 hasCultivos = cultivos.isNotEmpty()
                 binding.tvStatTerrenos.text = numTerrenos.toString()
@@ -419,11 +274,9 @@ class DashboardActivity : AppCompatActivity() {
         val alphaCultivo = if (hasTerrenos) 1.0f else 0.4f
         binding.navCultivoQuick.alpha = alphaCultivo
         binding.navCultivos.alpha = alphaCultivo
-        
         val alphaLabor = if (hasCultivos) 1.0f else 0.4f
         binding.navLaborQuick.alpha = alphaLabor
         binding.navLabores.alpha = alphaLabor
-        binding.navCosechaQuick.alpha = alphaLabor
     }
 
     private fun showLockMessage(type: String) {
@@ -431,13 +284,59 @@ class DashboardActivity : AppCompatActivity() {
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
     }
 
+    private fun showUserMenu() {
+        val popupBinding = DialogUserMenuBinding.inflate(layoutInflater)
+        val popupWindow = PopupWindow(popupBinding.root, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, true)
+        popupWindow.elevation = 20f
+        popupBinding.btnLogout.setOnClickListener { logout() }
+        popupWindow.showAsDropDown(binding.ivUserAvatar, 0, 10)
+    }
+
     private fun logout() {
-        val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            remove("USER_ID")
-            apply()
-        }
+        getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE).edit().remove("USER_ID").apply()
         startActivity(Intent(this, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK })
         finish()
+    }
+
+    private fun loadWeatherWithLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) getLocationAndWeather()
+        else requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+    private fun getLocationAndWeather() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            location?.let {
+                currentLat = it.latitude
+                currentLon = it.longitude
+                lifecycleScope.launch {
+                    val info = geocodingService.getLocationInfo(it.latitude, it.longitude)
+                    weatherViewModel.fetchWeatherByLocation(it.latitude, it.longitude, info)
+                }
+            } ?: weatherViewModel.fetchWeatherByCity(getString(R.string.default_city))
+        }
+    }
+
+    private fun observeWeatherData() {
+        weatherViewModel.weatherData.observe(this) { weather ->
+            weather?.let {
+                binding.tvTemperature.text = weatherViewModel.formatTemperature(it.main.temp)
+                binding.tvWeatherDescription.text = weatherViewModel.getWeatherDescription(it.weather.firstOrNull()?.description ?: "")
+                Glide.with(this).load(weatherViewModel.getWeatherIconUrl(it.weather.firstOrNull()?.icon ?: "01d")).into(binding.ivWeatherIcon)
+            }
+        }
+        weatherViewModel.locationName.observe(this) { binding.tvCityName.text = it }
+    }
+
+    private fun actualizarSaludo() {
+        val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val (saludoRes, icono) = when (hora) {
+            in 0..5 -> R.string.saludo_buenas_noches to "🌙"
+            in 6..11 -> R.string.saludo_buenos_dias to "🌅"
+            in 12..18 -> R.string.saludo_buenas_tardes to "🌤️"
+            else -> R.string.saludo_buenas_noches to "🌙"
+        }
+        binding.saludoTexto.text = getString(saludoRes)
+        binding.ivSaludoIcono.text = icono
     }
 }

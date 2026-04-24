@@ -5,8 +5,7 @@
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0f3b1f"
-    android:fitsSystemWindows="true">
+    android:background="#00582a">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -81,7 +80,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:fillViewport="true">
+            android:fillViewport="true"
+            android:isScrollContainer="true">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -129,7 +129,7 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/label_destino_siembra"
-                                        android:textColor="#15803d"
+                                        android:textColor="#00582a"
                                         android:textSize="11sp"
                                         android:textStyle="bold"
                                         android:textAllCaps="true"
@@ -140,7 +140,7 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="Finca La Esperanza"
-                                        android:textColor="#166534"
+                                        android:textColor="#00582a"
                                         android:textSize="20sp"
                                         android:textStyle="bold" />
                                 </LinearLayout>
@@ -179,7 +179,7 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/label_area_disponible"
-                                        android:textColor="#166534"
+                                        android:textColor="#00582a"
                                         android:textSize="10sp" />
                                     <TextView
                                         android:id="@+id/tvSelectedTerrenoArea"
@@ -199,7 +199,7 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/label_ubicacion"
-                                        android:textColor="#166534"
+                                        android:textColor="#00582a"
                                         android:textSize="10sp" />
                                     <TextView
                                         android:id="@+id/tvSelectedTerrenoUbicacion"
@@ -260,7 +260,7 @@
                         app:boxCornerRadiusBottomStart="12dp"
                         app:boxCornerRadiusTopEnd="12dp"
                         app:boxCornerRadiusTopStart="12dp"
-                        app:boxStrokeColor="#15803d"
+                        app:boxStrokeColor="#00582a"
                         app:hintEnabled="false">
 
                         <AutoCompleteTextView
