@@ -3,9 +3,10 @@ package com.sigcpa.agrosys.repository
 import android.content.Context
 import android.util.Log
 import com.sigcpa.agrosys.database.AppDatabase
-import com.sigcpa.agrosys.database.entities.AgricultorEntity
 import com.sigcpa.agrosys.database.entities.OrganizacionEntity
 import com.sigcpa.agrosys.database.entities.UsuarioEntity
+import com.sigcpa.agrosys.database.entities.SolicitudUsuarioEntity
+import com.sigcpa.agrosys.database.dao.UsuarioWithRol
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -17,44 +18,44 @@ class AuthRepository(context: Context) {
         userDao.countUsersByEmail(email) > 0
     }
 
-    // Registro consolidado (Usado por el nuevo diseño de RegisterActivity)
-    suspend fun registerFullUser(
+    suspend fun registerUser(
         userData: Map<String, String>,
-        role: String,
-        orgData: Map<String, String>,
-        extraData: Map<String, String>
+        orgId: Int? = null,
+        requestSupervisor: Boolean = false
     ): Int = withContext(Dispatchers.IO) {
         try {
-            var orgId: Int? = null
-            if (!orgData["name"].isNullOrBlank()) {
-                val org = OrganizacionEntity(
-                    nombre = orgData["name"]!!,
-                    ruc = orgData["ruc"],
-                    direccion = orgData["address"]
-                )
-                orgId = userDao.insertOrganizacion(org).toInt()
-            }
-
+            // Siempre se registra inicialmente como 'usuario' (agricultor)
+            val rol = userDao.getRolByName("usuario") ?: return@withContext -1
+            
             val usuario = UsuarioEntity(
-                organizacion_id = orgId,
+                rol_id = rol.id,
                 nombre = userData["name"] ?: "",
                 apellidos = userData["lastName"] ?: "",
                 email = userData["email"] ?: "",
                 password = userData["password"] ?: "",
-                rol = role,
+                dni = userData["dni"],
+                experiencia_anios = userData["experience"]?.toIntOrNull() ?: 0,
+                nivel_educativo = userData["education"],
                 telefono = userData["phone"]
             )
+            
             val userId = userDao.insertUsuario(usuario).toInt()
 
-            if (role == "agricultor") {
-                val agricultor = AgricultorEntity(
+            // Si seleccionó una organización, crear la solicitud
+            if (orgId != null) {
+                val tipoSolicitud = if (requestSupervisor) "ascenso_supervisor" else "unirse"
+                val solicitud = SolicitudUsuarioEntity(
                     usuario_id = userId,
-                    dni = extraData["dni"] ?: "",
-                    experiencia_anios = extraData["experience"]?.toIntOrNull() ?: 0,
-                    nivel_educativo = extraData["education"]
+                    organizacion_id = orgId,
+                    tipo_solicitud = tipoSolicitud,
+                    mensaje = if (requestSupervisor) "Deseo unirme como supervisor" else "Deseo unirme a la organización"
                 )
-                userDao.insertAgricultor(agricultor)
+                userDao.insertSolicitud(solicitud)
+                
+                // También podríamos crear una notificación para el administrador de la organización aquí
+                // Pero según el diseño, la solicitud en sí ya es lo que el admin verá.
             }
+            
             userId
         } catch (e: Exception) {
             Log.e("AUTH_ERROR", "Error en registro: ${e.message}")
@@ -62,55 +63,20 @@ class AuthRepository(context: Context) {
         }
     }
 
-    // Función compatible con UserTypeActivity (para evitar errores de compilación)
-    suspend fun completeProfile(
-        userId: Int,
-        role: String,
-        orgData: Map<String, String>,
-        extraData: Map<String, String>
-    ): Boolean = withContext(Dispatchers.IO) {
-        try {
-            var orgId: Int? = null
-            if (!orgData["name"].isNullOrBlank()) {
-                val org = OrganizacionEntity(
-                    nombre = orgData["name"]!!,
-                    ruc = orgData["ruc"],
-                    direccion = orgData["address"]
-                )
-                orgId = userDao.insertOrganizacion(org).toInt()
-            }
-
-            val usuario = userDao.getUsuarioById(userId)
-            if (usuario != null) {
-                val updatedUser = usuario.copy(
-                    rol = role,
-                    organizacion_id = orgId,
-                    updated_at = System.currentTimeMillis() / 1000
-                )
-                userDao.updateUsuario(updatedUser)
-
-                if (role == "agricultor") {
-                    val agricultor = AgricultorEntity(
-                        usuario_id = userId,
-                        dni = extraData["dni"] ?: "",
-                        experiencia_anios = extraData["experience"]?.toIntOrNull() ?: 0,
-                        nivel_educativo = extraData["education"]
-                    )
-                    userDao.insertAgricultor(agricultor)
-                }
-                true
-            } else false
-        } catch (e: Exception) {
-            false
-        }
+    suspend fun getAllOrganizaciones(): List<OrganizacionEntity> = withContext(Dispatchers.IO) {
+        userDao.getAllOrganizaciones()
     }
 
-    suspend fun getUserById(id: Int): UsuarioEntity? = withContext(Dispatchers.IO) {
+    suspend fun getUserById(id: Int): UsuarioWithRol? = withContext(Dispatchers.IO) {
         userDao.getUsuarioById(id)
     }
 
-    suspend fun loginLocal(email: String, pass: String): UsuarioEntity? = withContext(Dispatchers.IO) {
-        val user = userDao.getUsuarioByEmail(email)
-        if (user != null && user.password == pass) user else null
+    suspend fun loginLocal(email: String, pass: String): UsuarioWithRol? = withContext(Dispatchers.IO) {
+        val userWithRol = userDao.getUsuarioByEmail(email)
+        if (userWithRol != null && userWithRol.usuario.password == pass) {
+            userWithRol
+        } else {
+            null
+        }
     }
 }

@@ -11,26 +11,77 @@ interface UserDao {
     @Update
     suspend fun updateUsuario(usuario: UsuarioEntity)
 
-    @Query("SELECT * FROM usuarios WHERE email = :email LIMIT 1")
-    suspend fun getUsuarioByEmail(email: String): UsuarioEntity?
+    @Query("""
+        SELECT u.*, r.nombre as nombre_rol 
+        FROM usuarios u 
+        JOIN roles r ON u.rol_id = r.id 
+        WHERE u.email = :email LIMIT 1
+    """)
+    suspend fun getUsuarioByEmail(email: String): UsuarioWithRol?
+
+    @Query("""
+        SELECT u.*, r.nombre as nombre_rol 
+        FROM usuarios u 
+        JOIN roles r ON u.rol_id = r.id 
+        WHERE u.id = :id
+    """)
+    suspend fun getUsuarioById(id: Int): UsuarioWithRol?
+
+    @Query("SELECT * FROM roles WHERE nombre = :nombreRol LIMIT 1")
+    suspend fun getRolByName(nombreRol: String): RolEntity?
+
+    @Query("SELECT COUNT(*) FROM usuarios WHERE email = :email")
+    suspend fun countUsersByEmail(email: String): Int
+
+    @Update
+    suspend fun updateRedSocial(redSocial: RedSocialEntity)
 
     @Insert
     suspend fun insertOrganizacion(organizacion: OrganizacionEntity): Long
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insertAgricultor(agricultor: AgricultorEntity): Long
-
     @Update
-    suspend fun updateAgricultor(agricultor: AgricultorEntity)
+    suspend fun updateOrganizacion(organizacion: OrganizacionEntity)
 
-    @Query("SELECT * FROM usuarios WHERE id = :id")
-    suspend fun getUsuarioById(id: Int): UsuarioEntity?
+    @Delete
+    suspend fun deleteOrganizacion(organizacion: OrganizacionEntity)
 
-    @Query("SELECT * FROM agricultores WHERE usuario_id = :userId LIMIT 1")
-    suspend fun getAgricultorByUserId(userId: Int): AgricultorEntity?
+    @Query("""
+        SELECT o.* FROM organizaciones o
+        JOIN miembros_organizacion mo ON o.id = mo.organizacion_id
+        WHERE mo.usuario_id = :userId AND mo.estado = 'activo'
+    """)
+    suspend fun getOrganizacionesByUsuario(userId: Int): List<OrganizacionEntity>
 
-    @Query("SELECT COUNT(*) FROM usuarios WHERE email = :email")
-    suspend fun countUsersByEmail(email: String): Int
+    @Query("SELECT * FROM organizaciones WHERE administrador_id = :adminId LIMIT 1")
+    suspend fun getOrganizacionByAdmin(adminId: Int): OrganizacionEntity?
+
+    @Query("SELECT * FROM solicitudes_usuario WHERE usuario_id = :userId AND estado = 'pendiente' LIMIT 1")
+    suspend fun getSolicitudPendienteByUser(userId: Int): SolicitudUsuarioEntity?
+
+    @Query("SELECT * FROM organizaciones WHERE deleted_at IS NULL")
+    suspend fun getAllOrganizaciones(): List<OrganizacionEntity>
+
+    @Insert
+    suspend fun insertSolicitud(solicitud: SolicitudUsuarioEntity): Long
+
+    @Insert
+    suspend fun insertMiembroOrganizacion(miembro: MiembroOrganizacionEntity): Long
+
+    @Query("""
+        SELECT COUNT(*) FROM miembros_organizacion 
+        WHERE organizacion_id = :orgId AND estado = 'activo'
+    """)
+    suspend fun countMiembrosByOrganizacion(orgId: Int): Int
+
+    @Query("SELECT * FROM organizaciones WHERE id = :id LIMIT 1")
+    suspend fun getOrganizacionById(id: Int): OrganizacionEntity?
+
+    @Query("""
+        SELECT u.* FROM usuarios u
+        JOIN miembros_organizacion mo ON u.id = mo.usuario_id
+        WHERE mo.organizacion_id = :orgId AND mo.estado = 'activo'
+    """)
+    suspend fun getMiembrosByOrganizacion(orgId: Int): List<UsuarioEntity>
 
     // --- Redes Sociales ---
     @Query("SELECT * FROM tipos_red_social")
@@ -47,12 +98,14 @@ interface UserDao {
     @Insert
     suspend fun insertRedSocial(redSocial: RedSocialEntity): Long
 
-    @Update
-    suspend fun updateRedSocial(redSocial: RedSocialEntity)
-
     @Delete
     suspend fun deleteRedSocial(redSocial: RedSocialEntity)
 }
+
+data class UsuarioWithRol(
+    @Embedded val usuario: UsuarioEntity,
+    val nombre_rol: String
+)
 
 data class RedSocialWithMetadata(
     @Embedded val redSocial: RedSocialEntity,

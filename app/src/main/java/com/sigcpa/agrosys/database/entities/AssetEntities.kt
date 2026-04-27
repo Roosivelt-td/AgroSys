@@ -6,7 +6,7 @@ import androidx.room.*
     tableName = "terrenos",
     foreignKeys = [
         ForeignKey(
-            entity = AgricultorEntity::class,
+            entity = UsuarioEntity::class,
             parentColumns = ["id"],
             childColumns = ["agricultor_id"],
             onDelete = ForeignKey.CASCADE

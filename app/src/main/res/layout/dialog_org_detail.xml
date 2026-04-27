@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/tvDetailOrgName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nombre de la Organización"
+        android:textColor="#111827"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"
+        android:textAlignment="center"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E5E7EB"
+        android:layout_marginBottom="16dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_edit_02"
+            app:tint="#15803D"
+            android:layout_marginEnd="12dp"/>
+        <TextView
+            android:id="@+id/tvDetailOrgRuc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="RUC: -"
+            android:textColor="#374151"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_user_modern"
+            app:tint="#15803D"
+            android:layout_marginEnd="12dp"/>
+        <TextView
+            android:id="@+id/tvDetailOrgType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tipo: -"
+            android:textColor="#374151"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_img"
+            app:tint="#15803D"
+            android:layout_marginEnd="12dp"/>
+        <TextView
+            android:id="@+id/tvDetailOrgRubro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Rubro: -"
+            android:textColor="#374151"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_ubicacion"
+            app:tint="#15803D"
+            android:layout_marginEnd="12dp"/>
+        <TextView
+            android:id="@+id/tvDetailOrgAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dirección: -"
+            android:textColor="#374151"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
+        android:gravity="center_vertical">
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_user_modern"
+            app:tint="#15803D"
+            android:layout_marginEnd="12dp"/>
+        <TextView
+            android:id="@+id/tvDetailOrgPhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Teléfono: -"
+            android:textColor="#374151"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvDetailOrgDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Descripción..."
+        android:textColor="#6B7280"
+        android:textSize="13sp"
+        android:textStyle="italic"
+        android:layout_marginBottom="24dp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnConfirmJoin"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="SOLICITAR UNIRSE"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:backgroundTint="#15803D"
+        app:cornerRadius="12dp"/>
+
+</LinearLayout>

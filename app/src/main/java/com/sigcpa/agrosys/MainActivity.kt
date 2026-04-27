@@ -75,8 +75,8 @@ class MainActivity : AppCompatActivity() {
                 lifecycleScope.launch {
                     val user = authRepository.loginLocal(email, pass)
                     if (user != null) {
-                        saveSession(user.id)
-                        navigateToDashboard(user.id)
+                        saveSession(user.usuario.id)
+                        navigateToDashboard(user.usuario.id)
                     } else {
                         Toast.makeText(this@MainActivity, "❌ Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
                     }
@@ -102,10 +102,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun navigateToDashboard(userId: Int) {
         lifecycleScope.launch {
-            val user = authRepository.getUserById(userId)
+            val userWithRol = authRepository.getUserById(userId)
             val intent = Intent(this@MainActivity, DashboardActivity::class.java).apply {
-                putExtra("USER_NAME", user?.nombre ?: "Usuario")
-                putExtra("USER_ROLE", user?.rol ?: "agricultor")
+                putExtra("USER_NAME", userWithRol?.usuario?.nombre ?: "Usuario")
+                putExtra("USER_ROLE", userWithRol?.nombre_rol ?: "usuario")
             }
             startActivity(intent)
             finish()

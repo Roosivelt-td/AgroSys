@@ -11,8 +11,9 @@ import com.sigcpa.agrosys.database.entities.*
 
 @Database(
     entities = [
-        OrganizacionEntity::class, UsuarioEntity::class, AgricultorEntity::class,
-        AsignacionSupervisorEntity::class, TerrenoEntity::class, CatalogoCultivoEntity::class,
+        RolEntity::class, OrganizacionEntity::class, UsuarioEntity::class,
+        MiembroOrganizacionEntity::class, SolicitudUsuarioEntity::class,
+        TerrenoEntity::class, CatalogoCultivoEntity::class,
         CultivoEntity::class, CatalogoLaborEntity::class, LaborRealizadaEntity::class,
         CatalogoInsumoEntity::class, ProveedorEntity::class, InsumoUsadoEntity::class,
         CosechaEntity::class, CompradorEntity::class, VentaEntity::class,
@@ -20,7 +21,7 @@ import com.sigcpa.agrosys.database.entities.*
         ManoObraTipoEntity::class, ManoObraEntity::class,
         TipoRedSocialEntity::class, RedSocialEntity::class
     ],
-    version = 8,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -54,6 +55,12 @@ abstract class AppDatabase : RoomDatabase() {
         private fun insertInitialData(db: SupportSQLiteDatabase) {
             val now = System.currentTimeMillis() / 1000
             try {
+                // Roles base
+                db.execSQL("INSERT INTO roles (nombre) VALUES ('super_admin')")
+                db.execSQL("INSERT INTO roles (nombre) VALUES ('admin')")
+                db.execSQL("INSERT INTO roles (nombre) VALUES ('supervisor')")
+                db.execSQL("INSERT INTO roles (nombre) VALUES ('usuario')")
+
                 // Catálogo de labores base
                 db.execSQL("INSERT INTO catalogo_labores (nombre, categoria, descripcion, sincronizado) VALUES ('Preparación de terreno', 'preparacion', 'Arado, rastra y nivelación', 1)")
                 db.execSQL("INSERT INTO catalogo_labores (nombre, categoria, descripcion, sincronizado) VALUES ('Siembra', 'preparacion', 'Colocación de semillas o plantones', 1)")

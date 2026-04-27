@@ -53,7 +53,7 @@ class DashboardActivity : AppCompatActivity() {
 
     private var userName: String = ""
     private var userRole: String = ""
-    private var currentUser: com.sigcpa.agrosys.database.entities.UsuarioEntity? = null
+    private var currentUser: com.sigcpa.agrosys.database.dao.UsuarioWithRol? = null
 
     // Launcher para importar JSON
     private val importJsonLauncher = registerForActivityResult(
@@ -203,11 +203,11 @@ class DashboardActivity : AppCompatActivity() {
             val user = db.userDao().getUsuarioById(userId)
             currentUser = user
             user?.let {
-                binding.tvWelcomeUser.text = it.nombre
-                binding.tvUserInfoLine.text = it.rol.replaceFirstChar { char -> char.uppercase() }
+                binding.tvWelcomeUser.text = it.usuario.nombre
+                binding.tvUserInfoLine.text = it.nombre_rol.replaceFirstChar { char -> char.uppercase() }
                 
                 // Cargar foto de perfil
-                it.foto_perfil_url?.let { path ->
+                it.usuario.foto_perfil_url?.let { path ->
                     val file = java.io.File(path)
                     if (file.exists()) {
                         Glide.with(this@DashboardActivity)
@@ -364,7 +364,7 @@ class DashboardActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             val user = db.userDao().getUsuarioById(userId)
-            val fotoUrl = user?.foto_perfil_url
+            val fotoUrl = user?.usuario?.foto_perfil_url
             
             val file = if (fotoUrl != null) File(fotoUrl) else {
                 val safeName = userName.replace(" ", "_")
@@ -402,10 +402,11 @@ class DashboardActivity : AppCompatActivity() {
         val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
         val userId = sharedPref.getInt("USER_ID", -1)
         lifecycleScope.launch {
-            val agricultor = db.userDao().getAgricultorByUserId(userId)
-            if (agricultor != null) {
-                val numTerrenos = db.assetDao().countTerrenosByAgricultor(agricultor.id)
-                val cultivos = db.assetDao().getCultivosByAgricultor(agricultor.id)
+            val userWithRol = db.userDao().getUsuarioById(userId)
+            if (userWithRol != null) {
+                val agricultorId = userWithRol.usuario.id
+                val numTerrenos = db.assetDao().countTerrenosByAgricultor(agricultorId)
+                val cultivos = db.assetDao().getCultivosByAgricultor(agricultorId)
                 hasTerrenos = numTerrenos > 0
                 hasCultivos = cultivos.isNotEmpty()
                 binding.tvStatTerrenos.text = numTerrenos.toString()

@@ -142,7 +142,7 @@ class RegisterCultivoActivity : AppCompatActivity() {
         val preSelectedTerrenoId = intent.getIntExtra("TERRENO_ID", -1)
 
         lifecycleScope.launch {
-            val agricultor = db.userDao().getAgricultorByUserId(userId) ?: return@launch
+            val user = db.userDao().getUsuarioById(userId) ?: return@launch
             
             if (preSelectedTerrenoId != -1) {
                 val terreno = db.assetDao().getTerrenoById(preSelectedTerrenoId)
@@ -215,8 +215,8 @@ class RegisterCultivoActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
             val userId = sharedPref.getInt("USER_ID", -1)
-            val agricultor = db.userDao().getAgricultorByUserId(userId) ?: return@launch
-            val terrenos = db.assetDao().getTerrenosByAgricultor(agricultor.id)
+            val user = db.userDao().getUsuarioById(userId) ?: return@launch
+            val terrenos = db.assetDao().getTerrenosByAgricultor(user.usuario.id)
             
             val terrenosConArea = terrenos.map { terreno ->
                 val areaOcupada = db.assetDao().getAreaOcupadaByTerreno(terreno.id) ?: 0.0

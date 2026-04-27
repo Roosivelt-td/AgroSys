@@ -138,51 +138,6 @@
                         android:textColor="#6B7280"
                         android:layout_marginBottom="24dp"/>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/label_rol_plataforma"
-                        android:textColor="#374151"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <com.google.android.material.button.MaterialButtonToggleGroup
-                        android:id="@+id/toggleRoleGroup"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        app:checkedButton="@+id/btnRoleAgri"
-                        app:selectionRequired="true"
-                        app:singleSelection="true">
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnRoleAgri"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/label_agricultor"
-                            android:textAllCaps="false"
-                            android:textSize="11sp" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnRoleSuper"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/label_supervisor"
-                            android:textAllCaps="false"
-                            android:textSize="11sp" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnRoleAdmin"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/label_admin"
-                            android:textAllCaps="false"
-                            android:textSize="11sp" />
-                    </com.google.android.material.button.MaterialButtonToggleGroup>
-
                     <EditText
                         android:id="@+id/etRegDni"
                         android:layout_width="match_parent"
@@ -229,19 +184,45 @@
                             android:textSize="14sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <EditText
-                        android:id="@+id/etRegOrg"
+                    <!-- Nueva Sección de Organización -->
+                    <CheckBox
+                        android:id="@+id/cbJoinOrg"
                         android:layout_width="match_parent"
-                        android:layout_height="55dp"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/edit_text_elegant"
-                        android:hint="@string/hint_organizacion"
-                        android:paddingHorizontal="16dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Unirse a una organización"
+                        android:textColor="#374151"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilSearchOrg"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:visibility="gone"
+                        app:boxStrokeWidth="0.5dp"
+                        app:boxStrokeColor="#D1D5DB"
+                        app:hintEnabled="false">
+                        <AutoCompleteTextView
+                            android:id="@+id/etSearchOrg"
+                            android:layout_width="match_parent"
+                            android:layout_height="55dp"
+                            android:background="@drawable/edit_text_elegant"
+                            android:hint="Buscar organización..."
+                            android:paddingHorizontal="16dp"
+                            android:textSize="14sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <CheckBox
+                        android:id="@+id/cbRequestSupervisor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Solicitar ser supervisor"
+                        android:textColor="#374151"
                         android:textSize="14sp"
-                        android:inputType="textCapSentences"
-                        android:maxLines="1"
-                        android:singleLine="true"
-                        android:imeOptions="actionDone" />
+                        android:visibility="gone" />
 
                     <LinearLayout
                         android:layout_width="match_parent"

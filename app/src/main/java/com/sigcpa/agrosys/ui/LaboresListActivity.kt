@@ -113,8 +113,9 @@ class LaboresListActivity : AppCompatActivity() {
         val userId = sharedPref.getInt("USER_ID", -1)
 
         lifecycleScope.launch {
-            val agricultor = db.userDao().getAgricultorByUserId(userId) ?: return@launch
-            val cultivos = db.assetDao().getCultivosByAgricultor(agricultor.id)
+            val user = db.userDao().getUsuarioById(userId) ?: return@launch
+            val agricultorId = user.usuario.id
+            val cultivos = db.assetDao().getCultivosByAgricultor(agricultorId)
                 .filter { it.estado == "activo" || it.estado == "planificado" }
                 .sortedByDescending { it.fecha_siembra }
 
@@ -172,8 +173,9 @@ class LaboresListActivity : AppCompatActivity() {
         val userId = sharedPref.getInt("USER_ID", -1)
 
         lifecycleScope.launch {
-            val agricultor = db.userDao().getAgricultorByUserId(userId)
-            if (agricultor != null) {
+            val user = db.userDao().getUsuarioById(userId)
+            if (user != null) {
+                val agricultorId = user.usuario.id
                 if (filterCultivoId != -1) {
                     val cultivo = db.assetDao().getCultivoById(filterCultivoId)
                     if (cultivo != null) {
@@ -189,7 +191,7 @@ class LaboresListActivity : AppCompatActivity() {
                     }
                 }
 
-                val terrenos = db.assetDao().getTerrenosActivosYPlanificados(agricultor.id)
+                val terrenos = db.assetDao().getTerrenosActivosYPlanificados(agricultorId)
                 hasTerrenos = terrenos.isNotEmpty()
                 
                 // Aplicar bloqueos visuales

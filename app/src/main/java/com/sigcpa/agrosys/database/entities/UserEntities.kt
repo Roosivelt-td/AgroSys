@@ -2,44 +2,39 @@ package com.sigcpa.agrosys.database.entities
 
 import androidx.room.*
 
-@Entity(
-    tableName = "organizaciones",
-    indices = [Index(value = ["ruc"], unique = true)]
-)
-data class OrganizacionEntity(
+@Entity(tableName = "roles")
+data class RolEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val nombre: String,
-    val ruc: String? = null,
-    val direccion: String? = null,
-    @ColumnInfo(defaultValue = "individual") val tipo: String = "individual",
-    @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
-    @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val updated_at: Long = System.currentTimeMillis() / 1000,
-    val deleted_at: Long? = null
+    val nombre: String // super_admin, admin, supervisor, usuario
 )
 
 @Entity(
     tableName = "usuarios",
+    indices = [
+        Index(value = ["email"], unique = true),
+        Index(value = ["firebase_id"], unique = true),
+        Index(value = ["dni"], unique = true),
+        Index(value = ["rol_id"])
+    ],
     foreignKeys = [
         ForeignKey(
-            entity = OrganizacionEntity::class,
+            entity = RolEntity::class,
             parentColumns = ["id"],
-            childColumns = ["organizacion_id"],
-            onDelete = ForeignKey.SET_NULL
+            childColumns = ["rol_id"],
+            onDelete = ForeignKey.RESTRICT
         )
-    ],
-    indices = [
-        Index(value = ["email"], unique = true), 
-        Index(value = ["firebase_id"], unique = true)
     ]
 )
 data class UsuarioEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val organizacion_id: Int? = null,
+    val rol_id: Int, // Relación obligatoria con la tabla roles
     val nombre: String,
     val apellidos: String,
     val email: String,
     val password: String,
-    val rol: String, // administrador, supervisor, agricultor
+    val dni: String? = null, // Datos de agricultor integrados
+    val experiencia_anios: Int = 0,
+    val nivel_educativo: String? = null,
     val telefono: String? = null,
     val ubicacion: String? = null,
     val foto_perfil_url: String? = null,
@@ -48,65 +43,76 @@ data class UsuarioEntity(
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val updated_at: Long = System.currentTimeMillis() / 1000,
     val deleted_at: Long? = null,
-    val firebase_id: String? = null
-)
-
-@Entity(
-    tableName = "agricultores",
-    foreignKeys = [
-        ForeignKey(
-            entity = UsuarioEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["usuario_id"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
-    indices = [
-        Index(value = ["usuario_id"], unique = true), 
-        Index(value = ["dni"], unique = true)
-    ]
-)
-data class AgricultorEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val usuario_id: Int,
-    val dni: String,
-    @ColumnInfo(defaultValue = "0") val experiencia_anios: Int = 0,
-    val nivel_educativo: String? = null,
-    @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
-    @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val updated_at: Long = System.currentTimeMillis() / 1000,
+    val firebase_id: String? = null,
     @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0
 )
 
 @Entity(
-    tableName = "asignaciones_supervisor",
+    tableName = "organizaciones",
+    indices = [
+        Index(value = ["ruc"], unique = true),
+        Index(value = ["administrador_id"], unique = true)
+    ],
     foreignKeys = [
         ForeignKey(
             entity = UsuarioEntity::class,
             parentColumns = ["id"],
-            childColumns = ["supervisor_id"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = AgricultorEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["agricultor_id"],
-            onDelete = ForeignKey.CASCADE
+            childColumns = ["administrador_id"],
+            onDelete = ForeignKey.RESTRICT
         )
-    ],
-    indices = [Index(value = ["supervisor_id", "agricultor_id"], unique = true)]
+    ]
 )
-data class AsignacionSupervisorEntity(
+data class OrganizacionEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val supervisor_id: Int,
-    val agricultor_id: Int,
-    @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val fecha_asignacion: Long = System.currentTimeMillis() / 1000,
-    @ColumnInfo(defaultValue = "1") val activo: Int = 1
+    val nombre: String,
+    val administrador_id: Int,
+    val ruc: String? = null,
+    val direccion: String? = null,
+    val rubro: String? = null, // A qué se dedica
+    val descripcion: String? = null,
+    val telefono_contacto: String? = null,
+    @ColumnInfo(defaultValue = "empresa") val tipo: String = "empresa",
+    @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
+    @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val updated_at: Long = System.currentTimeMillis() / 1000,
+    val deleted_at: Long? = null
+)
+
+@Entity(
+    tableName = "miembros_organizacion",
+    primaryKeys = ["usuario_id", "organizacion_id"],
+    foreignKeys = [
+        ForeignKey(entity = UsuarioEntity::class, parentColumns = ["id"], childColumns = ["usuario_id"], onDelete = ForeignKey.CASCADE),
+        ForeignKey(entity = OrganizacionEntity::class, parentColumns = ["id"], childColumns = ["organizacion_id"], onDelete = ForeignKey.CASCADE)
+    ]
+)
+data class MiembroOrganizacionEntity(
+    val usuario_id: Int,
+    val organizacion_id: Int,
+    val estado: String = "activo",
+    @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val fecha_union: Long = System.currentTimeMillis() / 1000
+)
+
+@Entity(
+    tableName = "solicitudes_usuario",
+    foreignKeys = [
+        ForeignKey(entity = UsuarioEntity::class, parentColumns = ["id"], childColumns = ["usuario_id"], onDelete = ForeignKey.CASCADE),
+        ForeignKey(entity = OrganizacionEntity::class, parentColumns = ["id"], childColumns = ["organizacion_id"], onDelete = ForeignKey.CASCADE)
+    ]
+)
+data class SolicitudUsuarioEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val usuario_id: Int,
+    val organizacion_id: Int,
+    val tipo_solicitud: String, // invitacion, unirse, ascenso_supervisor
+    val estado: String = "pendiente",
+    val mensaje: String? = null,
+    @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000
 )
 
 @Entity(tableName = "tipos_red_social")
 data class TipoRedSocialEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val nombre: String, // Instagram, TikTok, Facebook, YouTube, LinkedIn, etc.
+    val nombre: String,
     val icono_url: String? = null,
     val color_hex: String? = null
 )
@@ -114,18 +120,8 @@ data class TipoRedSocialEntity(
 @Entity(
     tableName = "redes_sociales",
     foreignKeys = [
-        ForeignKey(
-            entity = UsuarioEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["usuario_id"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = TipoRedSocialEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["tipo_red_id"],
-            onDelete = ForeignKey.CASCADE
-        )
+        ForeignKey(entity = UsuarioEntity::class, parentColumns = ["id"], childColumns = ["usuario_id"], onDelete = ForeignKey.CASCADE),
+        ForeignKey(entity = TipoRedSocialEntity::class, parentColumns = ["id"], childColumns = ["tipo_red_id"], onDelete = ForeignKey.CASCADE)
     ]
 )
 data class RedSocialEntity(
@@ -133,6 +129,6 @@ data class RedSocialEntity(
     val usuario_id: Int,
     val tipo_red_id: Int,
     val link: String,
-    val usuario_social: String, // @usuario
+    val usuario_social: String,
     val descripcion: String? = null
 )
