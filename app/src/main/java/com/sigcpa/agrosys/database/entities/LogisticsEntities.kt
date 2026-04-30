@@ -48,6 +48,7 @@ data class LaborRealizadaEntity(
     @ColumnInfo(defaultValue = "0") val costo_mano_obra_total: Double = 0.0,
     @ColumnInfo(defaultValue = "0") val costo_maquinaria_total: Double = 0.0,
     val observaciones: String?,
+    val foto_path: String? = null,
     val creado_por_usuario_id: Int?,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val updated_at: Long = System.currentTimeMillis() / 1000,

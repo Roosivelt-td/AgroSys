@@ -3,6 +3,8 @@ package com.sigcpa.agrosys.ui.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.database.entities.TerrenoEntity
 import com.sigcpa.agrosys.databinding.ItemTerrenoSelectorBinding
 
@@ -50,6 +52,17 @@ class TerrenoSelectorAdapter(
             
             tvTenenciaTerreno.text = terreno.tipo_tenencia.replaceFirstChar { it.uppercase() }
             
+            terreno.foto_path?.let { path ->
+                Glide.with(root.context)
+                    .load(path)
+                    .placeholder(R.drawable.ic_ubicacion_terreno)
+                    .into(ivTerrenoPhotoSelector)
+                ivTerrenoPhotoSelector.clearColorFilter()
+            } ?: run {
+                ivTerrenoPhotoSelector.setImageResource(R.drawable.ic_ubicacion_terreno)
+                ivTerrenoPhotoSelector.setColorFilter(android.graphics.Color.parseColor("#15803D"))
+            }
+
             rbSelected.isChecked = position == selectedPosition
             rbSelected.isEnabled = !estaLleno
 

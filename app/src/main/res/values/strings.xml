@@ -55,6 +55,11 @@
     <string name="msg_select_cultivo_harvest">Selecciona un cultivo para cosechar</string>
     <string name="msg_admin_users_enabled">Gestión de Usuarios habilitada</string>
     <string name="msg_name_required">⚠️ El nombre es obligatorio</string>
+    <string name="weather_tip_consulting">Consultando recomendaciones...</string>
+    <string name="weather_tip_sunny">💡 Buen día para labores de campo y fertilización.</string>
+    <string name="weather_tip_rain">💡 Riesgo de lluvia. Protege tu cosecha o evita fumigar.</string>
+    <string name="weather_tip_cloudy">💡 Día propicio para inspección de plagas y podas.</string>
+    <string name="weather_tip_default">💡 Mantente atento a los cambios en el clima.</string>
 
     <!-- Detalle Terreno -->
     <string name="label_area_total_prefix">Área Total: </string>
@@ -82,6 +87,10 @@
     <string name="btn_cancelar">Cancelar</string>
     <string name="btn_eliminar">Eliminar</string>
     <string name="msg_terreno_eliminado">Terreno eliminado correctamente</string>
+    <string name="dialog_confirm_edit_terreno">¿Deseas editar los datos de este terreno?</string>
+    <string name="dialog_confirm_nuevo_cultivo">¿Deseas registrar un nuevo cultivo en este terreno?</string>
+    <string name="dialog_confirm_nueva_labor">¿Deseas registrar una nueva labor en este cultivo?</string>
+    <string name="dialog_confirm_nueva_cosecha">¿Deseas registrar una nueva cosecha en este cultivo?</string>
     <string name="label_fecha_siembra_prefix">Fecha Siembra</string>
     <string name="label_area_prefix">Área</string>
     <string name="label_costo_total_prefix">Costo Total</string>
@@ -157,13 +166,29 @@
     <string name="label_propio">Propio</string>
     <string name="label_alquilado">Alquilado</string>
     <string name="label_costo_alquiler">Costo de alquiler anual (S/.)</string>
+    <string name="label_alquilado_el">Alquilado el: %1$s</string>
+    <string name="label_vence_el">Vence el: %1$s</string>
+    <string name="error_fecha_alquiler_required">⚠️ Seleccione la fecha de alquiler</string>
+    <string name="error_fecha_vencimiento_required">⚠️ Seleccione la fecha de vencimiento</string>
+    <string name="error_fecha_vencimiento_invalid">⚠️ La fecha de vencimiento debe ser posterior a la de alquiler</string>
+    <string name="label_fecha_alquiler">Fecha de alquiler *</string>
+    <string name="label_fecha_vencimiento">Fecha de vencimiento *</string>
     <string name="hint_costo_alquiler">Ej: 2500.00</string>
     <string name="label_calidad_suelo">Calidad del suelo</string>
     <string name="hint_calidad_suelo">Ej: buena, regular, mala, intermedia, otro... </string>
     <string name="label_fuente_agua">Fuente de agua</string>
     <string name="hint_fuente_agua">Ej: Canal de riego, Aspersion, Goteo</string>
-    <string name="btn_guardar_terreno">Guardar terreno</string>
+    <string name="title_editar_terreno">Editar Terreno</string>
+    <string name="btn_actualizar_terreno">Actualizar Terreno</string>
+    <string name="btn_renovar_alquiler">Renovar Alquiler</string>
+    <string name="title_renovar_alquiler">Renovar Alquiler del Terreno</string>
+    <string name="btn_actualizar">Actualizar</string>
+    <string name="msg_alquiler_actualizado">✅ Alquiler actualizado correctamente</string>
+    <string name="label_alerta_vencimiento">⚠️ EL ALQUILER VENCE EN %1$d DÍAS</string>
+    <string name="label_alerta_vencido">🚨 EL ALQUILER HA VENCIDO</string>
     <string name="footer_datos_locales">🛡 Los datos se guardarán localmente</string>
+    <string name="btn_guardar_terreno">Guardar terreno</string>
+    <string name="error_area_menor_ocupada">El área no puede ser menor a la ocupada (%1$.2f ha)</string>
 
     <!-- Register Cultivo -->
     <string name="header_nuevo_cultivo">Nuevo Cultivo</string>

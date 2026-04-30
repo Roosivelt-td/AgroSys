@@ -159,6 +159,54 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Gasto en Maquinaria / Otros (S/)" android:textColor="#374151" android:textSize="13sp" android:textStyle="bold" />
                 <EditText android:id="@+id/etCostoMaq" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="6dp" android:background="@drawable/edit_text_elegant" android:inputType="numberDecimal" android:text="0.00" android:paddingHorizontal="16dp" />
             </LinearLayout>
+
+            <!-- Foto de Evidencia -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Evidencia Fotográfica"
+                android:textColor="#374151"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFotoLabor"
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:layout_marginTop="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#E5E7EB"
+                app:strokeWidth="1dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/ivFotoLabor"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/uploap"
+                        android:padding="48dp"
+                        app:tint="#D1D5DB" />
+
+                    <ImageButton
+                        android:id="@+id/btnRemoveFoto"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="8dp"
+                        android:background="@drawable/circle_bg_white"
+                        android:elevation="2dp"
+                        android:padding="6dp"
+                        android:src="@drawable/ic_close"
+                        android:visibility="gone"
+                        app:tint="#EF4444" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

@@ -7,35 +7,47 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import java.io.File
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import com.sigcpa.agrosys.MainActivity
-import com.sigcpa.agrosys.database.AppDatabase
-import com.sigcpa.agrosys.database.entities.CatalogoCultivoEntity
-import com.sigcpa.agrosys.databinding.ActivityDashboardBinding
-import com.sigcpa.agrosys.databinding.DialogAddCatalogoCultivoBinding
-import com.sigcpa.agrosys.databinding.DialogUserMenuBinding
-import android.view.LayoutInflater
-import android.widget.PopupWindow
-import android.widget.LinearLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.formatter.ValueFormatter
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.sigcpa.agrosys.MainActivity
 import com.sigcpa.agrosys.R
+import com.sigcpa.agrosys.database.AppDatabase
+import com.sigcpa.agrosys.database.entities.CatalogoCultivoEntity
+import com.sigcpa.agrosys.database.entities.CosechaEntity
+import com.sigcpa.agrosys.database.entities.CultivoEntity
+import com.sigcpa.agrosys.databinding.ActivityDashboardBinding
+import com.sigcpa.agrosys.databinding.DialogAddCatalogoCultivoBinding
+import com.sigcpa.agrosys.databinding.DialogUserMenuBinding
 import com.sigcpa.agrosys.network.GeocodingService
+import com.sigcpa.agrosys.ui.adapters.CultivoCursoAdapter
 import com.sigcpa.agrosys.ui.viewModel.WeatherViewModel
 import com.sigcpa.agrosys.utils.CatalogImporter
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.io.File
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.*
 
 class DashboardActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDashboardBinding
@@ -50,6 +62,8 @@ class DashboardActivity : AppCompatActivity() {
     
     private var currentLat: Double = 0.0
     private var currentLon: Double = 0.0
+
+    private lateinit var cultivoCursoAdapter: CultivoCursoAdapter
 
     private var userName: String = ""
     private var userRole: String = ""
@@ -83,7 +97,7 @@ class DashboardActivity : AppCompatActivity() {
         window.statusBarColor = android.graphics.Color.parseColor("#15803D")
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
 
-        // SOLUCIÓN: Ajustar el menú inferior para que no lo tapen los botones del sistema (triángulo/círculo)
+        // SOLUCIÓN: Ajustar el menú inferior para que no lo tapen los botones del sistema
         val initialBottomPadding = binding.bottomNav.paddingBottom
         ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNav) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -115,13 +129,22 @@ class DashboardActivity : AppCompatActivity() {
         userRole = intent.getStringExtra("USER_ROLE") ?: "agricultor"
         
         setupUI(userName, userRole)
+        setupRecyclerView()
         observeWeatherData()
         checkAdminAccess(userRole)
     }
 
+    private fun setupRecyclerView() {
+        cultivoCursoAdapter = CultivoCursoAdapter(emptyList())
+        binding.rvCultivosEnCurso.apply {
+            layoutManager = LinearLayoutManager(this@DashboardActivity)
+            adapter = cultivoCursoAdapter
+        }
+    }
+
     private fun checkAdminAccess(role: String) {
         if (role == "admin" || role == "administrador" || role == "supervisor") {
-            binding.cvAdminPanel.visibility = android.view.View.VISIBLE
+            binding.cvAdminPanel.visibility = View.VISIBLE
             binding.btnManageCatalogs.setOnClickListener {
                 showAddCatalogDialog()
             }
@@ -208,12 +231,12 @@ class DashboardActivity : AppCompatActivity() {
                 
                 // Cargar foto de perfil
                 it.usuario.foto_perfil_url?.let { path ->
-                    val file = java.io.File(path)
+                    val file = File(path)
                     if (file.exists()) {
                         Glide.with(this@DashboardActivity)
                             .load(file)
                             .circleCrop()
-                            .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
                             .skipMemoryCache(true)
                             .into(binding.ivUserAvatar)
                         
@@ -243,7 +266,7 @@ class DashboardActivity : AppCompatActivity() {
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
 
-        binding.progressWeather.visibility = android.view.View.VISIBLE
+        binding.progressWeather.visibility = View.VISIBLE
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             if (location != null) {
                 currentLat = location.latitude
@@ -272,7 +295,7 @@ class DashboardActivity : AppCompatActivity() {
             binding.tvCityName.text = location
         }
         weatherViewModel.isLoading.observe(this) { isLoading ->
-            if (!isLoading) binding.progressWeather.visibility = android.view.View.GONE
+            if (!isLoading) binding.progressWeather.visibility = View.GONE
         }
     }
 
@@ -280,6 +303,32 @@ class DashboardActivity : AppCompatActivity() {
         binding.tvTemperature.text = weatherViewModel.formatTemperature(weather.main.temp)
         binding.tvWeatherDescription.text = weatherViewModel.getWeatherDescription(weather.weather.firstOrNull()?.description ?: "")
         Glide.with(this).load(weatherViewModel.getWeatherIconUrl(weather.weather.firstOrNull()?.icon ?: "01d")).into(binding.ivWeatherIcon)
+
+        // Actualizar burbuja de consejo
+        updateWeatherTip(weather)
+    }
+
+    private fun updateWeatherTip(weather: com.sigcpa.agrosys.models.WeatherResponse) {
+        val mainCondition = weather.weather.firstOrNull()?.main?.lowercase() ?: ""
+        val description = weather.weather.firstOrNull()?.description?.lowercase() ?: ""
+        
+        val tip = when {
+            mainCondition.contains("rain") || mainCondition.contains("drizzle") || description.contains("lluvia") -> {
+                getString(R.string.weather_tip_rain)
+            }
+            mainCondition.contains("clear") || description.contains("despejado") || description.contains("soleado") -> {
+                getString(R.string.weather_tip_sunny)
+            }
+            mainCondition.contains("cloud") || description.contains("nubes") || description.contains("nublado") -> {
+                getString(R.string.weather_tip_cloudy)
+            }
+            else -> getString(R.string.weather_tip_default)
+        }
+        
+        binding.tvWeatherTip.apply {
+            text = tip
+            visibility = View.VISIBLE
+        }
     }
 
     private fun actualizarSaludo() {
@@ -340,8 +389,20 @@ class DashboardActivity : AppCompatActivity() {
             }
         }
 
+        binding.navVentaQuick.setOnClickListener {
+            if (hasCultivos) {
+                startActivity(Intent(this, RegisterVentaActivity::class.java))
+            } else {
+                showLockMessage("cultivo")
+            }
+        }
+
         binding.navReportes.setOnClickListener {
-            Toast.makeText(this, getString(R.string.msg_reportes_dev), Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, ReportesActivity::class.java))
+        }
+
+        binding.btnVerTodosCultivos.setOnClickListener {
+            startActivity(Intent(this, CultivosListActivity::class.java))
         }
     }
 
@@ -411,8 +472,129 @@ class DashboardActivity : AppCompatActivity() {
                 hasCultivos = cultivos.isNotEmpty()
                 binding.tvStatTerrenos.text = numTerrenos.toString()
                 binding.tvStatCultivos.text = cultivos.size.toString()
+                
+                // Actualizar resumen financiero
+                val ingresos = db.assetDao().getIngresosTotalesByAgricultor(agricultorId) ?: 0.0
+                val costos = db.assetDao().getCostosTotalesByAgricultor(agricultorId) ?: 0.0
+                val neto = ingresos - costos
+                
+                val currencyFormat = NumberFormat.getCurrencyInstance(Locale("es", "PE"))
+                binding.tvIngresosDash.text = currencyFormat.format(ingresos)
+                binding.tvCostosDash.text = currencyFormat.format(costos)
+                binding.tvNetoDash.text = currencyFormat.format(neto)
+                binding.tvStatProfit.text = currencyFormat.format(neto)
+                
+                // Actualizar cultivos en curso
+                val cultivosEnCurso = db.assetDao().getCultivosEnCursoByAgricultor(agricultorId)
+                val tripleList = cultivosEnCurso.map { cul ->
+                    val terreno = db.assetDao().getTerrenoById(cul.terreno_id)
+                    val cat = db.assetDao().getCatalogoCultivoById(cul.catalogo_cultivo_id)
+                    Triple(cul, terreno, cat)
+                }
+                cultivoCursoAdapter.updateData(tripleList)
+                
+                // Actualizar gráfico de producción
+                val cosechas = db.assetDao().getCosechasRecientesByAgricultor(agricultorId)
+                setupProductionChart(cosechas)
+                
+                // Alertas de alquiler
+                val terrenos = db.assetDao().getTerrenosByAgricultor(agricultorId)
+                checkAlquilerAlerts(terrenos)
+                
                 applyLockStyles()
             }
+        }
+    }
+
+    private fun checkAlquilerAlerts(terrenos: List<com.sigcpa.agrosys.database.entities.TerrenoEntity>) {
+        binding.layoutAlertasAlquiler.removeAllViews()
+        val now = System.currentTimeMillis() / 1000
+        val warnings = mutableListOf<View>()
+
+        for (terreno in terrenos) {
+            if (terreno.tipo_tenencia == "alquilado" && terreno.fecha_vencimiento_alquiler != null) {
+                val vencimiento = terreno.fecha_vencimiento_alquiler
+                val diffSeconds = vencimiento - now
+                val diffDays = (diffSeconds / (24 * 60 * 60)).toInt()
+
+                if (diffDays <= 15) {
+                    val alertView = LayoutInflater.from(this).inflate(R.layout.item_alerta_alquiler, binding.layoutAlertasAlquiler, false)
+                    val tvTitle = alertView.findViewById<android.widget.TextView>(R.id.tvAlertaTitulo)
+                    val tvMsg = alertView.findViewById<android.widget.TextView>(R.id.tvAlertaMensaje)
+                    val card = alertView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardAlerta)
+
+                    tvTitle.text = terreno.nombre
+                    if (diffSeconds < 0) {
+                        tvMsg.text = getString(R.string.label_alerta_vencido)
+                        card.setCardBackgroundColor(android.graphics.Color.parseColor("#FEF2F2"))
+                        tvMsg.setTextColor(android.graphics.Color.parseColor("#B91C1C"))
+                    } else {
+                        tvMsg.text = getString(R.string.label_alerta_vencimiento, diffDays)
+                        card.setCardBackgroundColor(android.graphics.Color.parseColor("#FFFBEB"))
+                        tvMsg.setTextColor(android.graphics.Color.parseColor("#B45309"))
+                    }
+
+                    alertView.setOnClickListener {
+                        val intent = Intent(this, DetalleTerrenoActivity::class.java)
+                        intent.putExtra("TERRENO_ID", terreno.id)
+                        startActivity(intent)
+                    }
+
+                    binding.layoutAlertasAlquiler.addView(alertView)
+                    warnings.add(alertView)
+                }
+            }
+        }
+
+        binding.layoutAlertasAlquiler.visibility = if (warnings.isNotEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun setupProductionChart(cosechas: List<CosechaEntity>) {
+        if (cosechas.isEmpty()) {
+            binding.barChartProduccion.clear()
+            binding.barChartProduccion.setNoDataText("Sin datos de cosecha")
+            return
+        }
+
+        val entries = mutableListOf<BarEntry>()
+        val labels = mutableListOf<String>()
+        val sdf = SimpleDateFormat("dd/MM", Locale.getDefault())
+
+        cosechas.reversed().forEachIndexed { index, cosecha ->
+            entries.add(BarEntry(index.toFloat(), cosecha.cantidad_kg.toFloat()))
+            labels.add(sdf.format(Date(cosecha.fecha_cosecha * 1000)))
+        }
+
+        val dataSet = BarDataSet(entries, "Producción (kg)")
+        dataSet.color = android.graphics.Color.parseColor("#16a34a")
+        dataSet.valueTextColor = android.graphics.Color.parseColor("#1e293b")
+        dataSet.valueTextSize = 10f
+
+        val barData = BarData(dataSet)
+        binding.barChartProduccion.apply {
+            data = barData
+            description.isEnabled = false
+            legend.isEnabled = false
+            
+            xAxis.apply {
+                position = XAxis.XAxisPosition.BOTTOM
+                valueFormatter = object : ValueFormatter() {
+                    override fun getFormattedValue(value: Float): String {
+                        return labels.getOrNull(value.toInt()) ?: ""
+                    }
+                }
+                granularity = 1f
+                setDrawGridLines(false)
+            }
+            
+            axisLeft.apply {
+                axisMinimum = 0f
+                setDrawGridLines(true)
+            }
+            
+            axisRight.isEnabled = false
+            animateY(1000)
+            invalidate()
         }
     }
 

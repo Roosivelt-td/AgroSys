@@ -17,12 +17,16 @@
         android:orientation="horizontal"
         android:padding="16dp">
 
-        <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/circle_bg_green_light"
-            android:padding="12dp"
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivTerrenoPhotoSelector"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center_vertical"
+            android:scaleType="centerCrop"
             android:src="@drawable/ic_ubicacion_terreno"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Rounded12"
+            app:strokeColor="#E5E7EB"
+            app:strokeWidth="1dp"
             app:tint="#15803d" />
 
         <LinearLayout

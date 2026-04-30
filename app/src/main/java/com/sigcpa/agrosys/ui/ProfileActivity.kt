@@ -5,8 +5,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
@@ -22,6 +24,9 @@ import com.sigcpa.agrosys.database.dao.RedSocialWithMetadata
 import com.sigcpa.agrosys.databinding.ActivityProfileBinding
 import com.sigcpa.agrosys.databinding.DialogAddSocialNetworkBinding
 import com.sigcpa.agrosys.databinding.DialogChangePasswordBinding
+import com.sigcpa.agrosys.databinding.DialogAdminListBinding
+import com.sigcpa.agrosys.ui.adapters.AdminCatalogAdapter
+import com.sigcpa.agrosys.ui.adapters.CatalogItem
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
@@ -29,8 +34,8 @@ import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.sigcpa.agrosys.util.FileUtils
 import java.io.File
-import java.io.FileOutputStream
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -39,6 +44,11 @@ class ProfileActivity : AppCompatActivity() {
     private var currentUser: UsuarioEntity? = null
     private var userWithRol: com.sigcpa.agrosys.database.dao.UsuarioWithRol? = null
     private var isPickingProfile = true
+
+    private var currentCatalogTypeToImport: String? = null
+    private val importJsonLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { importCatalogFromJson(it) }
+    }
 
     private val cropImage = registerForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
@@ -104,6 +114,24 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun setupMenu() {
+        binding.menuAdminCrops.apply {
+            ivMenuIcon.setImageResource(R.drawable.agro_planta_hoja)
+            tvMenuTitle.text = "Catálogo de Cultivos"
+            root.setOnClickListener { confirmViewCatalog("CULTIVOS") }
+        }
+
+        binding.menuAdminValues.apply {
+            ivMenuIcon.setImageResource(R.drawable.ic_img)
+            tvMenuTitle.text = "Catálogo de Labores"
+            root.setOnClickListener { confirmViewCatalog("LABORES") }
+        }
+
+        binding.menuAdminSocialTypes.apply {
+            ivMenuIcon.setImageResource(R.drawable.ic_user_modern)
+            tvMenuTitle.text = "Tipos de Red Social"
+            root.setOnClickListener { confirmViewCatalog("SOCIAL") }
+        }
+
         binding.menuPersonalInfo.apply {
             ivMenuIcon.setImageResource(R.drawable.ic_user_modern)
             tvMenuTitle.text = "Información Personal"
@@ -173,6 +201,9 @@ class ProfileActivity : AppCompatActivity() {
             binding.tvProfileLocation.text = user.ubicacion ?: "Ubicación no definida"
             binding.tvProfileRole.text = wrap.nombre_rol.replaceFirstChar { it.uppercase() }
             
+            // Mostrar sección de administración solo si es super_admin
+            binding.llAdminSection.visibility = if (wrap.nombre_rol == "super_admin") View.VISIBLE else View.GONE
+
             // Lógica de botones de organización e información de rol
             lifecycleScope.launch {
                 val orgAdmin = db.userDao().getOrganizacionByAdmin(user.id)
@@ -548,27 +579,29 @@ class ProfileActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val user = currentUser ?: return@launch
-                val inputStream = contentResolver.openInputStream(uri)
-                val bytes = inputStream?.readBytes() ?: return@launch
+                val subFolder = FileUtils.getProfileFolder(user.id, user.nombre)
+                val fileName = if (isProfile) "profile_${System.currentTimeMillis()}.jpg" else "cover_${System.currentTimeMillis()}.jpg"
                 
-                val folderName = "perfil/${user.id}"
-                val directory = File(filesDir, folderName)
-                if (!directory.exists()) directory.mkdirs()
+                val savedPath = FileUtils.saveImageLocally(
+                    this@ProfileActivity,
+                    uri,
+                    user.id,
+                    user.nombre,
+                    subFolder,
+                    fileName
+                )
 
-                val fileName = if (isProfile) "profile.jpg" else "cover.jpg"
-                val file = File(directory, fileName)
-                
-                FileOutputStream(file).use { it.write(bytes) }
-
-                val updatedUser = if (isProfile) user.copy(foto_perfil_url = file.absolutePath) else user.copy(foto_portada_url = file.absolutePath)
-                
-                db.userDao().updateUsuario(updatedUser)
-                currentUser = updatedUser
-                userWithRol = userWithRol?.copy(usuario = updatedUser)
-                
-                withContext(Dispatchers.Main) {
-                    updateUIWithUserData()
-                    Toast.makeText(this@ProfileActivity, "Imagen actualizada", Toast.LENGTH_SHORT).show()
+                if (savedPath != null) {
+                    val updatedUser = if (isProfile) user.copy(foto_perfil_url = savedPath) else user.copy(foto_portada_url = savedPath)
+                    
+                    db.userDao().updateUsuario(updatedUser)
+                    currentUser = updatedUser
+                    userWithRol = userWithRol?.copy(usuario = updatedUser)
+                    
+                    withContext(Dispatchers.Main) {
+                        updateUIWithUserData()
+                        Toast.makeText(this@ProfileActivity, "Imagen actualizada", Toast.LENGTH_SHORT).show()
+                    }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
@@ -714,6 +747,236 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
         dialog.show()
+    }
+
+    private fun confirmViewCatalog(tipo: String) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Administración")
+            .setMessage("¿Deseas ver los registros de este catálogo?")
+            .setPositiveButton("Ver Registros") { _, _ -> showAdminCatalogModal(tipo) }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun showAdminCatalogModal(tipo: String) {
+        val dialogBinding = DialogAdminListBinding.inflate(layoutInflater)
+        val title = when(tipo) {
+            "CULTIVOS" -> "Catálogo de Cultivos"
+            "LABORES" -> "Catálogo de Labores"
+            "SOCIAL" -> "Tipos de Redes Sociales"
+            else -> "Registros"
+        }
+        dialogBinding.tvAdminListTitle.text = title
+
+        val adapter = AdminCatalogAdapter(emptyList()) { item ->
+            showAddEditCatalogDialog(tipo, item.rawObject)
+        }
+        dialogBinding.rvAdminRecords.adapter = adapter
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogBinding.root)
+            .create()
+
+        val loadData = {
+            lifecycleScope.launch {
+                val items = when(tipo) {
+                    "CULTIVOS" -> db.assetDao().getCatalogoCultivos().map { 
+                        CatalogItem(it.id, it.nombre, it.nombre_cientifico ?: "Sin nombre científico", it) 
+                    }
+                    "LABORES" -> db.assetDao().getCatalogoLabores().map { 
+                        CatalogItem(it.id, it.nombre, it.descripcion ?: "Sin descripción", it) 
+                    }
+                    "SOCIAL" -> db.userDao().getAllTiposRedSocial().map { 
+                        CatalogItem(it.id, it.nombre, "Icono: ${it.icono_url ?: "N/A"}", it) 
+                    }
+                    else -> emptyList()
+                }
+                
+                withContext(Dispatchers.Main) {
+                    adapter.updateData(items)
+                }
+            }
+        }
+
+        loadData()
+
+        dialogBinding.btnAddRecord.setOnClickListener {
+            showAddEditCatalogDialog(tipo, null) { loadData() }
+        }
+
+        dialogBinding.btnImportJson.setOnClickListener {
+            currentCatalogTypeToImport = tipo
+            importJsonLauncher.launch("application/json")
+            dialog.dismiss() // Opcional, o recargar después de importar
+        }
+
+        dialog.show()
+    }
+
+    private fun importCatalogFromJson(uri: android.net.Uri) {
+        val tipo = currentCatalogTypeToImport ?: return
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val jsonString = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                if (jsonString != null) {
+                    val jsonArray = org.json.JSONArray(jsonString)
+                    for (i in 0 until jsonArray.length()) {
+                        val obj = jsonArray.getJSONObject(i)
+                        
+                        when (tipo) {
+                            "CULTIVOS" -> {
+                                val entity = CatalogoCultivoEntity(
+                                    nombre = obj.getString("nombre"),
+                                    nombre_cientifico = obj.optString("nombre_cientifico", null),
+                                    tipo_ciclo = obj.optString("tipo_ciclo", "ciclo_corto"),
+                                    vida_util_estimada_meses = if (obj.has("vida_util_estimada_meses")) obj.getInt("vida_util_estimada_meses") else null,
+                                    dias_a_cosecha_promedio = if (obj.has("dias_a_cosecha_promedio")) obj.getInt("dias_a_cosecha_promedio") else null,
+                                    instrucciones_base_riego = obj.optString("instrucciones_base_riego", null),
+                                    instrucciones_base_plagas = obj.optString("instrucciones_base_plagas", null),
+                                    sincronizado = obj.optInt("sincronizado", 0)
+                                )
+                                db.assetDao().insertCatalogoCultivo(entity)
+                            }
+                            "LABORES" -> {
+                                val name = obj.getString("nombre")
+                                val desc = obj.optString("descripcion", obj.optString("extra", ""))
+                                db.execSQL("INSERT OR REPLACE INTO catalogo_labores (nombre, descripcion, categoria) VALUES (?, ?, 'general')",
+                                    arrayOf(name, desc))
+                            }
+                            "SOCIAL" -> {
+                                val name = obj.getString("nombre")
+                                val icon = obj.optString("icono_url", obj.optString("extra", ""))
+                                db.execSQL("INSERT OR REPLACE INTO tipos_red_social (nombre, icono_url) VALUES (?, ?)",
+                                    arrayOf(name, icon))
+                            }
+                        }
+                    }
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@ProfileActivity, "Importación exitosa", Toast.LENGTH_SHORT).show()
+                        showAdminCatalogModal(tipo) // Volver a abrir para ver cambios
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@ProfileActivity, "Error al importar JSON: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private fun showAddEditCatalogDialog(tipo: String, existing: Any?, onSave: (() -> Unit)? = null) {
+        val builder = MaterialAlertDialogBuilder(this)
+        val title = if (existing == null) "Añadir Registro" else "Editar Registro"
+        builder.setTitle(title)
+
+        val scrollView = android.widget.ScrollView(this)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 24)
+        }
+        scrollView.addView(layout)
+
+        fun createInput(hint: String, initial: String? = "") = com.google.android.material.textfield.TextInputLayout(this, null, com.google.android.material.R.attr.textInputStyle).apply {
+            this.hint = hint
+            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.setMargins(0, 8, 0, 8)
+            layoutParams = lp
+            val et = TextInputEditText(this.context)
+            et.setText(initial)
+            addView(et)
+        }
+
+        val inputs = mutableMapOf<String, TextInputEditText>()
+
+        when (tipo) {
+            "CULTIVOS" -> {
+                val crop = existing as? CatalogoCultivoEntity
+                inputs["nombre"] = createInput("Nombre", crop?.nombre).findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["nombre"]?.parent as android.view.View)
+                
+                inputs["cientifico"] = createInput("Nombre Científico", crop?.nombre_cientifico).findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["cientifico"]?.parent as android.view.View)
+
+                inputs["ciclo"] = createInput("Tipo de Ciclo (Anual/Perenne)", crop?.tipo_ciclo).findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["ciclo"]?.parent as android.view.View)
+
+                inputs["vida"] = createInput("Vida Útil (Meses)", crop?.vida_util_estimada_meses?.toString()).findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["vida"]?.parent as android.view.View)
+
+                inputs["cosecha"] = createInput("Días a Cosecha", crop?.dias_a_cosecha_promedio?.toString()).findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["cosecha"]?.parent as android.view.View)
+
+                inputs["riego"] = createInput("Instrucciones Riego", crop?.instrucciones_base_riego).findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["riego"]?.parent as android.view.View)
+
+                inputs["plagas"] = createInput("Instrucciones Plagas", crop?.instrucciones_base_plagas).findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["plagas"]?.parent as android.view.View)
+            }
+            "LABORES" -> {
+                val labor = existing as? CatalogoLaborEntity
+                inputs["nombre"] = createInput("Nombre", labor?.nombre).findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["nombre"]?.parent as android.view.View)
+                
+                inputs["desc"] = createInput("Descripción", labor?.descripcion).findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["desc"]?.parent as android.view.View)
+
+                inputs["cat"] = createInput("Categoría", labor?.categoria ?: "general").findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["cat"]?.parent as android.view.View)
+            }
+            "SOCIAL" -> {
+                val social = existing as? TipoRedSocialEntity
+                inputs["nombre"] = createInput("Nombre", social?.nombre).findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["nombre"]?.parent as android.view.View)
+                
+                inputs["icono"] = createInput("URL Icono", social?.icono_url).findViewById(android.view.View.NO_ID)
+                layout.addView(inputs["icono"]?.parent as android.view.View)
+            }
+        }
+
+        builder.setView(scrollView)
+        builder.setPositiveButton("Guardar") { _, _ ->
+            lifecycleScope.launch {
+                when (tipo) {
+                    "CULTIVOS" -> {
+                        val entity = CatalogoCultivoEntity(
+                            id = (existing as? CatalogoCultivoEntity)?.id ?: 0,
+                            nombre = inputs["nombre"]?.text.toString(),
+                            nombre_cientifico = inputs["cientifico"]?.text.toString(),
+                            tipo_ciclo = inputs["ciclo"]?.text.toString(),
+                            vida_util_estimada_meses = inputs["vida"]?.text.toString().toIntOrNull(),
+                            dias_a_cosecha_promedio = inputs["cosecha"]?.text.toString().toIntOrNull(),
+                            instrucciones_base_riego = inputs["riego"]?.text.toString(),
+                            instrucciones_base_plagas = inputs["plagas"]?.text.toString(),
+                            sincronizado = (existing as? CatalogoCultivoEntity)?.sincronizado ?: 0
+                        )
+                        db.assetDao().insertCatalogoCultivo(entity)
+                    }
+                    "LABORES" -> {
+                        db.execSQL("INSERT OR REPLACE INTO catalogo_labores (id, nombre, descripcion, categoria) VALUES (?, ?, ?, ?)", 
+                            arrayOf((existing as? CatalogoLaborEntity)?.id ?: 0, 
+                                inputs["nombre"]?.text.toString(), 
+                                inputs["desc"]?.text.toString(),
+                                inputs["cat"]?.text.toString()))
+                    }
+                    "SOCIAL" -> {
+                        db.execSQL("INSERT OR REPLACE INTO tipos_red_social (id, nombre, icono_url) VALUES (?, ?, ?)", 
+                            arrayOf((existing as? TipoRedSocialEntity)?.id ?: 0, 
+                                inputs["nombre"]?.text.toString(), 
+                                inputs["icono"]?.text.toString()))
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    onSave?.invoke()
+                    Toast.makeText(this@ProfileActivity, "Registro guardado", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        builder.setNegativeButton("Cancelar", null)
+        builder.show()
+    }
+
+    private fun AppDatabase.execSQL(sql: String, args: Array<Any?>) {
+        this.openHelper.writableDatabase.execSQL(sql, args)
     }
 
     private fun showChangePasswordDialog() {

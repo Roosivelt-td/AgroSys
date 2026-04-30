@@ -1,9 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.AgroSys" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.AgroSys" parent="Theme.Material3.Light.NoActionBar">
         <!-- Color Verde Premium Global -->
         <item name="android:statusBarColor">#15803D</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
 
         <!-- Protegemos la base para que no tape los botones del sistema -->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
@@ -13,7 +13,7 @@
 
     <style name="Theme.AgroSys" parent="Base.Theme.AgroSys" />
 
-    <style name="CustomDialogTheme" parent="Theme.Material3.DayNight.Dialog">
+    <style name="CustomDialogTheme" parent="Theme.Material3.Light.Dialog">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowFrame">@null</item>
@@ -25,6 +25,10 @@
         <item name="cornerSizeTopRight">40dp</item>
         <item name="cornerSizeBottomLeft">0dp</item>
         <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <style name="ShapeAppearance.App.Rounded12" parent="">
+        <item name="cornerSize">12dp</item>
     </style>
 
     <!-- Labor Card Styles -->

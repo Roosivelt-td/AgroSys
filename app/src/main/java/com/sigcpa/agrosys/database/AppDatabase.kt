@@ -21,7 +21,7 @@ import com.sigcpa.agrosys.database.entities.*
         ManoObraTipoEntity::class, ManoObraEntity::class,
         TipoRedSocialEntity::class, RedSocialEntity::class
     ],
-    version = 10,
+    version = 14,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

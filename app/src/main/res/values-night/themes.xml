@@ -1,7 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.AgroSys" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    <!-- Forzamos a que el tema nocturno sea idéntico al claro -->
+    <style name="Base.Theme.AgroSys" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:statusBarColor">#15803D</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o">true</item>
     </style>
 </resources>

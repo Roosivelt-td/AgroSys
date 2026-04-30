@@ -5,8 +5,7 @@
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0f3b1f"
-    android:fitsSystemWindows="true">
+    android:background="#0f3b1f">
 
     <!-- Header -->
     <LinearLayout
@@ -73,6 +72,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
+        android:isScrollContainer="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header_container">
 
@@ -345,6 +345,54 @@
                 android:minLines="3"
                 android:padding="16dp"
                 android:textColor="#1f2937" />
+
+            <!-- Foto de Cosecha -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Foto de la Cosecha"
+                android:textColor="#374151"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFotoCosecha"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:layout_marginTop="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#E5E7EB"
+                app:strokeWidth="1dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/ivFotoCosecha"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/uploap"
+                        android:padding="64dp"
+                        app:tint="#D1D5DB" />
+
+                    <ImageButton
+                        android:id="@+id/btnRemoveFoto"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="8dp"
+                        android:background="@drawable/circle_bg_white"
+                        android:elevation="2dp"
+                        android:padding="6dp"
+                        android:src="@drawable/ic_close"
+                        android:visibility="gone"
+                        app:tint="#EF4444" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Marcar como Cosechado -->
             <LinearLayout

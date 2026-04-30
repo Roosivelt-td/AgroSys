@@ -5,8 +5,7 @@
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0f3b1f"
-    android:fitsSystemWindows="true">
+    android:background="#0f3b1f">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -80,7 +79,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:fillViewport="true">
+            android:fillViewport="true"
+            android:isScrollContainer="true">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -239,6 +239,48 @@
                         android:maxLines="1"
                         android:singleLine="true"
                         android:imeOptions="actionNext" />
+
+                    <!-- Fecha Alquiler -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/label_fecha_alquiler"
+                        android:textColor="#374151"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <EditText
+                        android:id="@+id/etFechaAlquiler"
+                        android:layout_width="match_parent"
+                        android:layout_height="54dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/edit_text_elegant"
+                        android:hint="@string/hint_seleccionar_fecha"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:paddingHorizontal="16dp"
+                        android:textSize="14sp" />
+
+                    <!-- Fecha Vencimiento -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/label_fecha_vencimiento"
+                        android:textColor="#374151"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <EditText
+                        android:id="@+id/etFechaVencimiento"
+                        android:layout_width="match_parent"
+                        android:layout_height="54dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/edit_text_elegant"
+                        android:hint="@string/hint_seleccionar_fecha"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:paddingHorizontal="16dp"
+                        android:textSize="14sp" />
                 </LinearLayout>
 
                 <!-- Calidad Suelo -->
@@ -286,6 +328,53 @@
                     android:maxLines="1"
                     android:singleLine="true"
                     android:imeOptions="actionDone" />
+
+                <!-- Foto del Terreno -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Representación visual (Foto)"
+                    android:textColor="#374151"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardFotoTerreno"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:layout_marginTop="8dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#E5E7EB"
+                    app:strokeWidth="1dp">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <ImageView
+                            android:id="@+id/ivFotoTerreno"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/uploap"
+                            android:padding="64dp"
+                            app:tint="#D1D5DB" />
+
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:id="@+id/btnRemoveFoto"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top|end"
+                            android:layout_margin="8dp"
+                            android:visibility="gone"
+                            app:fabSize="mini"
+                            app:srcCompat="@drawable/ic_close"
+                            app:tint="#ef4444"
+                            app:backgroundTint="#ffffff" />
+                    </FrameLayout>
+                </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSave"

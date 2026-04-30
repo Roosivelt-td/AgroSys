@@ -26,6 +26,7 @@ data class CosechaEntity(
     val lote_codigo: String?,
     val costo_operativo_cosecha: Double = 0.0,
     val observaciones: String?,
+    val foto_path: String? = null,
     val created_at: Long = System.currentTimeMillis() / 1000,
     val sincronizado: Int = 0
 )
@@ -71,6 +72,7 @@ data class VentaEntity(
     val impuestos: Double = 0.0,
     val comprobante_tipo: String?,
     val comprobante_numero: String?,
+    val foto_path: String? = null,
     val created_at: Long = System.currentTimeMillis() / 1000,
     val updated_at: Long = System.currentTimeMillis() / 1000,
     val sincronizado: Int = 0

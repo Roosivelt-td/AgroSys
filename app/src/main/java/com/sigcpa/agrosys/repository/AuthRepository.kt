@@ -25,7 +25,11 @@ class AuthRepository(context: Context) {
     ): Int = withContext(Dispatchers.IO) {
         try {
             // Siempre se registra inicialmente como 'usuario' (agricultor)
-            val rol = userDao.getRolByName("usuario") ?: return@withContext -1
+            val rol = userDao.getRolByName("usuario")
+            if (rol == null) {
+                Log.e("AUTH_ERROR", "No se encontró el rol 'usuario' en la base de datos")
+                return@withContext -1
+            }
             
             val usuario = UsuarioEntity(
                 rol_id = rol.id,
@@ -40,6 +44,7 @@ class AuthRepository(context: Context) {
             )
             
             val userId = userDao.insertUsuario(usuario).toInt()
+            Log.d("AUTH_SUCCESS", "Usuario insertado con ID: $userId")
 
             // Si seleccionó una organización, crear la solicitud
             if (orgId != null) {

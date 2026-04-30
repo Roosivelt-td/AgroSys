@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -31,6 +32,25 @@ class RegisterLaborActivity : AppCompatActivity() {
     private var currentLabor: LaborSessionItem? = null
     private val calendar = Calendar.getInstance()
     private var laborsHistory: List<LaborRealizadaEntity> = emptyList()
+
+    // Manejo de Fotos
+    private var selectedImageUri: Uri? = null
+    private var cameraImageUri: Uri? = null
+
+    private val pickImageLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+            // La actualización visual se maneja dentro del diálogo si está abierto
+        }
+    }
+
+    private val takePhotoLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            // selectedImageUri ya contiene cameraImageUri
+        } else {
+            selectedImageUri = null
+        }
+    }
 
     // Estado de la secuencia
     private var yaPreparo = false
@@ -204,7 +224,7 @@ class RegisterLaborActivity : AppCompatActivity() {
     }
 
     private fun showLaborDialog(laborId: Int, laborName: String, existingLabor: LaborSessionItem? = null) {
-        // Validar secuencia antes de abrir (solo si es nueva labor)
+        // ... (validaciones previas iguales)
         if (existingLabor == null) {
             if (laborId == 1 && yaPreparo) {
                 Toast.makeText(this, getString(R.string.error_prep_already_registered), Toast.LENGTH_SHORT).show()
@@ -224,6 +244,53 @@ class RegisterLaborActivity : AppCompatActivity() {
         dialog.setContentView(dBinding.root)
 
         dBinding.tvDialogTitle.text = laborName
+        
+        // Reset selectedImageUri para nueva labor o cargar existente
+        selectedImageUri = existingLabor?.fotoPath?.let { Uri.parse(it) }
+
+        val refreshFotoUI = {
+            if (selectedImageUri != null) {
+                com.bumptech.glide.Glide.with(this)
+                    .load(selectedImageUri)
+                    .placeholder(R.drawable.uploap)
+                    .centerCrop()
+                    .into(dBinding.ivFotoLabor)
+                dBinding.ivFotoLabor.setPadding(0, 0, 0, 0)
+                dBinding.btnRemoveFoto.visibility = View.VISIBLE
+            } else {
+                dBinding.ivFotoLabor.setImageResource(R.drawable.uploap)
+                dBinding.ivFotoLabor.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
+                dBinding.ivFotoLabor.setPadding(48, 48, 48, 48)
+                dBinding.btnRemoveFoto.visibility = View.GONE
+            }
+        }
+
+        refreshFotoUI()
+
+        dBinding.cardFotoLabor.setOnClickListener {
+            val options = arrayOf("Tomar Foto", "Elegir de Galería")
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Seleccionar Imagen")
+                .setItems(options) { _, which ->
+                    when (which) {
+                        0 -> {
+                            val photoFile = java.io.File(getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES), "LABOR_${System.currentTimeMillis()}.jpg")
+                            cameraImageUri = androidx.core.content.FileProvider.getUriForFile(this, "${packageName}.fileprovider", photoFile)
+                            selectedImageUri = cameraImageUri
+                            takePhotoLauncher.launch(cameraImageUri!!)
+                        }
+                        1 -> pickImageLauncher.launch("image/*")
+                    }
+                    // Poll for URI change (in a real app, use a SharedFlow or similar, here we simplify)
+                    dBinding.root.postDelayed({ refreshFotoUI() }, 500) 
+                }
+                .show()
+        }
+
+        dBinding.btnRemoveFoto.setOnClickListener {
+            selectedImageUri = null
+            refreshFotoUI()
+        }
         
         // Si estamos editando, cargar datos previos
         existingLabor?.let { labor ->
@@ -311,7 +378,8 @@ class RegisterLaborActivity : AppCompatActivity() {
 
                 currentLabor = LaborSessionItem(
                     laborId, laborName, fechaSeleccionada, 
-                    dBinding.etDescripcion.text.toString(), maq, manoObraItems, existingLabor?.insumos ?: emptyList()
+                    dBinding.etDescripcion.text.toString(), maq, manoObraItems, existingLabor?.insumos ?: emptyList(),
+                    selectedImageUri?.toString()
                 )
                 
                 refreshLaboresList()
@@ -661,8 +729,27 @@ class RegisterLaborActivity : AppCompatActivity() {
         val item = currentLabor ?: return
         val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
         val userId = sharedPref.getInt("USER_ID", -1)
+        val userName = sharedPref.getString("USER_NAME", "user") ?: "user"
 
         lifecycleScope.launch {
+            var finalFotoPath: String? = item.fotoPath
+            
+            // Guardar foto localmente si es un Uri temporal
+            item.fotoPath?.let { path ->
+                val uri = Uri.parse(path)
+                if (uri.scheme == "content" || uri.scheme == "file") {
+                    val savedPath = com.sigcpa.agrosys.util.FileUtils.saveImageLocally(
+                        this@RegisterLaborActivity,
+                        uri,
+                        userId,
+                        userName,
+                        com.sigcpa.agrosys.util.FileUtils.getLaboresFolder(item.name),
+                        "labor_${item.id}_${System.currentTimeMillis()}.jpg"
+                    )
+                    finalFotoPath = savedPath
+                }
+            }
+
             val costoMO_total = item.manoObra.sumOf { it.cantidad * it.dias * it.costoDia }
             val laborId = db.assetDao().insertLabor(LaborRealizadaEntity(
                 cultivo_id = selectedCultivoId,
@@ -671,6 +758,7 @@ class RegisterLaborActivity : AppCompatActivity() {
                 costo_mano_obra_total = costoMO_total,
                 costo_maquinaria_total = item.costoMaq,
                 observaciones = item.desc,
+                foto_path = finalFotoPath,
                 creado_por_usuario_id = userId
             )).toInt()
 
@@ -707,7 +795,7 @@ class RegisterLaborActivity : AppCompatActivity() {
         }
     }
 
-    data class LaborSessionItem(val id: Int, val name: String, val timestamp: Long, val desc: String, val costoMaq: Double, val manoObra: List<ManoObraSessionItem>, val insumos: List<InsumoSessionItem>)
+    data class LaborSessionItem(val id: Int, val name: String, val timestamp: Long, val desc: String, val costoMaq: Double, val manoObra: List<ManoObraSessionItem>, val insumos: List<InsumoSessionItem>, val fotoPath: String? = null)
     data class ManoObraSessionItem(val tipoId: Int, val cantidad: Int, val dias: Int, val costoDia: Double)
     data class InsumoSessionItem(val catId: Int, val nombre: String, val cantidad: Double, val precio: Double, val flete: Double = 0.0, val proveedor: String? = null)
 }

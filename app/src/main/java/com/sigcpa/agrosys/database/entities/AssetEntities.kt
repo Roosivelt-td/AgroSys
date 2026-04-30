@@ -26,10 +26,13 @@ data class TerrenoEntity(
     val calidad_suelo: String?,
     val fuente_agua: String?,
     @ColumnInfo(defaultValue = "activo") val estado: String = "activo",
+    val fecha_alquiler: Long? = null,
+    val fecha_vencimiento_alquiler: Long? = null,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val updated_at: Long = System.currentTimeMillis() / 1000,
     val deleted_at: Long? = null,
-    @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0
+    @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0,
+    val foto_path: String? = null
 )
 
 @Entity(
@@ -46,7 +49,8 @@ data class CatalogoCultivoEntity(
     val instrucciones_base_riego: String?,
     val instrucciones_base_plagas: String?,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
-    @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0
+    @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0,
+    val foto_path: String? = null
 )
 
 @Entity(
@@ -83,5 +87,6 @@ data class CultivoEntity(
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val updated_at: Long = System.currentTimeMillis() / 1000,
     val deleted_at: Long? = null,
-    @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0
+    @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0,
+    val foto_path: String? = null
 )

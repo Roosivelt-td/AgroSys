@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeColor="#e2e8f0"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/ivCultivoIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/circle_bg_green_light"
+            android:padding="8dp"
+            android:src="@drawable/agro_planta_hoja"
+            app:tint="#15803d" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvNombreCultivo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Maíz INIA"
+                android:textColor="#1e293b"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_ubicacion_terreno"
+                    app:tint="#64748b" />
+
+                <TextView
+                    android:id="@+id/tvTerrenoNombre"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="Fundo El Edén"
+                    android:textColor="#64748b"
+                    android:textSize="12sp" />
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/ic_calendario"
+                    app:tint="#64748b" />
+
+                <TextView
+                    android:id="@+id/tvFechaSiembra"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="Siembra: 31 dic."
+                    android:textColor="#64748b"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvArea"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/chip_bg_green"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="5 ha"
+            android:textColor="#15803d"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

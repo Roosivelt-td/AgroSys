@@ -91,273 +91,639 @@
                 android:orientation="vertical"
                 android:padding="24dp">
 
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardTerrenoPhoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="240dp"
+                    android:layout_marginBottom="24dp"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="4dp"
+                    android:visibility="gone">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <ImageView
+                            android:id="@+id/ivTerrenoPhoto"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            tools:src="@tools:sample/backgrounds/scenic" />
+
+                        <!-- Sombra gradiente inferior para legibilidad de texto -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="100dp"
+                            android:layout_gravity="bottom"
+                            android:background="@drawable/gradient_bottom_shadow" />
+
+                        <!-- Contenedor de Información sobre la imagen -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom"
+                            android:padding="20dp">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:layout_toStartOf="@id/layoutStatusActionsOverlay"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvTerrenoNombreCardOverlay"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:letterSpacing="-0.02"
+                                    android:text="Fundo La Esperanza"
+                                    android:textColor="#ffffff"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold"
+                                    android:shadowColor="#80000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="4"/>
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:layout_width="14dp"
+                                        android:layout_height="14dp"
+                                        android:src="@drawable/ic_ubicacion_terreno"
+                                        app:tint="#ffffff" />
+
+                                    <TextView
+                                        android:id="@+id/tvUbicacionOverlay"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="4dp"
+                                        android:text="Sector Las Pampas, Huamanga"
+                                        android:textColor="#f3f4f6"
+                                        android:textSize="13sp"
+                                        android:shadowColor="#80000000"
+                                        android:shadowDx="1"
+                                        android:shadowDy="1"
+                                        android:shadowRadius="2"/>
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tvAreaOverlay"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="15 ha"
+                                    android:textColor="#ffffff"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    android:shadowColor="#80000000"
+                                    android:shadowDx="1"
+                                    android:shadowDy="1"
+                                    android:shadowRadius="2"/>
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/layoutStatusActionsOverlay"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:gravity="end"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvCostoAlquilerBadgeOverlay"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/chip_bg_green"
+                                    android:backgroundTint="#ffffff"
+                                    android:letterSpacing="0.05"
+                                    android:paddingHorizontal="14dp"
+                                    android:paddingVertical="8dp"
+                                    android:text="ALQUILADO"
+                                    android:textColor="#15803d"
+                                    android:textSize="10sp"
+                                    android:textStyle="bold" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="12dp"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:id="@+id/btnEditarTerrenoOverlay"
+                                        android:layout_width="36dp"
+                                        android:layout_height="36dp"
+                                        android:background="@drawable/circle_bg_white"
+                                        android:elevation="4dp"
+                                        android:padding="10dp"
+                                        android:src="@drawable/ic_edit_01"
+                                        app:tint="#15803d" />
+
+                                    <ImageView
+                                        android:id="@+id/btnEliminarTerrenoIconOverlay"
+                                        android:layout_width="36dp"
+                                        android:layout_height="36dp"
+                                        android:layout_marginStart="10dp"
+                                        android:background="@drawable/circle_bg_white"
+                                        android:elevation="4dp"
+                                        android:padding="10dp"
+                                        android:src="@android:drawable/ic_menu_delete"
+                                        app:tint="#ef4444" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </RelativeLayout>
+                    </FrameLayout>
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Card Principal de Información -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="24dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="0dp">
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#f1f5f9"
+                    app:strokeWidth="1dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#ffffff"
-                    android:orientation="vertical"
-                    android:padding="24dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:layout_toStartOf="@id/tvCostoAlquilerBadge"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvTerrenoNombreCard"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Fundo La Esperanza"
-                                android:textColor="#111827"
-                                android:textSize="22sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tvUbicacion"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="Sector Las Pampas, Huamanga"
-                                android:textColor="#6b7280"
-                                android:textSize="14sp" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tvCostoAlquilerBadge"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:background="@drawable/chip_bg_green"
-                            android:backgroundTint="#fefce8"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="6dp"
-                            android:text="alquilado"
-                            android:textColor="#a16207"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </RelativeLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginVertical="20dp"
-                        android:background="#f1f5f9" />
-
-                    <!-- Atributos con Iconos -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:background="#fafafa"
+                        android:orientation="vertical"
+                        android:padding="20dp">
 
-                        <!-- Área Total -->
-                        <LinearLayout
+                        <RelativeLayout
+                            android:id="@+id/layoutInfoNombreOriginal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:layout_toStartOf="@id/layoutStatusActions"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvTerrenoNombreCard"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:letterSpacing="-0.02"
+                                    android:text="Fundo La Esperanza"
+                                    android:textColor="#111827"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:layout_width="14dp"
+                                        android:layout_height="14dp"
+                                        android:src="@drawable/ic_ubicacion_terreno"
+                                        app:tint="#6b7280" />
+
+                                    <TextView
+                                        android:id="@+id/tvUbicacion"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="4dp"
+                                        android:text="Sector Las Pampas, Huamanga"
+                                        android:textColor="#6b7280"
+                                        android:textSize="13sp" />
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/layoutStatusActions"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:gravity="end"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvCostoAlquilerBadge"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/chip_bg_green"
+                                    android:backgroundTint="#dcfce7"
+                                    android:letterSpacing="0.05"
+                                    android:paddingHorizontal="14dp"
+                                    android:paddingVertical="8dp"
+                                    android:text="ALQUILADO"
+                                    android:textColor="#15803d"
+                                    android:textSize="10sp"
+                                    android:textStyle="bold" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:id="@+id/btnEditarTerreno"
+                                        android:layout_width="32dp"
+                                        android:layout_height="32dp"
+                                        android:background="@drawable/circle_bg_white"
+                                        android:elevation="2dp"
+                                        android:padding="8dp"
+                                        android:src="@drawable/ic_edit_01"
+                                        app:tint="#15803d" />
+
+                                    <ImageView
+                                        android:id="@+id/btnEliminarTerrenoIcon"
+                                        android:layout_width="32dp"
+                                        android:layout_height="32dp"
+                                        android:layout_marginStart="8dp"
+                                        android:background="@drawable/circle_bg_white"
+                                        android:elevation="2dp"
+                                        android:padding="8dp"
+                                        android:src="@android:drawable/ic_menu_delete"
+                                        app:tint="#ef4444" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1.5dp"
+                            android:layout_marginVertical="4dp"
+                            android:background="#f1f5f9" />
+
+                        <!-- Grid de Atributos -->
+                        <GridLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="8dp"
-                            android:orientation="horizontal">
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_ubicacion_terreno"
-                                app:tint="#EAB308" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:text="@string/label_area_total_prefix"
-                                android:textColor="#64748b"
-                                android:textSize="15sp" />
-                            <TextView
-                                android:id="@+id/tvAreaTotalInfo"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="5 hectáreas"
-                                android:textColor="#1e293b"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
+                            android:columnCount="2"
+                            android:useDefaultMargins="true">
 
-                        <!-- Área Disponible -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="12dp"
-                            android:orientation="horizontal">
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_ubicacion_terreno"
-                                app:tint="#22c55e" />
-                            <TextView
-                                android:layout_width="wrap_content"
+                            <!-- Área Total -->
+                            <LinearLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:text="@string/label_area_disponible_prefix"
-                                android:textColor="#64748b"
-                                android:textSize="15sp" />
-                            <TextView
-                                android:id="@+id/tvAreaDisponibleInfo"
-                                android:layout_width="wrap_content"
+                                android:layout_columnWeight="1"
+                                android:layout_marginBottom="16dp"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/ic_ubicacion_terreno"
+                                        app:tint="#EAB308" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="8dp"
+                                        android:letterSpacing="0.02"
+                                        android:text="@string/label_area_total_prefix"
+                                        android:textAllCaps="true"
+                                        android:textColor="#64748b"
+                                        android:textSize="12sp" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tvAreaTotalInfo"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="26dp"
+                                    android:text="5 ha"
+                                    android:textColor="#1e293b"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Suelo -->
+                            <LinearLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:text="4 hectáreas"
-                                android:textColor="#1e293b"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
+                                android:layout_columnWeight="1"
+                                android:layout_marginBottom="16dp"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/agro_planta_01"
+                                        app:tint="#84CC16" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="8dp"
+                                        android:letterSpacing="0.02"
+                                        android:text="@string/label_suelo_prefix"
+                                        android:textAllCaps="true"
+                                        android:textColor="#64748b"
+                                        android:textSize="12sp" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tvCalidadSuelo"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="26dp"
+                                    android:text="Arcilloso"
+                                    android:textColor="#1e293b"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Agua -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_columnWeight="1"
+                                android:layout_marginBottom="16dp"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/agua_riego_01"
+                                        app:tint="#0EA5E9" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="8dp"
+                                        android:letterSpacing="0.02"
+                                        android:text="@string/label_agua_prefix"
+                                        android:textAllCaps="true"
+                                        android:textColor="#64748b"
+                                        android:textSize="12sp" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tvFuenteAgua"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="26dp"
+                                    android:text="Rio"
+                                    android:textColor="#1e293b"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Cultivos -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_columnWeight="1"
+                                android:layout_marginBottom="16dp"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/agro_planta_hoja"
+                                        app:tint="#22c55e" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="8dp"
+                                        android:letterSpacing="0.02"
+                                        android:text="@string/label_cultivos_prefix"
+                                        android:textAllCaps="true"
+                                        android:textColor="#64748b"
+                                        android:textSize="12sp" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tvTerrenoResumenCard"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="26dp"
+                                    android:text="2 activos"
+                                    android:textColor="#16a34a"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </GridLayout>
 
                         <!-- Barra de Uso de Terreno -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_marginBottom="20dp"
-                            android:layout_marginStart="32dp">
+                            android:layout_marginTop="8dp"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/label_area_disponible_prefix"
+                                    android:textColor="#64748b"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvAreaDisponibleInfo"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="4 ha libres"
+                                    android:textColor="#22c55e"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
                             <com.google.android.material.progressindicator.LinearProgressIndicator
                                 android:id="@+id/progressUsoTerreno"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
                                 android:progress="20"
-                                app:indicatorColor="#22c55e"
-                                app:trackColor="#f1f5f9"
-                                app:trackCornerRadius="4dp"
-                                app:trackThickness="8dp" />
+                                app:indicatorColor="#15803d"
+                                app:trackColor="#e2e8f0"
+                                app:trackCornerRadius="8dp"
+                                app:trackThickness="10dp" />
                         </LinearLayout>
 
-                        <!-- Suelo -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="12dp"
-                            android:orientation="horizontal">
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/agro_planta_01"
-                                app:tint="#84CC16" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:text="@string/label_suelo_prefix"
-                                android:textColor="#64748b"
-                                android:textSize="15sp" />
-                            <TextView
-                                android:id="@+id/tvCalidadSuelo"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Arcilloso"
-                                android:textColor="#1e293b"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <!-- Agua -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="12dp"
-                            android:orientation="horizontal">
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/agua_riego_01"
-                                app:tint="#0EA5E9" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:text="@string/label_agua_prefix"
-                                android:textColor="#64748b"
-                                android:textSize="15sp" />
-                            <TextView
-                                android:id="@+id/tvFuenteAgua"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Rio"
-                                android:textColor="#1e293b"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <!-- Costo / Alquiler (Solo si aplica) -->
-                        <LinearLayout
+                        <!-- Sección Alquiler -->
+                        <com.google.android.material.card.MaterialCardView
                             android:id="@+id/layoutCostoInfo"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="12dp"
-                            android:orientation="horizontal">
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_money_03"
-                                app:tint="#EAB308" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:text="@string/label_alquiler_prefix"
-                                android:textColor="#64748b"
-                                android:textSize="15sp" />
-                            <TextView
-                                android:id="@+id/tvCostoValor"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="S/ 2000/año"
-                                android:textColor="#dc2626"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
+                            android:layout_marginTop="24dp"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="0dp"
+                            app:strokeColor="#fef08a"
+                            app:strokeWidth="1dp">
 
-                        <!-- Conteo Cultivos -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/agro_planta_hoja"
-                                app:tint="#22c55e" />
-                            <TextView
-                                android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:text="@string/label_cultivos_prefix"
-                                android:textColor="#64748b"
-                                android:textSize="15sp" />
-                            <TextView
-                                android:id="@+id/tvTerrenoResumenCard"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="2 activos"
-                                android:textColor="#16a34a"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
+                                android:background="#fffbeb"
+                                android:orientation="vertical"
+                                android:padding="16dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:layout_width="24dp"
+                                        android:layout_height="24dp"
+                                        android:src="@drawable/ic_money_03"
+                                        app:tint="#a16207" />
+
+                                    <TextView
+                                        android:id="@+id/tvCostoValor"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="12dp"
+                                        android:layout_weight="1"
+                                        android:text="S/ 2,000.00 / año"
+                                        android:textColor="#92400e"
+                                        android:textSize="16sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:id="@+id/layoutFechasAlquiler"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="12dp"
+                                    android:orientation="vertical"
+                                    android:visibility="gone">
+
+                                    <View
+                                        android:layout_width="match_parent"
+                                        android:layout_height="1dp"
+                                        android:layout_marginBottom="12dp"
+                                        android:background="#fde68a" />
+
+                                    <GridLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:columnCount="2">
+
+                                        <LinearLayout
+                                            android:layout_width="0dp"
+                                            android:layout_height="wrap_content"
+                                            android:layout_columnWeight="1"
+                                            android:orientation="vertical">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="INICIO"
+                                                android:textColor="#b45309"
+                                                android:textSize="10sp"
+                                                android:textStyle="bold" />
+
+                                            <TextView
+                                                android:id="@+id/tvFechaAlquilerInfo"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="15/01/2024"
+                                                android:textColor="#1e293b"
+                                                android:textSize="13sp" />
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            android:layout_width="0dp"
+                                            android:layout_height="wrap_content"
+                                            android:layout_columnWeight="1"
+                                            android:orientation="vertical">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="VENCIMIENTO"
+                                                android:textColor="#b45309"
+                                                android:textSize="10sp"
+                                                android:textStyle="bold" />
+
+                                            <TextView
+                                                android:id="@+id/tvFechaVencimientoInfo"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="15/07/2024"
+                                                android:textColor="#ef4444"
+                                                android:textSize="13sp"
+                                                android:textStyle="bold" />
+                                        </LinearLayout>
+                                    </GridLayout>
+
+                                    <!-- Barra de tiempo de alquiler -->
+                                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                                        android:id="@+id/progressTiempoAlquiler"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="12dp"
+                                        android:progress="45"
+                                        app:indicatorColor="#a16207"
+                                        app:trackColor="#fde68a"
+                                        app:trackCornerRadius="4dp"
+                                        app:trackThickness="4dp" />
+
+                                    <com.google.android.material.button.MaterialButton
+                                        android:id="@+id/btnRenovarAlquiler"
+                                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="48dp"
+                                        android:layout_marginTop="16dp"
+                                        android:backgroundTint="#15803d"
+                                        android:text="@string/btn_renovar_alquiler"
+                                        android:textAllCaps="false"
+                                        android:textColor="#ffffff"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        app:cornerRadius="12dp"
+                                        app:icon="@drawable/ic_edit_01"
+                                        app:iconGravity="textStart"
+                                        app:iconSize="18dp" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
 
                     </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                </com.google.android.material.card.MaterialCardView>
 
             <!-- SECCIÓN DE CULTIVOS LISTA -->
             <LinearLayout
@@ -385,7 +751,7 @@
                     android:textAllCaps="false"
                     android:textColor="#15803d"
                     android:textStyle="bold"
-                    app:icon="@android:drawable/ic_input_add"
+                    app:icon="@drawable/ic_agregar"
                     app:iconTint="#15803d" />
             </LinearLayout>
 
@@ -396,27 +762,10 @@
                 android:nestedScrollingEnabled="false"
                 tools:listitem="@layout/item_cultivo" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEliminarTerreno"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="16dp"
-                android:backgroundTint="#BD22C1"
-                android:text="@string/btn_eliminar_terreno"
-                android:textAllCaps="false"
-                android:textColor="#ffffff"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                app:cornerRadius="16dp"
-                app:icon="@android:drawable/ic_menu_delete"
-                app:iconTint="#ffffff"
-                app:elevation="4dp" />
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="32dp"
                 android:paddingBottom="40dp"
                 android:gravity="center"
                 android:text="@string/footer_datos_locales"

@@ -99,8 +99,23 @@ interface AssetDao {
     @Insert
     suspend fun insertCosecha(cosecha: CosechaEntity): Long
 
+    @Query("SELECT * FROM cosechas WHERE id = :id")
+    suspend fun getCosechaById(id: Int): CosechaEntity?
+
     @Query("SELECT * FROM cosechas WHERE cultivo_id = :cultivoId")
     suspend fun getCosechasByCultivo(cultivoId: Int): List<CosechaEntity>
+
+    @Query("SELECT * FROM compradores")
+    suspend fun getAllCompradores(): List<CompradorEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertComprador(comprador: CompradorEntity): Long
+
+    @Insert
+    suspend fun insertVenta(venta: VentaEntity): Long
+
+    @Query("SELECT * FROM ventas")
+    suspend fun getAllVentas(): List<VentaEntity>
 
     @Query("SELECT * FROM ventas WHERE cosecha_id IN (SELECT id FROM cosechas WHERE cultivo_id = :cultivoId)")
     suspend fun getVentasByCultivo(cultivoId: Int): List<VentaEntity>
@@ -141,4 +156,51 @@ interface AssetDao {
 
     @Query("SELECT unidad_medida FROM catalogo_insumos WHERE id = :id")
     suspend fun getUnidadInsumo(id: Int): String?
+
+    // Consultas para Reportes
+    @Query("SELECT * FROM catalogo_labores WHERE id = :id")
+    suspend fun getLaborTypeById(id: Int): CatalogoLaborEntity?
+
+    @Query("""
+        SELECT SUM(v.cantidad_vendida_kg * v.precio_por_kg) FROM ventas v
+        JOIN cosechas c ON v.cosecha_id = c.id
+        JOIN cultivos cul ON c.cultivo_id = cul.id
+        JOIN terrenos t ON cul.terreno_id = t.id
+        WHERE t.agricultor_id = :agricultorId
+    """)
+    suspend fun getIngresosTotalesByAgricultor(agricultorId: Int): Double?
+
+    @Query("""
+        SELECT 
+            (SELECT SUM(lr.costo_mano_obra_total + lr.costo_maquinaria_total) FROM labores_realizadas lr
+             JOIN cultivos cul ON lr.cultivo_id = cul.id
+             JOIN terrenos t ON cul.terreno_id = t.id
+             WHERE t.agricultor_id = :agricultorId)
+            +
+            (SELECT SUM(iu.cantidad * iu.costo_unitario + iu.costo_flete) FROM insumos_usados iu
+             JOIN labores_realizadas lr ON iu.labor_id = lr.id
+             JOIN cultivos cul ON lr.cultivo_id = cul.id
+             JOIN terrenos t ON cul.terreno_id = t.id
+             WHERE t.agricultor_id = :agricultorId)
+    """)
+    suspend fun getCostosTotalesByAgricultor(agricultorId: Int): Double?
+
+    @Query("""
+        SELECT cul.* FROM cultivos cul
+        JOIN terrenos t ON cul.terreno_id = t.id
+        WHERE t.agricultor_id = :agricultorId AND cul.estado = 'activo' AND cul.deleted_at IS NULL
+        ORDER BY cul.fecha_siembra DESC
+        LIMIT 5
+    """)
+    suspend fun getCultivosEnCursoByAgricultor(agricultorId: Int): List<CultivoEntity>
+
+    @Query("""
+        SELECT c.* FROM cosechas c
+        JOIN cultivos cul ON c.cultivo_id = cul.id
+        JOIN terrenos t ON cul.terreno_id = t.id
+        WHERE t.agricultor_id = :agricultorId
+        ORDER BY c.fecha_cosecha DESC
+        LIMIT 10
+    """)
+    suspend fun getCosechasRecientesByAgricultor(agricultorId: Int): List<CosechaEntity>
 }

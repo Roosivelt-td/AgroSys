@@ -3,6 +3,8 @@ package com.sigcpa.agrosys.ui
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.database.entities.TerrenoEntity
 import com.sigcpa.agrosys.databinding.ItemTerrenoBinding
 
@@ -31,6 +33,20 @@ class TerrenosAdapter(
             // but for now we display a placeholder or 0 if not provided in the entity.
             tvCultivosCount.text = "Consultando cultivos..." // This can be updated later with a more complex data model
             
+            terreno.foto_path?.let { path ->
+                ivTerrenoPhoto.clearColorFilter()
+                ivTerrenoPhoto.setPadding(0, 0, 0, 0)
+                Glide.with(root.context)
+                    .load(path)
+                    .placeholder(R.drawable.uploap)
+                    .centerCrop()
+                    .into(ivTerrenoPhoto)
+            } ?: run {
+                ivTerrenoPhoto.setImageResource(R.drawable.uploap)
+                ivTerrenoPhoto.setPadding(16, 16, 16, 16)
+                ivTerrenoPhoto.setColorFilter(root.context.getColor(android.R.color.darker_gray))
+            }
+
             root.setOnClickListener { onItemClick(terreno) }
         }
     }

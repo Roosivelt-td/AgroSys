@@ -90,4 +90,7 @@ dependencies {
 
     // recorte de img
     implementation(libs.android.image.cropper)
+
+    // MPAndroidChart
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }

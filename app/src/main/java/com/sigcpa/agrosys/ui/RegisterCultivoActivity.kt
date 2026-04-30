@@ -249,10 +249,6 @@ class RegisterCultivoActivity : AppCompatActivity() {
             dialogBinding.btnCloseDialog.setOnClickListener {
                 dialog.cancel()
             }
-
-            dialogBinding.btnCancelarSeleccion.setOnClickListener {
-                dialog.cancel()
-            }
         }
 
         dialog.show()

@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import android.net.Uri
+import com.bumptech.glide.Glide
 import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.database.AppDatabase
 import com.sigcpa.agrosys.database.entities.*
@@ -68,6 +70,17 @@ class DetalleCultivoActivity : AppCompatActivity() {
     private fun setupUI() {
         binding.btnBack.setOnClickListener { finish() }
 
+        binding.btnEditCultivo.setOnClickListener {
+            currentCultivo?.let { cultivo ->
+                val intent = Intent(this, RegisterCultivoActivity::class.java)
+                intent.putExtra("CULTIVO_ID", cultivo.id)
+                intent.putExtra("TERRENO_ID", cultivo.terreno_id)
+                startActivity(intent)
+            }
+        }
+
+        binding.btnDeleteCultivoMini.setOnClickListener { mostrarDialogoEliminar() }
+
         binding.btnStatusPlanificado.setOnClickListener { updateStatus("planificado") }
         binding.btnStatusActivo.setOnClickListener { updateStatus("activo") }
         binding.btnStatusCosechado.setOnClickListener { updateStatus("cosechado") }
@@ -79,16 +92,30 @@ class DetalleCultivoActivity : AppCompatActivity() {
         binding.rvCosechas.layoutManager = LinearLayoutManager(this)
         
         binding.btnAgregarLabor.setOnClickListener {
-            val intent = Intent(this, RegisterLaborActivity::class.java)
-            intent.putExtra("CULTIVO_ID", currentCultivoId)
-            currentCultivo?.let { cultivo ->
-                intent.putExtra("TERRENO_NOMBRE", currentTerreno?.nombre ?: "")
-                intent.putExtra("CULTIVO_DETALLE", "${cultivo.nombre_lote} (${cultivo.variedad})")
-            }
-            startActivity(intent)
+            AlertDialog.Builder(this)
+                .setMessage(getString(R.string.dialog_confirm_nueva_labor))
+                .setPositiveButton(getString(R.string.btn_continuar)) { _, _ ->
+                    val intent = Intent(this, RegisterLaborActivity::class.java)
+                    intent.putExtra("CULTIVO_ID", currentCultivoId)
+                    currentCultivo?.let { cultivo ->
+                        intent.putExtra("TERRENO_NOMBRE", currentTerreno?.nombre ?: "")
+                        intent.putExtra("CULTIVO_DETALLE", "${cultivo.nombre_lote} (${cultivo.variedad})")
+                    }
+                    startActivity(intent)
+                }
+                .setNegativeButton(getString(R.string.btn_cancelar), null)
+                .show()
         }
 
-        binding.btnAgregarCosecha.setOnClickListener { checkLaboresYProceder() }
+        binding.btnAgregarCosecha.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setMessage(getString(R.string.dialog_confirm_nueva_cosecha))
+                .setPositiveButton(getString(R.string.btn_continuar)) { _, _ ->
+                    checkLaboresYProceder()
+                }
+                .setNegativeButton(getString(R.string.btn_cancelar), null)
+                .show()
+        }
 
         binding.navHome.setOnClickListener { startActivity(Intent(this, DashboardActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_CLEAR_TOP }) }
         binding.navTerrenos.setOnClickListener { startActivity(Intent(this, TerrenosListActivity::class.java)) }
@@ -108,6 +135,7 @@ class DetalleCultivoActivity : AppCompatActivity() {
             val ventas = db.assetDao().getVentasByCultivo(currentCultivoId)
 
             // Puntos 5 y 6: Nombre y Variedad
+            binding.tvNombreTerrenoDetalle.text = currentTerreno?.nombre ?: ""
             binding.tvNombreLote.text = cultivo.nombre_lote
             binding.tvVariedad.text = cultivo.variedad
             binding.tvHeaderTitle.text = cultivo.nombre_lote
@@ -115,6 +143,20 @@ class DetalleCultivoActivity : AppCompatActivity() {
             binding.tvArea.text = "${cultivo.area_destinada ?: 0.0} ha"
             binding.tvAreaTotalTerreno.text = "${currentTerreno?.area_hectareas ?: 0.0} ha"
             binding.tvFechaSiembra.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(cultivo.fecha_siembra * 1000))
+
+            // Tenencia y Foto
+            binding.tvTenenciaBadge.text = currentTerreno?.tipo_tenencia?.uppercase() ?: "PROPIO"
+            
+            val fotoPath = cultivo.foto_path ?: currentTerreno?.foto_path
+            fotoPath?.let { path ->
+                val file = java.io.File(path)
+                val uri = if (file.exists()) Uri.fromFile(file) else Uri.parse(path)
+                Glide.with(this@DetalleCultivoActivity)
+                    .load(uri)
+                    .placeholder(R.drawable.uploap)
+                    .centerCrop()
+                    .into(binding.ivCultivoFoto)
+            }
 
             // Punto 2: Total Labores
             binding.tvCantLabores.text = labores.size.toString()

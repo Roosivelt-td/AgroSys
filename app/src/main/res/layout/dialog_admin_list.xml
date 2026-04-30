@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:orientation="vertical">
+
+    <!-- Header Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#F9FAFB"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvAdminListTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Catálogo de Cultivos"
+                android:textColor="#111827"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAdminListSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gestiona los registros del sistema"
+                android:textColor="#6B7280"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnImportJson"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:padding="8dp"
+            android:text="JSON"
+            android:textColor="#15803D"
+            android:textSize="12sp"
+            app:icon="@drawable/uploap"
+            app:iconPadding="4dp"
+            app:iconSize="18dp"
+            app:iconTint="#15803D"
+            app:strokeColor="#15803D" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddRecord"
+            style="@style/Widget.MaterialComponents.Button.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#15803D"
+            android:padding="8dp"
+            android:text="AÑADIR"
+            android:textSize="12sp"
+            app:icon="@drawable/ic_agregar"
+            app:iconPadding="4dp"
+            app:iconSize="18dp"
+            app:iconTint="@android:color/white" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E5E7EB" />
+
+    <!-- Search Section -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilSearch"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:hint="Buscar registro..."
+        app:boxStrokeColor="#15803D"
+        app:hintTextColor="#15803D"
+        app:startIconDrawable="@drawable/ic_buscar"
+        app:startIconTint="#6B7280">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etSearchCatalog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:textSize="14sp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Table Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="8dp"
+        android:background="#F3F4F6"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="NOMBRE"
+            android:textColor="#374151"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.5"
+            android:text="DETALLES / EXTRA"
+            android:textColor="#374151"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="ACC"
+            android:textColor="#374151"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- List Section -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="450dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAdminRecords"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="20dp"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_admin_record" />
+
+        <!-- Empty State (Optional Logic) -->
+        <LinearLayout
+            android:id="@+id/llEmptyState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:alpha="0.3"
+                android:src="@drawable/ic_lista"
+                app:tint="#6B7280" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="No se encontraron registros"
+                android:textColor="#9CA3AF" />
+        </LinearLayout>
+    </FrameLayout>
+
+</LinearLayout>

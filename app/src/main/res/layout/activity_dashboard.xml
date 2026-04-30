@@ -232,6 +232,17 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <TextView
+                android:id="@+id/mensajeNotificacion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:background="@drawable/bg_notification_gradient"
+                android:padding="12dp"
+                android:text="@string/msg_bienvenida"
+                android:textSize="12sp"
+                android:textColor="#166534" />
+
             <!-- Tarjeta del Clima -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cvWeatherCard"
@@ -265,6 +276,23 @@
                         <TextView android:id="@+id/tvCityName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/weather_loading" android:textStyle="bold" android:textColor="#1e293b" />
                         <TextView android:id="@+id/tvTemperature" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--°C" android:textColor="#16a34a" android:textSize="20sp" android:textStyle="bold" />
                         <TextView android:id="@+id/tvWeatherDescription" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textSize="12sp" android:textColor="#64748b" />
+
+                        <!-- Burbuja de consejo dinámico -->
+                        <TextView
+                            android:id="@+id/tvWeatherTip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/rounded_soft"
+                            android:backgroundTint="#eff6ff"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:text="@string/weather_tip_consulting"
+                            android:textColor="#1d4ed8"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
                     </LinearLayout>
                     <ProgressBar
                         android:id="@+id/progressWeather"
@@ -274,29 +302,16 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Quick Actions Grid -->
-            <GridLayout
+
+
+            <!-- Alerts Section -->
+            <LinearLayout
+                android:id="@+id/layoutAlertasAlquiler"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:columnCount="4">
-                <LinearLayout android:id="@+id/navTerrenoQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
-                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_ubicacion_terreno" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_terreno" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
-                </LinearLayout>
-                <LinearLayout android:id="@+id/navCultivoQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
-                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/agro_planta_buena" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_cultivo" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
-                </LinearLayout>
-                <LinearLayout android:id="@+id/navLaborQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
-                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_lista" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_labor" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
-                </LinearLayout>
-                <LinearLayout android:id="@+id/navCosechaQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
-                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/agro_cosecha" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_cosecha" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
-                </LinearLayout>
-            </GridLayout>
+                android:orientation="vertical"
+                android:visibility="gone" />
 
             <!-- Admin Panel -->
             <com.google.android.material.card.MaterialCardView
@@ -368,7 +383,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Resumen Financiero -->
+            <!-- Resumen Financiero Moderno -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -383,38 +398,255 @@
                     android:orientation="vertical"
                     android:padding="16dp"
                     android:background="#FFFFFF">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_resumen_financiero" android:textStyle="bold" android:textColor="#1e293b" />
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_estadistica_01"
+                            app:tint="#15803d" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/label_resumen_financiero"
+                            android:textStyle="bold"
+                            android:textColor="#1e293b"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:orientation="horizontal">
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-                            <TextView android:id="@+id/ingresosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_currency_zero" android:textColor="#16a34a" android:textStyle="bold" android:textSize="14sp" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_ingresos" android:textSize="9sp" android:textColor="#64748b" android:layout_marginTop="2dp" />
+
+                        <!-- Ingresos -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/rounded_soft"
+                            android:backgroundTint="#F0FDF4"
+                            android:gravity="center"
+                            android:padding="12dp"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_ingresos"
+                                android:textSize="10sp"
+                                android:textColor="#16a34a"
+                                android:letterSpacing="0.05" />
+                            <TextView
+                                android:id="@+id/tvIngresosDash"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="S/ 0.00"
+                                android:textColor="#15803D"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:layout_marginTop="4dp" />
                         </LinearLayout>
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-                            <TextView android:id="@+id/costosTotales" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_currency_zero" android:textColor="#dc2626" android:textStyle="bold" android:textSize="14sp" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_costos" android:textSize="9sp" android:textColor="#64748b" android:layout_marginTop="2dp" />
+
+                        <!-- Costos -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginHorizontal="4dp"
+                            android:background="@drawable/rounded_soft"
+                            android:backgroundTint="#FEF2F2"
+                            android:gravity="center"
+                            android:padding="12dp"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_costos"
+                                android:textSize="10sp"
+                                android:textColor="#dc2626"
+                                android:letterSpacing="0.05" />
+                            <TextView
+                                android:id="@+id/tvCostosDash"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="S/ 0.00"
+                                android:textColor="#DC2626"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:layout_marginTop="4dp" />
                         </LinearLayout>
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-                            <TextView android:id="@+id/netoTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_currency_zero" android:textStyle="bold" android:textSize="14sp" android:textColor="#1e293b" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_neto" android:textSize="9sp" android:textColor="#64748b" android:layout_marginTop="2dp" />
+
+                        <!-- Neto -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/rounded_soft"
+                            android:backgroundTint="#FFF7ED"
+                            android:gravity="center"
+                            android:padding="12dp"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_neto"
+                                android:textSize="10sp"
+                                android:textColor="#ea580c"
+                                android:letterSpacing="0.05" />
+                            <TextView
+                                android:id="@+id/tvNetoDash"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="S/ 0.00"
+                                android:textColor="#C2410C"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:layout_marginTop="4dp" />
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:id="@+id/mensajeNotificacion"
+            <!-- Cultivos en Curso Section -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:background="@drawable/bg_notification_gradient"
-                android:padding="12dp"
-                android:text="@string/msg_bienvenida"
-                android:textSize="12sp"
-                android:textColor="#166534" />
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#e2e8f0">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="#FFFFFF">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/agro_planta_hoja"
+                            app:tint="#15803d" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/label_cultivos_en_curso"
+                            android:textStyle="bold"
+                            android:textColor="#1e293b"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/btnVerTodosCultivos"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Ver todos →"
+                            android:textColor="#15803d"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:padding="4dp" />
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvCultivosEnCurso"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        tools:listitem="@layout/item_cultivo_curso"
+                        tools:itemCount="3" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Producción Reciente Section -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#e2e8f0">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="#FFFFFF">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Producción reciente (kg)"
+                            android:textStyle="bold"
+                            android:textColor="#1e293b"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="últimas cosechas"
+                            android:textColor="#64748b"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <com.github.mikephil.charting.charts.BarChart
+                        android:id="@+id/barChartProduccion"
+                        android:layout_width="match_parent"
+                        android:layout_height="220dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <!-- Quick Actions Grid -->
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:columnCount="5">
+                <LinearLayout android:id="@+id/navTerrenoQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_ubicacion_terreno" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_terreno" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/navCultivoQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/agro_planta_buena" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_cultivo" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/navLaborQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_lista" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_labor" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/navCosechaQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/agro_cosecha" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_cosecha" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/navVentaQuick" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_venta" app:tint="#16a34a" android:background="@drawable/circle_bg_green_light" android:padding="10dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Venta" android:textSize="11sp" android:layout_marginTop="4dp" android:textColor="#1e293b"/>
+                </LinearLayout>
+            </GridLayout>
+
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

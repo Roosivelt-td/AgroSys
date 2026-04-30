@@ -2,10 +2,16 @@ package com.sigcpa.agrosys.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.LinearLayout
+import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.sigcpa.agrosys.database.entities.TerrenoEntity
+import com.sigcpa.agrosys.databinding.DialogSelectTerrenoBinding
+import com.sigcpa.agrosys.databinding.ItemTerrenoSelectorBinding
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -75,7 +81,7 @@ class CultivosListActivity : AppCompatActivity() {
         // Botón Nuevo Cultivo con validación
         val goToRegister = {
             if (hasTerrenos) {
-                startActivity(Intent(this, RegisterCultivoActivity::class.java))
+                mostrarSelectorTerreno()
             } else {
                 Toast.makeText(this, getString(R.string.error_no_terrenos), Toast.LENGTH_LONG).show()
             }
@@ -185,6 +191,87 @@ class CultivosListActivity : AppCompatActivity() {
                 updateUI(emptyList())
             }
         }
+    }
+
+    private fun mostrarSelectorTerreno() {
+        val dialog = BottomSheetDialog(this)
+        val dialogBinding = DialogSelectTerrenoBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
+
+        var selectedTerrenoId: Int = -1
+
+        lifecycleScope.launch {
+            val sharedPref = getSharedPreferences("agrosys_prefs", MODE_PRIVATE)
+            val userId = sharedPref.getInt("USER_ID", -1)
+            val user = db.userDao().getUsuarioById(userId)
+            if (user != null) {
+                val terrenos = db.assetDao().getTerrenosByAgricultor(user.usuario.id)
+                
+                dialogBinding.rvTerrenosSelector.layoutManager = LinearLayoutManager(this@CultivosListActivity)
+                dialogBinding.rvTerrenosSelector.adapter = TerrenosSelectorAdapter(terrenos) { id ->
+                    selectedTerrenoId = id
+                    dialogBinding.btnConfirmarSeleccion.isEnabled = true
+                }
+            }
+        }
+
+        dialogBinding.btnCloseDialog.setOnClickListener { dialog.dismiss() }
+        
+        dialogBinding.btnConfirmarSeleccion.setOnClickListener {
+            dialog.dismiss()
+            val intent = Intent(this, RegisterCultivoActivity::class.java)
+            intent.putExtra("TERRENO_ID", selectedTerrenoId)
+            startActivity(intent)
+        }
+
+        dialog.show()
+    }
+
+    inner class TerrenosSelectorAdapter(
+        private val lista: List<TerrenoEntity>,
+        private val onSelected: (Int) -> Unit
+    ) : RecyclerView.Adapter<TerrenosSelectorAdapter.ViewHolder>() {
+        
+        private var selectedPos = -1
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val b = ItemTerrenoSelectorBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            return ViewHolder(b)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val item = lista[position]
+            holder.binding.tvNombreTerreno.text = item.nombre
+            holder.binding.tvUbicacionTerreno.text = item.direccion_referencia ?: "Sin ubicación"
+            holder.binding.tvAreaTerreno.text = "${item.area_hectareas} ha"
+            holder.binding.tvTenenciaTerreno.text = item.tipo_tenencia.capitalize()
+
+            val isSelected = selectedPos == position
+            holder.binding.rbSelected.isChecked = isSelected
+            
+            // Estilo visual llamativo para la selección
+            if (isSelected) {
+                holder.binding.cardTerrenoSelector.strokeColor = android.graphics.Color.parseColor("#15803d")
+                holder.binding.cardTerrenoSelector.strokeWidth = 4
+                holder.binding.cardTerrenoSelector.setCardBackgroundColor(android.graphics.Color.parseColor("#F0FDF4"))
+            } else {
+                holder.binding.cardTerrenoSelector.strokeColor = android.graphics.Color.parseColor("#E5E7EB")
+                holder.binding.cardTerrenoSelector.strokeWidth = 2
+                holder.binding.cardTerrenoSelector.setCardBackgroundColor(android.graphics.Color.WHITE)
+            }
+
+            holder.itemView.setOnClickListener {
+                val oldPos = selectedPos
+                selectedPos = holder.adapterPosition
+                notifyItemChanged(oldPos)
+                notifyItemChanged(selectedPos)
+                onSelected(item.id)
+            }
+        }
+
+        override fun getItemCount() = lista.size
+
+        inner class ViewHolder(val binding: ItemTerrenoSelectorBinding) : RecyclerView.ViewHolder(binding.root)
     }
 
     private fun applyLocks() {

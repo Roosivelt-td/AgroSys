@@ -126,9 +126,19 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/tvNombreTerrenoDetalle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="#15803d"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                tools:text="Fundo La Esperanza" />
+
+                            <TextView
                                 android:id="@+id/tvNombreLote"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
                                 android:textColor="#111827"
                                 android:textSize="22sp"
                                 android:textStyle="bold"
@@ -158,6 +168,71 @@
                             android:textSize="11sp"
                             android:textStyle="bold" />
                     </RelativeLayout>
+
+                    <!-- Imagen de Cultivo y Acciones -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_marginTop="20dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="#f1f5f9"
+                        app:strokeWidth="1dp">
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <ImageView
+                                android:id="@+id/ivCultivoFoto"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/uploap" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="bottom|end"
+                                android:layout_margin="12dp"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                    android:id="@+id/btnEditCultivo"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="8dp"
+                                    app:fabSize="mini"
+                                    app:srcCompat="@drawable/ic_edit_01"
+                                    app:tint="#15803d"
+                                    android:backgroundTint="#ffffff" />
+
+                                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                    android:id="@+id/btnDeleteCultivoMini"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    app:fabSize="mini"
+                                    app:srcCompat="@android:drawable/ic_menu_delete"
+                                    app:tint="#ef4444"
+                                    android:backgroundTint="#ffffff" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvTenenciaBadge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="top|start"
+                                android:layout_margin="12dp"
+                                android:background="@drawable/chip_bg_green"
+                                android:backgroundTint="#ffffff"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="6dp"
+                                android:text="PROPIO"
+                                android:textColor="#15803d"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+                        </FrameLayout>
+                    </com.google.android.material.card.MaterialCardView>
 
                     <!-- Progreso de Campaña -->
                     <LinearLayout

@@ -451,6 +451,39 @@
                     android:paddingHorizontal="12dp" />
             </LinearLayout>
 
+            <!-- Menú Administración (Solo Super Admin) -->
+            <LinearLayout
+                android:id="@+id/llAdminSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.1"
+                    android:paddingHorizontal="24dp"
+                    android:paddingTop="24dp"
+                    android:paddingBottom="8dp"
+                    android:text="ADMINISTRACIÓN SISTEMA"
+                    android:textColor="#15803D"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <include
+                    android:id="@+id/menuAdminCrops"
+                    layout="@layout/item_profile_menu" />
+
+                <include
+                    android:id="@+id/menuAdminValues"
+                    layout="@layout/item_profile_menu" />
+
+                <include
+                    android:id="@+id/menuAdminSocialTypes"
+                    layout="@layout/item_profile_menu" />
+            </LinearLayout>
+
             <!-- Menú Configuración -->
             <TextView
                 android:layout_width="match_parent"

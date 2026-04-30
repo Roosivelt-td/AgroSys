@@ -1,15 +1,24 @@
 package com.sigcpa.agrosys.ui
 
 import android.app.DatePickerDialog
+import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
+import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.database.AppDatabase
 import com.sigcpa.agrosys.database.entities.CosechaEntity
 import com.sigcpa.agrosys.database.entities.CultivoEntity
 import com.sigcpa.agrosys.databinding.ActivityRegisterCosechaBinding
+import com.sigcpa.agrosys.util.FileUtils
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -22,6 +31,25 @@ class RegisterCosechaActivity : AppCompatActivity() {
     private var currentCultivo: CultivoEntity? = null
     private var selectedCalidad: String? = null
     private val calendar = Calendar.getInstance()
+
+    private var selectedImageUri: Uri? = null
+    private var cameraImageUri: Uri? = null
+
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+            showSelectedImage(it)
+        }
+    }
+
+    private val takePhotoLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            cameraImageUri?.let {
+                selectedImageUri = it
+                showSelectedImage(it)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,8 +104,47 @@ class RegisterCosechaActivity : AppCompatActivity() {
         binding.etFechaCosecha.setText(sdf.format(calendar.time))
 
         setupCalidadButtons()
+        setupPhotoLogic()
 
         binding.btnSaveCosecha.setOnClickListener { saveCosecha() }
+    }
+
+    private fun setupPhotoLogic() {
+        binding.cardFotoCosecha.setOnClickListener {
+            val options = arrayOf("Tomar Foto", "Elegir de Galería")
+            AlertDialog.Builder(this)
+                .setTitle("Evidencia de Cosecha")
+                .setItems(options) { _, which ->
+                    when (which) {
+                        0 -> {
+                            val photoFile = File(getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES), "COSECHA_${System.currentTimeMillis()}.jpg")
+                            cameraImageUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", photoFile)
+                            takePhotoLauncher.launch(cameraImageUri!!)
+                        }
+                        1 -> pickImageLauncher.launch("image/*")
+                    }
+                }
+                .show()
+        }
+
+        binding.btnRemoveFoto.setOnClickListener {
+            selectedImageUri = null
+            binding.ivFotoCosecha.setImageResource(R.drawable.uploap)
+            binding.ivFotoCosecha.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
+            val padding = (64 * resources.displayMetrics.density).toInt()
+            binding.ivFotoCosecha.setPadding(padding, padding, padding, padding)
+            binding.btnRemoveFoto.visibility = View.GONE
+        }
+    }
+
+    private fun showSelectedImage(uri: Uri) {
+        binding.ivFotoCosecha.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+        Glide.with(this)
+            .load(uri)
+            .placeholder(R.drawable.uploap)
+            .into(binding.ivFotoCosecha)
+        binding.ivFotoCosecha.setPadding(0, 0, 0, 0)
+        binding.btnRemoveFoto.visibility = View.VISIBLE
     }
 
     private fun generateDefaultLote() {
@@ -141,19 +208,39 @@ class RegisterCosechaActivity : AppCompatActivity() {
         val cantidad = cantidadStr.toDoubleOrNull() ?: 0.0
         val costoOp = costoOpStr.toDoubleOrNull() ?: 0.0
 
-        val nuevaCosecha = CosechaEntity(
-            cultivo_id = currentCultivoId,
-            fecha_cosecha = calendar.timeInMillis / 1000,
-            cantidad_kg = cantidad,
-            calidad = selectedCalidad,
-            lote_codigo = loteCodigo,
-            costo_operativo_cosecha = costoOp,
-            observaciones = observaciones,
-            created_at = System.currentTimeMillis() / 1000,
-            sincronizado = 0
-        )
-
         lifecycleScope.launch {
+            var finalFotoPath: String? = selectedImageUri?.toString()
+            val sharedPref = getSharedPreferences("agrosys_prefs", android.content.Context.MODE_PRIVATE)
+            val userId = sharedPref.getInt("USER_ID", -1)
+            val userName = sharedPref.getString("USER_NAME", "user") ?: "user"
+
+            selectedImageUri?.let { uri ->
+                if (uri.scheme == "content" || uri.scheme == "file") {
+                    val savedPath = FileUtils.saveImageLocally(
+                        this@RegisterCosechaActivity,
+                        uri,
+                        userId,
+                        userName,
+                        "cosecha",
+                        "cosecha_${System.currentTimeMillis()}.jpg"
+                    )
+                    finalFotoPath = savedPath
+                }
+            }
+
+            val nuevaCosecha = CosechaEntity(
+                cultivo_id = currentCultivoId,
+                fecha_cosecha = calendar.timeInMillis / 1000,
+                cantidad_kg = cantidad,
+                calidad = selectedCalidad,
+                lote_codigo = loteCodigo,
+                costo_operativo_cosecha = costoOp,
+                observaciones = observaciones,
+                foto_path = finalFotoPath,
+                created_at = System.currentTimeMillis() / 1000,
+                sincronizado = 0
+            )
+
             val id = db.assetDao().insertCosecha(nuevaCosecha)
             if (id > 0) {
                 if (marcarCosechado && currentCultivo != null) {
