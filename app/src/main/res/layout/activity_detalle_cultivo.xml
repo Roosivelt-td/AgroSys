@@ -104,15 +104,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="24dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="0dp">
+                    app:cardElevation="0dp"
+                    app:strokeColor="#f1f5f9"
+                    app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="#ffffff"
+                    android:background="#fafafa"
                     android:orientation="vertical"
-                    android:padding="24dp">
+                    android:padding="20dp">
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -191,30 +192,36 @@
                                 android:src="@drawable/uploap" />
 
                             <LinearLayout
+                                android:id="@+id/containerAcciones"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="bottom|end"
                                 android:layout_margin="12dp"
-                                android:orientation="horizontal">
+                                android:orientation="horizontal"
+                                android:visibility="visible">
 
                                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                                     android:id="@+id/btnEditCultivo"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginEnd="8dp"
-                                    app:fabSize="mini"
+                                    app:fabCustomSize="32dp"
+                                    app:maxImageSize="18dp"
                                     app:srcCompat="@drawable/ic_edit_01"
                                     app:tint="#15803d"
-                                    android:backgroundTint="#ffffff" />
+                                    android:backgroundTint="#ffffff"
+                                    app:elevation="2dp"/>
 
                                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                                     android:id="@+id/btnDeleteCultivoMini"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    app:fabSize="mini"
+                                    app:fabCustomSize="32dp"
+                                    app:maxImageSize="18dp"
                                     app:srcCompat="@android:drawable/ic_menu_delete"
                                     app:tint="#ef4444"
-                                    android:backgroundTint="#ffffff" />
+                                    android:backgroundTint="#ffffff"
+                                    app:elevation="2dp"/>
                             </LinearLayout>
 
                             <TextView
@@ -365,15 +372,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 app:cardCornerRadius="24dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
+                app:cardElevation="0dp"
+                app:strokeColor="#f1f5f9"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="#ffffff"
+                    android:background="#fafafa"
                     android:orientation="vertical"
-                    android:padding="24dp">
+                    android:padding="20dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -496,11 +504,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="12dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
                 android:text="@string/label_estado_del_cultivo"
                 android:textColor="#111827"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:textStyle="bold" />
 
             <HorizontalScrollView
@@ -558,7 +566,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="24dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -568,7 +576,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:textColor="#111827"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     android:textStyle="bold"
                     tools:text="Labores (0)" />
 
@@ -596,7 +604,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="24dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -606,7 +614,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:textColor="#111827"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     android:textStyle="bold"
                     tools:text="Cosechas (0)" />
 
@@ -634,17 +642,18 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#e2e8f0"
+                app:strokeColor="#f1f5f9"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:background="#fafafa"
                     android:padding="20dp">
 
                     <TextView
@@ -677,23 +686,6 @@
                     </RelativeLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnEliminarCultivo"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:layout_marginTop="32dp"
-                    android:layout_marginBottom="16dp"
-                    android:backgroundTint="#BD22C1"
-                    android:text="@string/btn_eliminar_cultivo"
-                    android:textAllCaps="false"
-                    android:textColor="#ffffff"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
-                    app:cornerRadius="16dp"
-                    app:icon="@android:drawable/ic_menu_delete"
-                    app:iconTint="#ffffff"
-                    app:elevation="4dp" />
 
                 <TextView
                     android:layout_width="match_parent"

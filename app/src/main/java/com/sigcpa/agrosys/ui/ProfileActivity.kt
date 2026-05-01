@@ -21,6 +21,7 @@ import com.sigcpa.agrosys.database.AppDatabase
 import com.sigcpa.agrosys.database.entities.*
 import com.sigcpa.agrosys.database.dao.UsuarioWithRol
 import com.sigcpa.agrosys.database.dao.RedSocialWithMetadata
+import com.sigcpa.agrosys.database.dao.SolicitudWithDetails
 import com.sigcpa.agrosys.databinding.ActivityProfileBinding
 import com.sigcpa.agrosys.databinding.DialogAddSocialNetworkBinding
 import com.sigcpa.agrosys.databinding.DialogChangePasswordBinding
@@ -114,6 +115,12 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun setupMenu() {
+        binding.menuAdminRequests.apply {
+            ivMenuIcon.setImageResource(R.drawable.ic_admin)
+            tvMenuTitle.text = "Solicitudes de Acceso"
+            root.setOnClickListener { showAdminRequestsModal() }
+        }
+
         binding.menuAdminCrops.apply {
             ivMenuIcon.setImageResource(R.drawable.agro_planta_hoja)
             tvMenuTitle.text = "Catálogo de Cultivos"
@@ -201,8 +208,8 @@ class ProfileActivity : AppCompatActivity() {
             binding.tvProfileLocation.text = user.ubicacion ?: "Ubicación no definida"
             binding.tvProfileRole.text = wrap.nombre_rol.replaceFirstChar { it.uppercase() }
             
-            // Mostrar sección de administración solo si es super_admin
-            binding.llAdminSection.visibility = if (wrap.nombre_rol == "super_admin") View.VISIBLE else View.GONE
+            // Mostrar sección de administración solo si es super_admin o admin_puro
+            binding.llAdminSection.visibility = if (wrap.nombre_rol == "super_admin" || user.es_admin_puro) View.VISIBLE else View.GONE
 
             // Lógica de botones de organización e información de rol
             lifecycleScope.launch {
@@ -717,6 +724,9 @@ class ProfileActivity : AppCompatActivity() {
         val etUbicacion = dialogView.findViewById<TextInputEditText>(R.id.etEditUbicacion)
         val etNivelEducativo = dialogView.findViewById<TextInputEditText>(R.id.etEditNivelEducativo)
         val etExperiencia = dialogView.findViewById<TextInputEditText>(R.id.etEditExperiencia)
+        val etEmail = dialogView.findViewById<TextInputEditText>(R.id.etEditEmail)
+        val etRol = dialogView.findViewById<TextInputEditText>(R.id.etEditRol)
+        val swActivo = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.swEditActivo)
 
         etNombre.setText(user.nombre)
         etApellidos.setText(user.apellidos)
@@ -725,10 +735,55 @@ class ProfileActivity : AppCompatActivity() {
         etUbicacion.setText(user.ubicacion)
         etNivelEducativo.setText(user.nivel_educativo)
         etExperiencia.setText(user.experiencia_anios.toString())
+        etEmail.setText(user.email)
+        etRol.setText(userWithRol?.nombre_rol ?: "")
+        swActivo.isChecked = user.is_activo == 1
+
+        val isSuperAdmin = userWithRol?.nombre_rol == "super_admin"
+        etRol.isEnabled = isSuperAdmin
+        swActivo.isEnabled = isSuperAdmin
+
+        // Si es super_admin, al hacer clic en Rol mostramos selector
+        if (isSuperAdmin) {
+            etRol.setOnClickListener {
+                showRoleSelectorDialog(etRol)
+            }
+        }
 
         val dialog = MaterialAlertDialogBuilder(this).setView(dialogView).create()
 
         dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveProfile).setOnClickListener {
+            val selectedRolName = etRol.text.toString()
+            val currentRolName = userWithRol?.nombre_rol ?: ""
+
+            if (selectedRolName != currentRolName && isSuperAdmin) {
+                showAdminAuthDialog {
+                    saveProfileChanges(etNombre, etApellidos, etDni, etTelefono, etUbicacion, etNivelEducativo, etExperiencia, etRol, swActivo, dialog)
+                }
+            } else {
+                saveProfileChanges(etNombre, etApellidos, etDni, etTelefono, etUbicacion, etNivelEducativo, etExperiencia, etRol, swActivo, dialog)
+            }
+        }
+        dialog.show()
+    }
+
+    private fun saveProfileChanges(
+        etNombre: TextInputEditText,
+        etApellidos: TextInputEditText,
+        etDni: TextInputEditText,
+        etTelefono: TextInputEditText,
+        etUbicacion: TextInputEditText,
+        etNivelEducativo: TextInputEditText,
+        etExperiencia: TextInputEditText,
+        etRol: TextInputEditText,
+        swActivo: com.google.android.material.switchmaterial.SwitchMaterial,
+        dialog: androidx.appcompat.app.AlertDialog?
+    ) {
+        val user = currentUser ?: return
+        lifecycleScope.launch {
+            val selectedRolName = etRol.text.toString()
+            val role = db.userDao().getRolByName(selectedRolName)
+
             val updatedUser = user.copy(
                 nombre = etNombre.text.toString(),
                 apellidos = etApellidos.text.toString(),
@@ -737,16 +792,58 @@ class ProfileActivity : AppCompatActivity() {
                 ubicacion = etUbicacion.text.toString(),
                 nivel_educativo = etNivelEducativo.text.toString(),
                 experiencia_anios = etExperiencia.text.toString().toIntOrNull() ?: 0,
+                rol_id = role?.id ?: user.rol_id,
+                is_activo = if (swActivo.isChecked) 1 else 0,
                 updated_at = System.currentTimeMillis() / 1000
             )
-            lifecycleScope.launch {
-                db.userDao().updateUsuario(updatedUser)
-                currentUser = updatedUser
-                updateUIWithUserData()
-                dialog.dismiss()
+
+            db.userDao().updateUsuario(updatedUser)
+            currentUser = updatedUser
+            userWithRol = db.userDao().getUsuarioById(user.id)
+            updateUIWithUserData()
+            dialog?.dismiss()
+            Toast.makeText(this@ProfileActivity, "Perfil actualizado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showAdminAuthDialog(onSuccess: () -> Unit) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_admin_auth, null)
+        val etPassword = dialogView.findViewById<TextInputEditText>(R.id.etAdminPassword)
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle("Autorización Requerida")
+            .setMessage("Para cambiar roles sensibles, por favor ingrese su contraseña de administrador.")
+            .setView(dialogView)
+            .setPositiveButton("Confirmar", null)
+            .setNegativeButton("Cancelar", null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val password = etPassword.text.toString()
+                if (password == currentUser?.password) {
+                    dialog.dismiss()
+                    onSuccess()
+                } else {
+                    Toast.makeText(this, "Contraseña incorrecta", Toast.LENGTH_SHORT).show()
+                }
             }
         }
         dialog.show()
+    }
+
+    private fun showRoleSelectorDialog(etRol: TextInputEditText) {
+        lifecycleScope.launch {
+            val roles = db.userDao().getAllRoles()
+            val roleNames = roles.map { it.nombre }.toTypedArray()
+            
+            MaterialAlertDialogBuilder(this@ProfileActivity)
+                .setTitle("Seleccionar Rol")
+                .setItems(roleNames) { _, which ->
+                    etRol.setText(roleNames[which])
+                }
+                .show()
+        }
     }
 
     private fun confirmViewCatalog(tipo: String) {
@@ -977,6 +1074,82 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun AppDatabase.execSQL(sql: String, args: Array<Any?>) {
         this.openHelper.writableDatabase.execSQL(sql, args)
+    }
+
+    private fun showAdminRequestsModal() {
+        val dialogBinding = DialogAdminListBinding.inflate(layoutInflater)
+        dialogBinding.tvAdminListTitle.text = "Solicitudes Pendientes"
+        dialogBinding.btnAddRecord.visibility = View.GONE
+        dialogBinding.btnImportJson.visibility = View.GONE
+
+        val adapter = AdminCatalogAdapter(emptyList()) { item ->
+            val solicitud = item.rawObject as SolicitudWithDetails
+            showHandleRequestDialog(solicitud) { showAdminRequestsModal() }
+        }
+        dialogBinding.rvAdminRecords.adapter = adapter
+
+        lifecycleScope.launch {
+            val user = currentUser ?: return@launch
+            val solicitudes = if (user.es_admin_puro) {
+                db.userDao().getSolicitudesPendientes()
+            } else {
+                db.userDao().getSolicitudesParaAdmin(user.id)
+            }
+
+            val items = solicitudes.map { 
+                val sub = when(it.solicitud.tipo_solicitud) {
+                    "unirse" -> "Quiere unirse a ${it.org_nombre}"
+                    "ascenso_supervisor" -> "Solicita ser Supervisor en ${it.org_nombre}"
+                    else -> it.solicitud.tipo_solicitud
+                }
+                CatalogItem(it.solicitud.id, "${it.user_nombre} ${it.user_apellidos}", sub, it) 
+            }
+            adapter.updateData(items)
+        }
+
+        MaterialAlertDialogBuilder(this).setView(dialogBinding.root).show()
+    }
+
+    private fun showHandleRequestDialog(item: SolicitudWithDetails, onHandled: () -> Unit) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Gestionar Solicitud")
+            .setMessage("¿Qué deseas hacer con la solicitud de ${item.user_nombre}?")
+            .setPositiveButton("Aprobar") { _, _ ->
+                handleSolicitud(item, "aprobado", onHandled)
+            }
+            .setNegativeButton("Rechazar") { _, _ ->
+                handleSolicitud(item, "rechazado", onHandled)
+            }
+            .setNeutralButton("Cancelar", null)
+            .show()
+    }
+
+    private fun handleSolicitud(item: SolicitudWithDetails, nuevoEstado: String, onHandled: () -> Unit) {
+        lifecycleScope.launch {
+            val solicitud = item.solicitud.copy(estado = nuevoEstado)
+            db.userDao().updateSolicitud(solicitud)
+
+            if (nuevoEstado == "aprobado") {
+                if (solicitud.tipo_solicitud == "unirse") {
+                    db.userDao().insertMiembroOrganizacion(MiembroOrganizacionEntity(
+                        usuario_id = solicitud.usuario_id,
+                        organizacion_id = solicitud.organizacion_id,
+                        estado = "activo"
+                    ))
+                } else if (solicitud.tipo_solicitud == "ascenso_supervisor") {
+                    val user = db.userDao().getUsuarioById(solicitud.usuario_id)?.usuario
+                    val supervisorRol = db.userDao().getRolByName("supervisor")
+                    if (user != null && supervisorRol != null) {
+                        db.userDao().updateUsuario(user.copy(rol_id = supervisorRol.id))
+                    }
+                }
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@ProfileActivity, "Solicitud $nuevoEstado", Toast.LENGTH_SHORT).show()
+                onHandled()
+            }
+        }
     }
 
     private fun showChangePasswordDialog() {

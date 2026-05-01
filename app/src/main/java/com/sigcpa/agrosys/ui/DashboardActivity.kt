@@ -131,7 +131,7 @@ class DashboardActivity : AppCompatActivity() {
         setupUI(userName, userRole)
         setupRecyclerView()
         observeWeatherData()
-        checkAdminAccess(userRole)
+        // El acceso admin se verificará dentro de loadUserData para tener el objeto Usuario completo
     }
 
     private fun setupRecyclerView() {
@@ -142,8 +142,13 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkAdminAccess(role: String) {
-        if (role == "admin" || role == "administrador" || role == "supervisor") {
+    private fun checkAdminAccess(userWithRol: com.sigcpa.agrosys.database.dao.UsuarioWithRol?) {
+        // Solo entra si es admin_puro (el dueño del sistema) 
+        // o si es un supervisor (rol de rango medio)
+        val isAdmin = userWithRol?.usuario?.es_admin_puro == true
+        val isSupervisor = userWithRol?.nombre_rol?.lowercase() == "supervisor"
+        
+        if (isAdmin || isSupervisor) {
             binding.cvAdminPanel.visibility = View.VISIBLE
             binding.btnManageCatalogs.setOnClickListener {
                 showAddCatalogDialog()
@@ -151,6 +156,9 @@ class DashboardActivity : AppCompatActivity() {
             binding.btnManageUsers.setOnClickListener {
                 Toast.makeText(this, getString(R.string.msg_admin_users_enabled), Toast.LENGTH_SHORT).show()
             }
+        } else {
+            // SI NO ES NINGUNO DE LOS ANTERIORES, OCULTAR SIEMPRE
+            binding.cvAdminPanel.visibility = View.GONE
         }
     }
 
@@ -225,6 +233,10 @@ class DashboardActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val user = db.userDao().getUsuarioById(userId)
             currentUser = user
+            
+            // Verificar acceso administrativo aquí con el objeto completo
+            checkAdminAccess(user)
+
             user?.let {
                 binding.tvWelcomeUser.text = it.usuario.nombre
                 binding.tvUserInfoLine.text = it.nombre_rol.replaceFirstChar { char -> char.uppercase() }

@@ -27,6 +27,12 @@ interface UserDao {
     """)
     suspend fun getUsuarioById(id: Int): UsuarioWithRol?
 
+    @Query("SELECT COUNT(*) FROM usuarios")
+    suspend fun countUsuarios(): Int
+
+    @Query("SELECT * FROM roles")
+    suspend fun getAllRoles(): List<RolEntity>
+
     @Query("SELECT * FROM roles WHERE nombre = :nombreRol LIMIT 1")
     suspend fun getRolByName(nombreRol: String): RolEntity?
 
@@ -63,6 +69,27 @@ interface UserDao {
 
     @Insert
     suspend fun insertSolicitud(solicitud: SolicitudUsuarioEntity): Long
+
+    @Update
+    suspend fun updateSolicitud(solicitud: SolicitudUsuarioEntity)
+
+    @Query("""
+        SELECT s.*, u.nombre as user_nombre, u.apellidos as user_apellidos, o.nombre as org_nombre 
+        FROM solicitudes_usuario s
+        JOIN usuarios u ON s.usuario_id = u.id
+        JOIN organizaciones o ON s.organizacion_id = o.id
+        WHERE s.estado = 'pendiente'
+    """)
+    suspend fun getSolicitudesPendientes(): List<SolicitudWithDetails>
+
+    @Query("""
+        SELECT s.*, u.nombre as user_nombre, u.apellidos as user_apellidos, o.nombre as org_nombre 
+        FROM solicitudes_usuario s
+        JOIN usuarios u ON s.usuario_id = u.id
+        JOIN organizaciones o ON s.organizacion_id = o.id
+        WHERE o.administrador_id = :adminId AND s.estado = 'pendiente'
+    """)
+    suspend fun getSolicitudesParaAdmin(adminId: Int): List<SolicitudWithDetails>
 
     @Insert
     suspend fun insertMiembroOrganizacion(miembro: MiembroOrganizacionEntity): Long
@@ -111,4 +138,11 @@ data class RedSocialWithMetadata(
     @Embedded val redSocial: RedSocialEntity,
     val tipo_nombre: String,
     val color_hex: String?
+)
+
+data class SolicitudWithDetails(
+    @Embedded val solicitud: SolicitudUsuarioEntity,
+    val user_nombre: String,
+    val user_apellidos: String,
+    val org_nombre: String
 )

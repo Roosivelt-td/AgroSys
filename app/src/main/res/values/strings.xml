@@ -183,6 +183,7 @@
     <string name="btn_renovar_alquiler">Renovar Alquiler</string>
     <string name="title_renovar_alquiler">Renovar Alquiler del Terreno</string>
     <string name="btn_actualizar">Actualizar</string>
+    <string name="btn_editar">Editar</string>
     <string name="msg_alquiler_actualizado">✅ Alquiler actualizado correctamente</string>
     <string name="label_alerta_vencimiento">⚠️ EL ALQUILER VENCE EN %1$d DÍAS</string>
     <string name="label_alerta_vencido">🚨 EL ALQUILER HA VENCIDO</string>
@@ -210,6 +211,8 @@
     <string name="label_observaciones_notas">Observaciones / Notas *</string>
     <string name="hint_escribe_notas">Escribe notas sobre este cultivo...</string>
     <string name="btn_registrar_cultivo">Registrar Cultivo</string>
+    <string name="btn_actualizar_cultivo">Actualizar Cultivo</string>
+    <string name="header_editar_cultivo">Editar Cultivo</string>
 
     <!-- Register Cosecha -->
     <string name="label_fecha_cosecha">Fecha de cosecha *</string>
@@ -259,6 +262,8 @@
     <string name="error_fecha_planificada_required">⚠️ La fecha planificada es obligatoria</string>
     <string name="error_insufficient_area">❌ Área insuficiente. Disponible: %1$.2f ha</string>
     <string name="msg_cultivo_registered">✅ Cultivo registrado</string>
+    <string name="label_terreno_lleno">LLENO</string>
+    <string name="label_terreno_disponible">DISPONIBLE</string>
 
     <!-- Register Labor Strings -->
     <string name="label_last_time">Última vez: %1$s</string>

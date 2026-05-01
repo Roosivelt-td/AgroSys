@@ -159,17 +159,21 @@ class RegisterTerrenoActivity : AppCompatActivity() {
     }
 
     private fun openCamera() {
-        val photoFile = File(
-            getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-            "IMG_${System.currentTimeMillis()}.jpg"
-        )
-        cameraImageUri = FileProvider.getUriForFile(
-            this,
-            "${packageName}.fileprovider",
-            photoFile
-        )
-        cameraImageUri?.let {
-            takePhotoLauncher.launch(it)
+        try {
+            val photoFile = File(
+                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                "IMG_${System.currentTimeMillis()}.jpg"
+            )
+            cameraImageUri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                photoFile
+            )
+            cameraImageUri?.let {
+                takePhotoLauncher.launch(it)
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al abrir la cámara", Toast.LENGTH_SHORT).show()
         }
     }
 

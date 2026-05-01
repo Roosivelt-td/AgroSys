@@ -12,6 +12,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.sigcpa.agrosys.database.entities.TerrenoEntity
 import com.sigcpa.agrosys.databinding.DialogSelectTerrenoBinding
 import com.sigcpa.agrosys.databinding.ItemTerrenoSelectorBinding
+import com.bumptech.glide.Glide
+import android.net.Uri
+import java.io.File
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -115,8 +118,8 @@ class CultivosListActivity : AppCompatActivity() {
 
         binding.navReportes.setOnClickListener {
             if (hasCultivos) {
-                // Ir a reportes (en desarrollo)
-                Toast.makeText(this, getString(R.string.msg_reportes_dev), Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, ReportesActivity::class.java))
+                finish()
             } else {
                 Toast.makeText(this, getString(R.string.error_require_siembra), Toast.LENGTH_SHORT).show()
             }
@@ -143,6 +146,7 @@ class CultivosListActivity : AppCompatActivity() {
 
     private fun updateFilterUI(selectedFilter: String, allViews: Collection<TextView>) {
         allViews.forEach { view ->
+            view.backgroundTintList = getColorStateList(android.R.color.transparent)
             view.setBackgroundResource(com.sigcpa.agrosys.R.drawable.rounded_background)
             view.backgroundTintList = getColorStateList(android.R.color.darker_gray).withAlpha(30)
             view.setTextColor(getColor(android.R.color.tab_indicator_text))
@@ -157,6 +161,8 @@ class CultivosListActivity : AppCompatActivity() {
             else -> binding.filterTodos
         }
         
+        selectedView.backgroundTintList = getColorStateList(android.R.color.transparent)
+        selectedView.setBackgroundResource(com.sigcpa.agrosys.R.drawable.rounded_background)
         selectedView.backgroundTintList = getColorStateList(com.sigcpa.agrosys.R.color.black)
         selectedView.setTextColor(getColor(android.R.color.white))
     }
@@ -206,9 +212,13 @@ class CultivosListActivity : AppCompatActivity() {
             val user = db.userDao().getUsuarioById(userId)
             if (user != null) {
                 val terrenos = db.assetDao().getTerrenosByAgricultor(user.usuario.id)
+                val terrenosConArea = terrenos.map { terreno ->
+                    val areaOcupada = db.assetDao().getAreaOcupadaByTerreno(terreno.id) ?: 0.0
+                    Pair(terreno, areaOcupada)
+                }
                 
                 dialogBinding.rvTerrenosSelector.layoutManager = LinearLayoutManager(this@CultivosListActivity)
-                dialogBinding.rvTerrenosSelector.adapter = TerrenosSelectorAdapter(terrenos) { id ->
+                dialogBinding.rvTerrenosSelector.adapter = TerrenosSelectorAdapter(terrenosConArea) { id ->
                     selectedTerrenoId = id
                     dialogBinding.btnConfirmarSeleccion.isEnabled = true
                 }
@@ -228,7 +238,7 @@ class CultivosListActivity : AppCompatActivity() {
     }
 
     inner class TerrenosSelectorAdapter(
-        private val lista: List<TerrenoEntity>,
+        private val lista: List<Pair<TerrenoEntity, Double>>,
         private val onSelected: (Int) -> Unit
     ) : RecyclerView.Adapter<TerrenosSelectorAdapter.ViewHolder>() {
         
@@ -240,32 +250,79 @@ class CultivosListActivity : AppCompatActivity() {
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val item = lista[position]
+            val (item, areaOcupada) = lista[position]
+            val areaTotal = item.area_hectareas
+            val areaDisponible = maxOf(0.0, areaTotal - areaOcupada)
+            val estaLleno = areaDisponible <= 0.0
+            val porcentajeOcupado = if (areaTotal > 0) (areaOcupada / areaTotal).toFloat() else 0f
+
             holder.binding.tvNombreTerreno.text = item.nombre
             holder.binding.tvUbicacionTerreno.text = item.direccion_referencia ?: "Sin ubicación"
-            holder.binding.tvAreaTerreno.text = "${item.area_hectareas} ha"
-            holder.binding.tvTenenciaTerreno.text = item.tipo_tenencia.capitalize()
+            
+            val df = java.text.DecimalFormat("#.##")
+            val areaTexto = "${df.format(areaDisponible)} ha libres de ${df.format(areaTotal)} ha"
+            holder.binding.tvAreaTerreno.text = areaTexto
+
+            holder.binding.tvStatusOverlay.visibility = View.VISIBLE
+            if (estaLleno) {
+                holder.binding.tvStatusOverlay.text = holder.itemView.context.getString(R.string.label_terreno_lleno)
+                holder.binding.tvStatusOverlay.background = androidx.appcompat.content.res.AppCompatResources.getDrawable(holder.itemView.context, R.drawable.bg_status_badge)
+                (holder.binding.tvStatusOverlay.background as android.graphics.drawable.GradientDrawable).setColor(android.graphics.Color.parseColor("#FEE2E2"))
+                holder.binding.tvStatusOverlay.setTextColor(android.graphics.Color.parseColor("#DC2626"))
+                
+                holder.binding.tvAreaTerreno.setTextColor(android.graphics.Color.parseColor("#DC2626"))
+                holder.binding.cardTerrenoSelector.setStrokeColor(android.graphics.Color.parseColor("#FEE2E2"))
+                holder.binding.cardTerrenoSelector.setCardBackgroundColor(android.graphics.Color.parseColor("#FFF1F2"))
+                holder.itemView.alpha = 1.0f
+            } else {
+                holder.binding.tvStatusOverlay.text = holder.itemView.context.getString(R.string.label_terreno_disponible)
+                holder.binding.tvStatusOverlay.background = androidx.appcompat.content.res.AppCompatResources.getDrawable(holder.itemView.context, R.drawable.bg_status_badge)
+                (holder.binding.tvStatusOverlay.background as android.graphics.drawable.GradientDrawable).setColor(android.graphics.Color.parseColor("#DCFCE7"))
+                holder.binding.tvStatusOverlay.setTextColor(android.graphics.Color.parseColor("#15803D"))
+                
+                holder.binding.tvAreaTerreno.setTextColor(android.graphics.Color.parseColor("#15803D"))
+                holder.binding.cardTerrenoSelector.setStrokeColor(android.graphics.Color.parseColor("#F1F5F9"))
+                holder.binding.cardTerrenoSelector.setCardBackgroundColor(android.graphics.Color.WHITE)
+                holder.itemView.alpha = 1.0f
+            }
+
+            // Cargar imagen del terreno
+            if (!item.foto_path.isNullOrEmpty()) {
+                val file = File(item.foto_path)
+                val uri = if (file.exists()) Uri.fromFile(file) else Uri.parse(item.foto_path)
+                
+                holder.binding.ivTerrenoPhotoSelector.imageTintList = null
+                Glide.with(holder.itemView.context)
+                    .load(uri)
+                    .centerCrop()
+                    .placeholder(R.drawable.ic_ubicacion_terreno)
+                    .into(holder.binding.ivTerrenoPhotoSelector)
+            } else {
+                holder.binding.ivTerrenoPhotoSelector.setImageResource(R.drawable.ic_ubicacion_terreno)
+                holder.binding.ivTerrenoPhotoSelector.imageTintList = android.content.res.ColorStateList.valueOf(
+                    android.graphics.Color.parseColor("#15803d")
+                )
+            }
 
             val isSelected = selectedPos == position
             holder.binding.rbSelected.isChecked = isSelected
+            holder.binding.rbSelected.isEnabled = !estaLleno
             
             // Estilo visual llamativo para la selección
             if (isSelected) {
                 holder.binding.cardTerrenoSelector.strokeColor = android.graphics.Color.parseColor("#15803d")
                 holder.binding.cardTerrenoSelector.strokeWidth = 4
                 holder.binding.cardTerrenoSelector.setCardBackgroundColor(android.graphics.Color.parseColor("#F0FDF4"))
-            } else {
-                holder.binding.cardTerrenoSelector.strokeColor = android.graphics.Color.parseColor("#E5E7EB")
-                holder.binding.cardTerrenoSelector.strokeWidth = 2
-                holder.binding.cardTerrenoSelector.setCardBackgroundColor(android.graphics.Color.WHITE)
             }
 
             holder.itemView.setOnClickListener {
-                val oldPos = selectedPos
-                selectedPos = holder.adapterPosition
-                notifyItemChanged(oldPos)
-                notifyItemChanged(selectedPos)
-                onSelected(item.id)
+                if (!estaLleno) {
+                    val oldPos = selectedPos
+                    selectedPos = holder.adapterPosition
+                    notifyItemChanged(oldPos)
+                    notifyItemChanged(selectedPos)
+                    onSelected(item.id)
+                }
             }
         }
 

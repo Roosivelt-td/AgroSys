@@ -385,12 +385,15 @@ class DetalleTerrenoActivity : AppCompatActivity() {
             
             val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
             
-            val fechaSiembraStr = sdf.format(Date(item.fecha_siembra * 1000))
-            holder.binding.tvFecha.text = "S: $fechaSiembraStr"
+            val siembra = item.fecha_siembra
+            if (siembra != null) {
+                holder.binding.tvFecha.text = "S: ${sdf.format(Date(siembra * 1000))}"
+            } else {
+                holder.binding.tvFecha.text = "P: ${sdf.format(Date((item.fecha_planificada ?: 0L) * 1000))}"
+            }
 
-            if (item.fecha_planificada != null) {
-                val fechaPlanificadaStr = sdf.format(Date(item.fecha_planificada * 1000))
-                holder.binding.tvFechaPlanificada.text = "P: $fechaPlanificadaStr"
+            if (siembra != null && item.fecha_planificada != null) {
+                holder.binding.tvFechaPlanificada.text = "P: ${sdf.format(Date(item.fecha_planificada * 1000))}"
                 holder.binding.tvFechaPlanificada.visibility = android.view.View.VISIBLE
             } else {
                 holder.binding.tvFechaPlanificada.visibility = android.view.View.GONE

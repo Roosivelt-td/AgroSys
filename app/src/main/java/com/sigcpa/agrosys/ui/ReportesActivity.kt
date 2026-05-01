@@ -2,6 +2,7 @@ package com.sigcpa.agrosys.ui
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Canvas
 import android.graphics.Color
@@ -60,18 +61,33 @@ class ReportesActivity : AppCompatActivity() {
         binding = ActivityReportesBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Forzar barra de estado verde y iconos blancos
+        window.statusBarColor = android.graphics.Color.parseColor("#15803D")
+        androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        // Ajustar el Header para que respete la barra de estado superior
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.headerContainer) { v, insets ->
+            val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            v.setPadding(
+                v.paddingLeft,
+                systemBars.top,
+                v.paddingRight,
+                v.paddingBottom
+            )
+            insets
+        }
+
         db = AppDatabase.getDatabase(this)
         
         // Obtener ID del agricultor de SharedPreferences
-        val sharedPref = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("agrosys_prefs", android.content.Context.MODE_PRIVATE)
         agricultorId = sharedPref.getInt("USER_ID", -1)
 
         setupRecyclerView()
         loadReportData()
+        setupNavigation()
 
-        binding.btnNavHome.setOnClickListener {
-            finish()
-        }
+        binding.btnBack.setOnClickListener { finish() }
 
         binding.btnExportar.setOnClickListener {
             if (lastReportData.isNotEmpty()) {
@@ -79,6 +95,27 @@ class ReportesActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun setupNavigation() {
+        binding.btnNavHome.setOnClickListener {
+            val intent = Intent(this, DashboardActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            startActivity(intent)
+            finish()
+        }
+        binding.btnNavTerrenos.setOnClickListener {
+            startActivity(Intent(this, TerrenosListActivity::class.java))
+            finish()
+        }
+        binding.btnNavCultivos.setOnClickListener {
+            startActivity(Intent(this, CultivosListActivity::class.java))
+            finish()
+        }
+        binding.btnNavLabores.setOnClickListener {
+            startActivity(Intent(this, LaboresListActivity::class.java))
+            finish()
         }
     }
 

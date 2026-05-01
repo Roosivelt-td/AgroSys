@@ -26,6 +26,7 @@ import java.util.*
 class RegisterLaborActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterLaborBinding
+    private var cultivoRelacionado: CultivoEntity? = null
     private val db by lazy { AppDatabase.getDatabase(this) }
     
     private var selectedCultivoId: Int = -1
@@ -113,6 +114,7 @@ class RegisterLaborActivity : AppCompatActivity() {
 
     private fun loadInitialState() {
         lifecycleScope.launch {
+            cultivoRelacionado = db.assetDao().getCultivoById(selectedCultivoId)
             laborsHistory = db.assetDao().getLaboresByCultivo(selectedCultivoId)
             yaPreparo = laborsHistory.any { it.catalogo_labor_id == 1 }
             yaSembro = laborsHistory.any { it.catalogo_labor_id == 2 }
@@ -274,10 +276,14 @@ class RegisterLaborActivity : AppCompatActivity() {
                 .setItems(options) { _, which ->
                     when (which) {
                         0 -> {
-                            val photoFile = java.io.File(getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES), "LABOR_${System.currentTimeMillis()}.jpg")
-                            cameraImageUri = androidx.core.content.FileProvider.getUriForFile(this, "${packageName}.fileprovider", photoFile)
-                            selectedImageUri = cameraImageUri
-                            takePhotoLauncher.launch(cameraImageUri!!)
+                            try {
+                                val photoFile = java.io.File(getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES), "LABOR_${System.currentTimeMillis()}.jpg")
+                                cameraImageUri = androidx.core.content.FileProvider.getUriForFile(this, "${packageName}.fileprovider", photoFile)
+                                selectedImageUri = cameraImageUri
+                                takePhotoLauncher.launch(cameraImageUri!!)
+                            } catch (e: Exception) {
+                                Toast.makeText(this@RegisterLaborActivity, "Error al abrir la cámara", Toast.LENGTH_SHORT).show()
+                            }
                         }
                         1 -> pickImageLauncher.launch("image/*")
                     }
@@ -352,6 +358,19 @@ class RegisterLaborActivity : AppCompatActivity() {
             val fechaSeleccionada = calendar.timeInMillis / 1000
             
             lifecycleScope.launch {
+                // Validación contra fecha de siembra del cultivo
+                val fechaReferencia = (cultivoRelacionado?.fecha_siembra ?: cultivoRelacionado?.fecha_planificada)
+                if (fechaReferencia != null && fechaSeleccionada < fechaReferencia) {
+                    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    val msg = if (cultivoRelacionado?.fecha_siembra != null) 
+                        "⚠️ La labor no puede ser anterior a la siembra (${sdf.format(Date(fechaReferencia * 1000))})"
+                    else 
+                        "⚠️ La labor no puede ser anterior a la fecha planificada (${sdf.format(Date(fechaReferencia * 1000))})"
+                    
+                    Toast.makeText(this@RegisterLaborActivity, msg, Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+
                 // Validación de fecha: Siembra (ID 2) >= Preparación (ID 1)
                 if (laborId == 2) {
                     val prepLabor = db.assetDao().getLaboresByCultivo(selectedCultivoId).find { it.catalogo_labor_id == 1 }

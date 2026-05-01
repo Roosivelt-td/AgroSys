@@ -24,15 +24,18 @@ class AuthRepository(context: Context) {
         requestSupervisor: Boolean = false
     ): Int = withContext(Dispatchers.IO) {
         try {
-            // Siempre se registra inicialmente como 'usuario' (agricultor)
-            val rol = userDao.getRolByName("usuario")
+            // Siempre buscar el rol de agricultor ("usuario")
+            val rolName = "usuario"
+            val rol = userDao.getRolByName(rolName)
+            
+            // Si el rol no existe (error de base de datos), no permitimos el registro
             if (rol == null) {
-                Log.e("AUTH_ERROR", "No se encontró el rol 'usuario' en la base de datos")
+                Log.e("AUTH_ERROR", "Error crítico: El rol '$rolName' no existe en la base de datos.")
                 return@withContext -1
             }
             
             val usuario = UsuarioEntity(
-                rol_id = rol.id,
+                rol_id = rol.id, // Ahora es seguro porque validamos el null arriba
                 nombre = userData["name"] ?: "",
                 apellidos = userData["lastName"] ?: "",
                 email = userData["email"] ?: "",
@@ -40,13 +43,14 @@ class AuthRepository(context: Context) {
                 dni = userData["dni"],
                 experiencia_anios = userData["experience"]?.toIntOrNull() ?: 0,
                 nivel_educativo = userData["education"],
-                telefono = userData["phone"]
+                telefono = userData["phone"],
+                es_admin_puro = false, // SEGURIDAD: Nadie entra como admin puro
+                organizacion_aprobada = true 
             )
             
             val userId = userDao.insertUsuario(usuario).toInt()
-            Log.d("AUTH_SUCCESS", "Usuario insertado con ID: $userId")
+            Log.d("AUTH_SUCCESS", "Usuario registrado: $userId con Rol ID: ${rol.id}")
 
-            // Si seleccionó una organización, crear la solicitud
             if (orgId != null) {
                 val tipoSolicitud = if (requestSupervisor) "ascenso_supervisor" else "unirse"
                 val solicitud = SolicitudUsuarioEntity(
@@ -56,9 +60,6 @@ class AuthRepository(context: Context) {
                     mensaje = if (requestSupervisor) "Deseo unirme como supervisor" else "Deseo unirme a la organización"
                 )
                 userDao.insertSolicitud(solicitud)
-                
-                // También podríamos crear una notificación para el administrador de la organización aquí
-                // Pero según el diseño, la solicitud en sí ya es lo que el admin verá.
             }
             
             userId

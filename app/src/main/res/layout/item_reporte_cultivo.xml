@@ -1,229 +1,203 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
+    app:cardElevation="0dp"
     app:strokeColor="#F1F5F9"
     app:strokeWidth="1dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:padding="16dp">
 
-        <!-- Header Item -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvCultivoNombre"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Papa Canchan"
+            android:textColor="#1E293B"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/tvGananciaCultivo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTerrenoNombre"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Lote 01"
+            android:textColor="#64748B"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@+id/tvGananciaCultivo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvCultivoNombre" />
+
+        <TextView
+            android:id="@+id/tvGananciaCultivo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="S/ 0.00"
+            android:textColor="#15803D"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/tvTerrenoNombre"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvCultivoNombre" />
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="#F1F5F9"
+            app:layout_constraintTop_toBottomOf="@id/tvTerrenoNombre" />
+
+        <GridLayout
+            android:id="@+id/glCosts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#F8FAFC"
-            android:orientation="horizontal"
-            android:padding="12dp">
+            android:layout_marginTop="12dp"
+            android:columnCount="2"
+            app:layout_constraintTop_toBottomOf="@id/divider">
 
-            <LinearLayout
+            <!-- Costo Preparación -->
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:layout_columnWeight="1"
+                android:text="Preparación"
+                android:textColor="#64748B"
+                android:textSize="12sp" />
 
-                <TextView
-                    android:id="@+id/tvCultivoNombre"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Papa Canchan"
-                    android:textColor="#1E293B"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvTerrenoNombre"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Lote 01"
-                    android:textColor="#64748B"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvCostoPrep"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:orientation="vertical">
+                android:text="S/ 0.00"
+                android:textColor="#1E293B"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ganancia"
-                    android:textColor="#64748B"
-                    android:textSize="10sp" />
+            <!-- Costo Siembra -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="Siembra"
+                android:textColor="#64748B"
+                android:textSize="12sp" />
 
-                <TextView
-                    android:id="@+id/tvGananciaCultivo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="S/ 0.00"
-                    android:textColor="#15803D"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </LinearLayout>
+            <TextView
+                android:id="@+id/tvCostoSiembra"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="S/ 0.00"
+                android:textColor="#1E293B"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
-        <!-- Detalle de Costos -->
+            <!-- Costo Mantenimiento -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="Mantenimiento"
+                android:textColor="#64748B"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvCostoMant"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="S/ 0.00"
+                android:textColor="#1E293B"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <!-- Costo Cosecha -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="Cosecha"
+                android:textColor="#64748B"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvCostoCosecha"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="S/ 0.00"
+                android:textColor="#1E293B"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </GridLayout>
+
+        <View
+            android:id="@+id/dividerTotal"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="#F8FAFC"
+            app:layout_constraintTop_toBottomOf="@id/glCosts" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="12dp">
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/dividerTotal">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:orientation="horizontal">
+                android:layout_weight="1"
+                android:text="Inversión Total"
+                android:textColor="#475569"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Preparación"
-                    android:textColor="#64748B"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/tvCostoPrep"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="S/ 0.00"
-                    android:textColor="#1E293B"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tvCostosTotales"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Siembra"
-                    android:textColor="#64748B"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/tvCostoSiembra"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="S/ 0.00"
-                    android:textColor="#1E293B"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Mantenimiento"
-                    android:textColor="#64748B"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/tvCostoMant"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="S/ 0.00"
-                    android:textColor="#1E293B"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Cosecha"
-                    android:textColor="#64748B"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/tvCostoCosecha"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="S/ 0.00"
-                    android:textColor="#1E293B"
-                    android:textSize="12sp" />
-            </LinearLayout>
+                android:text="S/ 0.00"
+                android:textColor="#EF4444"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
             <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:background="#F1F5F9" />
+                android:layout_width="16dp"
+                android:layout_height="0dp" />
 
-            <!-- Resumen Final -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:text="Ventas"
+                android:textColor="#475569"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Costos totales"
-                    android:textColor="#1E293B"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvCostosTotales"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="S/ 0.00"
-                    android:textColor="#1E293B"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tvIngresosTotales"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Ingresos"
-                    android:textColor="#1E293B"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvIngresosTotales"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="S/ 0.00"
-                    android:textColor="#1E293B"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                android:layout_marginStart="4dp"
+                android:text="S/ 0.00"
+                android:textColor="#15803D"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
-    </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

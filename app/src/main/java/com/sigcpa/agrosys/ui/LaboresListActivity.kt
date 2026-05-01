@@ -21,6 +21,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.database.AppDatabase
 import com.sigcpa.agrosys.database.entities.LaborRealizadaEntity
@@ -104,7 +105,8 @@ class LaboresListActivity : AppCompatActivity() {
         }
 
         binding.navReportes.setOnClickListener {
-            Toast.makeText(this, getString(R.string.msg_reportes_dev), Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, ReportesActivity::class.java))
+            finish()
         }
     }
 
@@ -117,7 +119,7 @@ class LaboresListActivity : AppCompatActivity() {
             val agricultorId = user.usuario.id
             val cultivos = db.assetDao().getCultivosByAgricultor(agricultorId)
                 .filter { it.estado == "activo" || it.estado == "planificado" }
-                .sortedByDescending { it.fecha_siembra }
+                .sortedByDescending { it.fecha_siembra ?: it.fecha_planificada ?: 0L }
 
             if (cultivos.isEmpty()) {
                 Toast.makeText(this@LaboresListActivity, "No tienes cultivos activos para registrar labores", Toast.LENGTH_SHORT).show()
@@ -125,10 +127,12 @@ class LaboresListActivity : AppCompatActivity() {
             }
 
             val dialogBinding = com.sigcpa.agrosys.databinding.DialogSelectCultivoBinding.inflate(layoutInflater)
-            val dialog = AlertDialog.Builder(this@LaboresListActivity, R.style.CustomDialogTheme)
-                .setView(dialogBinding.root)
-                .create()
-            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this@LaboresListActivity)
+            dialog.setContentView(dialogBinding.root)
+            
+            // Configurar para que ocupe buen espacio
+            dialog.behavior.peekHeight = (resources.displayMetrics.heightPixels * 0.75).toInt()
+            dialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 
             dialogBinding.rvCultivos.layoutManager = LinearLayoutManager(this@LaboresListActivity)
             dialogBinding.rvCultivos.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -142,15 +146,53 @@ class LaboresListActivity : AppCompatActivity() {
                 override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
                     val cultivo = cultivos[position]
                     val h = holder as SimpleViewHolder
+                    val context = h.itemView.context
+                    
                     h.itemBinding.tvNombre.text = cultivo.nombre_lote
                     
                     lifecycleScope.launch {
                         val terreno = db.assetDao().getTerrenoById(cultivo.terreno_id)
-                        h.itemBinding.tvDetalle.text = "${terreno?.nombre ?: "Sin terreno"} • ${cultivo.variedad}"
+                        h.itemBinding.tvDetalle.text = "${terreno?.nombre ?: "Sin terreno"} • ${cultivo.variedad ?: "Variedad N/A"}"
+                    }
+
+                    // Estado Badge
+                    h.itemBinding.tvEstado.text = cultivo.estado.uppercase()
+                    when(cultivo.estado.lowercase()) {
+                        "activo" -> {
+                            h.itemBinding.tvEstado.setTextColor(context.getColor(R.color.green_700))
+                            h.itemBinding.tvEstado.backgroundTintList = context.getColorStateList(R.color.green_100)
+                        }
+                        "planificado" -> {
+                            h.itemBinding.tvEstado.setTextColor(context.getColor(R.color.blue_700))
+                            h.itemBinding.tvEstado.backgroundTintList = context.getColorStateList(R.color.blue_100)
+                        }
+                        "en_cosecha" -> {
+                            h.itemBinding.tvEstado.text = "EN COSECHA"
+                            h.itemBinding.tvEstado.setTextColor(context.getColor(R.color.yellow_700))
+                            h.itemBinding.tvEstado.backgroundTintList = context.getColorStateList(R.color.yellow_100)
+                        }
                     }
 
                     val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                    h.itemBinding.tvFecha.text = "Fecha: ${sdf.format(Date(cultivo.fecha_siembra * 1000))}"
+                    val fechaLong = cultivo.fecha_siembra ?: cultivo.fecha_planificada ?: 0L
+                    val prefijo = if (cultivo.fecha_siembra != null) "Sembrado: " else "Planificado: "
+                    h.itemBinding.tvFecha.text = "$prefijo${sdf.format(Date(fechaLong * 1000))}"
+
+                    // Imagen del Cultivo
+                    if (!cultivo.foto_path.isNullOrEmpty()) {
+                        val file = java.io.File(cultivo.foto_path)
+                        if (file.exists()) {
+                            Glide.with(context)
+                                .load(file)
+                                .placeholder(R.drawable.agro_cosecha)
+                                .error(R.drawable.agro_cosecha)
+                                .into(h.itemBinding.ivIcon)
+                        } else {
+                            h.itemBinding.ivIcon.setImageResource(R.drawable.agro_cosecha)
+                        }
+                    } else {
+                        h.itemBinding.ivIcon.setImageResource(R.drawable.agro_cosecha)
+                    }
 
                     h.itemView.setOnClickListener {
                         dialog.dismiss()
@@ -176,6 +218,16 @@ class LaboresListActivity : AppCompatActivity() {
             val user = db.userDao().getUsuarioById(userId)
             if (user != null) {
                 val agricultorId = user.usuario.id
+                
+                // Obtener todos los terrenos del agricultor
+                val todosLosTerrenos = db.assetDao().getTerrenosByAgricultor(agricultorId)
+                
+                // Filtrar solo los terrenos que tienen al menos un cultivo (activo o planificado)
+                val terrenosConCultivos = todosLosTerrenos.filter { terreno ->
+                    val cultivos = db.assetDao().getCultivosActivosByTerreno(terreno.id)
+                    cultivos.isNotEmpty()
+                }
+
                 if (filterCultivoId != -1) {
                     val cultivo = db.assetDao().getCultivoById(filterCultivoId)
                     if (cultivo != null) {
@@ -191,8 +243,7 @@ class LaboresListActivity : AppCompatActivity() {
                     }
                 }
 
-                val terrenos = db.assetDao().getTerrenosActivosYPlanificados(agricultorId)
-                hasTerrenos = terrenos.isNotEmpty()
+                hasTerrenos = terrenosConCultivos.isNotEmpty()
                 
                 // Aplicar bloqueos visuales
                 binding.btnNuevaLabor.alpha = if (hasTerrenos) 1.0f else 0.4f
@@ -200,7 +251,7 @@ class LaboresListActivity : AppCompatActivity() {
                 binding.fabAdd.isEnabled = hasTerrenos
                 binding.navReportes.alpha = if (hasTerrenos) 1.0f else 0.4f
 
-                updateUI(terrenos)
+                updateUI(terrenosConCultivos)
             } else {
                 updateUI(emptyList())
             }
@@ -236,14 +287,33 @@ class LaboresListActivity : AppCompatActivity() {
             holder.binding.tvUbicacion.text = terreno.direccion_referencia ?: getString(R.string.label_sin_ubicacion)
             holder.binding.tvAreaTotal.text = "${terreno.area_hectareas} ${getString(R.string.unit_ha)}"
             
+            // Cargar imagen del terreno
+            if (!terreno.foto_path.isNullOrEmpty()) {
+                val file = java.io.File(terreno.foto_path)
+                if (file.exists()) {
+                    Glide.with(this@LaboresListActivity)
+                        .load(file)
+                        .placeholder(R.drawable.ic_estadistica_02)
+                        .error(R.drawable.ic_estadistica_02)
+                        .into(holder.binding.ivTerreno)
+                } else {
+                    holder.binding.ivTerreno.setImageResource(R.drawable.ic_estadistica_02)
+                }
+            } else {
+                holder.binding.ivTerreno.setImageResource(R.drawable.ic_estadistica_02)
+            }
+
             if (filterCultivoId != -1) {
                 holder.binding.root.setBackgroundColor(android.graphics.Color.parseColor("#F0FDF4"))
                 holder.binding.root.strokeWidth = 2
                 holder.binding.root.strokeColor = android.graphics.Color.parseColor("#15803D")
             }
             
-            holder.binding.chipEstado.text = terreno.estado.uppercase()
-            holder.binding.chipEstado.chipBackgroundColor = ColorStateList.valueOf(
+            holder.binding.tvEstadoTerreno.text = terreno.estado.uppercase()
+            holder.binding.tvEstadoTerreno.backgroundTintList = ColorStateList.valueOf(
+                if (terreno.estado == "activo") Color.parseColor("#DCFCE7") else Color.parseColor("#DBEAFE")
+            )
+            holder.binding.tvEstadoTerreno.setTextColor(
                 if (terreno.estado == "activo") Color.parseColor("#166534") else Color.parseColor("#1d4ed8")
             )
 
@@ -252,7 +322,15 @@ class LaboresListActivity : AppCompatActivity() {
                 val areaOcupada = cultivos.sumOf { it.area_destinada ?: 0.0 }
                 val areaDisponible = terreno.area_hectareas - areaOcupada
                 
-                holder.binding.tvCantCultivos.text = cultivos.size.toString()
+                // Conteos específicos
+                val activos = cultivos.count { it.estado == "activo" }
+                val planificados = cultivos.count { it.estado == "planificado" }
+                val enCosecha = cultivos.count { it.estado == "en_cosecha" }
+
+                holder.binding.tvActivos.text = activos.toString()
+                holder.binding.tvPlanificados.text = planificados.toString()
+                holder.binding.tvEnCosecha.text = enCosecha.toString()
+
                 holder.binding.tvAreaDisponible.text = "${String.format("%.2f", areaDisponible)} ${getString(R.string.unit_ha)}"
                 
                 holder.itemView.setOnClickListener {
@@ -316,7 +394,30 @@ class LaboresListActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val cultivo = cultivos[position]
             holder.binding.tvNombreCultivo.text = cultivo.nombre_lote ?: "${getString(R.string.label_cultivo)} #${cultivo.id}"
-            holder.binding.tvDetalleCultivo.text = "${cultivo.variedad} | ${cultivo.area_destinada} ${getString(R.string.unit_ha)}"
+            
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            val fechaLong = cultivo.fecha_siembra ?: cultivo.fecha_planificada ?: 0L
+            val prefijo = if (cultivo.fecha_siembra != null) "Sembrado: " else "Planificado: "
+            val fechaTexto = if (fechaLong > 0) "$prefijo${sdf.format(Date(fechaLong * 1000))}" else "Fecha N/A"
+
+            holder.binding.tvDetalleCultivo.text = "${cultivo.variedad} | $fechaTexto"
+            
+            // Cargar imagen del cultivo
+            if (!cultivo.foto_path.isNullOrEmpty()) {
+                val file = java.io.File(cultivo.foto_path)
+                if (file.exists()) {
+                    Glide.with(this@LaboresListActivity)
+                        .load(file)
+                        .centerCrop()
+                        .placeholder(R.drawable.agro_cosecha)
+                        .error(R.drawable.agro_cosecha)
+                        .into(holder.binding.ivCultivoModal)
+                } else {
+                    holder.binding.ivCultivoModal.setImageResource(R.drawable.agro_cosecha)
+                }
+            } else {
+                holder.binding.ivCultivoModal.setImageResource(R.drawable.agro_cosecha)
+            }
             
             holder.itemView.setOnClickListener { onClick(cultivo) }
         }

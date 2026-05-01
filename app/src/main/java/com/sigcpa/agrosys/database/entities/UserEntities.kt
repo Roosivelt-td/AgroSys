@@ -44,7 +44,9 @@ data class UsuarioEntity(
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val updated_at: Long = System.currentTimeMillis() / 1000,
     val deleted_at: Long? = null,
     val firebase_id: String? = null,
-    @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0
+    @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0,
+    @ColumnInfo(defaultValue = "0") val es_admin_puro: Boolean = false,
+    @ColumnInfo(defaultValue = "1") val organizacion_aprobada: Boolean = true
 )
 
 @Entity(

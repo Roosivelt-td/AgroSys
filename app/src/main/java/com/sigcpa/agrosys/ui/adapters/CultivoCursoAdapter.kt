@@ -27,7 +27,9 @@ class CultivoCursoAdapter(
 
         holder.binding.tvNombreCultivo.text = catalogo?.nombre ?: "Cultivo"
         holder.binding.tvTerrenoNombre.text = terreno?.nombre ?: "Sin terreno"
-        holder.binding.tvFechaSiembra.text = "Siembra: ${sdf.format(Date(cultivo.fecha_siembra * 1000))}"
+        val dateLong = cultivo.fecha_siembra ?: cultivo.fecha_planificada ?: 0L
+        val prefix = if (cultivo.fecha_siembra != null) "Siembra" else "Planificado"
+        holder.binding.tvFechaSiembra.text = "$prefix: ${sdf.format(Date(dateLong * 1000))}"
         holder.binding.tvArea.text = "${cultivo.area_destinada ?: 0.0} ha"
     }
 

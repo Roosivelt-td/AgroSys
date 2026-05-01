@@ -14,6 +14,16 @@ interface AssetDao {
     @Delete
     suspend fun deleteTerreno(terreno: TerrenoEntity)
 
+    @Query("""
+        SELECT 
+            t.*,
+            (SELECT COUNT(*) FROM cultivos c WHERE c.terreno_id = t.id AND c.deleted_at IS NULL) as cultivosCount,
+            (SELECT COALESCE(SUM(c2.area_destinada), 0.0) FROM cultivos c2 WHERE c2.terreno_id = t.id AND c2.estado != 'cosechado' AND c2.deleted_at IS NULL) as areaOcupada
+        FROM terrenos t
+        WHERE t.agricultor_id = :agricultorId AND t.deleted_at IS NULL
+    """)
+    suspend fun getTerrenosConStats(agricultorId: Int): List<com.sigcpa.agrosys.database.entities.TerrenoConStats>
+
     @Query("SELECT * FROM terrenos WHERE agricultor_id = :agricultorId AND estado IN ('activo', 'planificado') AND deleted_at IS NULL")
     suspend fun getTerrenosActivosYPlanificados(agricultorId: Int): List<TerrenoEntity>
 
@@ -42,20 +52,26 @@ interface AssetDao {
     @Query("SELECT * FROM cultivos WHERE id = :id")
     suspend fun getCultivoById(id: Int): CultivoEntity?
 
-    @Query("SELECT * FROM cultivos WHERE terreno_id = :terrenoId AND deleted_at IS NULL ORDER BY fecha_siembra DESC")
+    @Query("SELECT * FROM cultivos WHERE terreno_id = :terrenoId AND deleted_at IS NULL ORDER BY COALESCE(fecha_siembra, fecha_planificada, 0) DESC")
     suspend fun getCultivosByTerreno(terrenoId: Int): List<CultivoEntity>
 
     @Query("SELECT * FROM cultivos WHERE terreno_id = :terrenoId AND estado != 'cosechado' AND deleted_at IS NULL")
     suspend fun getCultivosActivosByTerreno(terrenoId: Int): List<CultivoEntity>
+
+    @Query("SELECT * FROM catalogo_cultivos WHERE es_personalizado = 0 OR usuario_creador_id = :userId")
+    suspend fun getCatalogoByUsuario(userId: Int): List<CatalogoCultivoEntity>
 
     @Query("SELECT * FROM catalogo_cultivos")
     suspend fun getCatalogoCultivos(): List<CatalogoCultivoEntity>
 
     @Query("""
         SELECT cc.* FROM catalogo_cultivos cc
-        LEFT JOIN cultivos c ON cc.id = c.catalogo_cultivo_id
-        GROUP BY cc.id
-        ORDER BY COUNT(c.id) DESC
+        LEFT JOIN (
+            SELECT catalogo_cultivo_id, COUNT(*) as usage_count 
+            FROM cultivos 
+            GROUP BY catalogo_cultivo_id
+        ) usage ON cc.id = usage.catalogo_cultivo_id
+        ORDER BY usage.usage_count DESC
         LIMIT 8
     """)
     suspend fun getMostUsedCatalogoCultivos(): List<CatalogoCultivoEntity>
@@ -189,7 +205,7 @@ interface AssetDao {
         SELECT cul.* FROM cultivos cul
         JOIN terrenos t ON cul.terreno_id = t.id
         WHERE t.agricultor_id = :agricultorId AND cul.estado = 'activo' AND cul.deleted_at IS NULL
-        ORDER BY cul.fecha_siembra DESC
+        ORDER BY COALESCE(cul.fecha_siembra, cul.fecha_planificada, 0) DESC
         LIMIT 5
     """)
     suspend fun getCultivosEnCursoByAgricultor(agricultorId: Int): List<CultivoEntity>

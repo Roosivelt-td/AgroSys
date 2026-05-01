@@ -24,28 +24,41 @@ class TerrenoSelectorAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val (terreno, areaOcupada) = terrenos[position]
-        val areaDisponible = maxOf(0.0, terreno.area_hectareas - areaOcupada)
+        val areaTotal = terreno.area_hectareas
+        val areaDisponible = maxOf(0.0, areaTotal - areaOcupada)
         val estaLleno = areaDisponible <= 0.0
+        val porcentajeOcupado = if (areaTotal > 0) (areaOcupada / areaTotal).toFloat() else 0f
 
         holder.binding.apply {
             tvNombreTerreno.text = terreno.nombre
             tvUbicacionTerreno.text = terreno.direccion_referencia ?: terreno.ubicacion_geo ?: "Sin ubicación"
             
-            val areaTexto = if (estaLleno) {
-                "SIN ÁREA DISPONIBLE"
-            } else {
-                "${String.format("%.2f", areaDisponible)} ha libres de ${terreno.area_hectareas} ha"
-            }
+            val df = java.text.DecimalFormat("#.##")
+            val areaTexto = "${df.format(areaDisponible)} ha libres de ${df.format(areaTotal)} ha"
             tvAreaTerreno.text = areaTexto
+
+            // Remove Progress Background logic as per new UI
+            // viewProgressBg.visibility = android.view.View.GONE
             
+            tvStatusOverlay.visibility = android.view.View.VISIBLE
             if (estaLleno) {
+                tvStatusOverlay.text = root.context.getString(R.string.label_terreno_lleno)
+                tvStatusOverlay.background = androidx.appcompat.content.res.AppCompatResources.getDrawable(root.context, R.drawable.bg_status_badge)
+                (tvStatusOverlay.background as android.graphics.drawable.GradientDrawable).setColor(android.graphics.Color.parseColor("#FEE2E2")) // Rojo muy claro
+                tvStatusOverlay.setTextColor(android.graphics.Color.parseColor("#DC2626")) // Rojo
+                
                 tvAreaTerreno.setTextColor(android.graphics.Color.parseColor("#DC2626")) // Rojo
                 cardTerrenoSelector.setStrokeColor(android.graphics.Color.parseColor("#FEE2E2"))
-                cardTerrenoSelector.setCardBackgroundColor(android.graphics.Color.parseColor("#FEF2F2"))
-                root.alpha = 0.7f
+                cardTerrenoSelector.setCardBackgroundColor(android.graphics.Color.parseColor("#FFF1F2")) // Fondo rojizo suave
+                root.alpha = 1.0f
             } else {
+                tvStatusOverlay.text = root.context.getString(R.string.label_terreno_disponible)
+                tvStatusOverlay.background = androidx.appcompat.content.res.AppCompatResources.getDrawable(root.context, R.drawable.bg_status_badge)
+                (tvStatusOverlay.background as android.graphics.drawable.GradientDrawable).setColor(android.graphics.Color.parseColor("#DCFCE7")) // Verde muy claro
+                tvStatusOverlay.setTextColor(android.graphics.Color.parseColor("#15803D")) // Verde
+                
                 tvAreaTerreno.setTextColor(android.graphics.Color.parseColor("#15803D")) // Verde
-                cardTerrenoSelector.setStrokeColor(android.graphics.Color.parseColor("#E5E7EB"))
+                cardTerrenoSelector.setStrokeColor(android.graphics.Color.parseColor("#F1F5F9"))
                 cardTerrenoSelector.setCardBackgroundColor(android.graphics.Color.WHITE)
                 root.alpha = 1.0f
             }
@@ -53,14 +66,23 @@ class TerrenoSelectorAdapter(
             tvTenenciaTerreno.text = terreno.tipo_tenencia.replaceFirstChar { it.uppercase() }
             
             terreno.foto_path?.let { path ->
+                val imageSource = if (path.startsWith("content://") || path.startsWith("file://")) {
+                    android.net.Uri.parse(path)
+                } else {
+                    java.io.File(path)
+                }
+
                 Glide.with(root.context)
-                    .load(path)
+                    .load(imageSource)
+                    .centerCrop()
                     .placeholder(R.drawable.ic_ubicacion_terreno)
+                    .error(R.drawable.ic_ubicacion_terreno)
                     .into(ivTerrenoPhotoSelector)
                 ivTerrenoPhotoSelector.clearColorFilter()
             } ?: run {
                 ivTerrenoPhotoSelector.setImageResource(R.drawable.ic_ubicacion_terreno)
                 ivTerrenoPhotoSelector.setColorFilter(android.graphics.Color.parseColor("#15803D"))
+                ivTerrenoPhotoSelector.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
             }
 
             rbSelected.isChecked = position == selectedPosition

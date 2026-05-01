@@ -70,12 +70,25 @@ class DetalleCultivoActivity : AppCompatActivity() {
     private fun setupUI() {
         binding.btnBack.setOnClickListener { finish() }
 
+        // El botón de mas opciones ahora puede usarse para otra cosa o mantenerse como decorativo/menú secundario
+        binding.btnMasOpciones.setOnClickListener {
+            // Podrías abrir un menú de reportes o simplemente dejarlo para info
+            Toast.makeText(this, "Opciones de cultivo", Toast.LENGTH_SHORT).show()
+        }
+
         binding.btnEditCultivo.setOnClickListener {
             currentCultivo?.let { cultivo ->
-                val intent = Intent(this, RegisterCultivoActivity::class.java)
-                intent.putExtra("CULTIVO_ID", cultivo.id)
-                intent.putExtra("TERRENO_ID", cultivo.terreno_id)
-                startActivity(intent)
+                AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.btn_editar))
+                    .setMessage("¿Desea modificar los datos de este cultivo?")
+                    .setPositiveButton(getString(R.string.btn_continuar)) { _, _ ->
+                        val intent = Intent(this, RegisterCultivoActivity::class.java)
+                        intent.putExtra("CULTIVO_ID", cultivo.id)
+                        intent.putExtra("TERRENO_ID", cultivo.terreno_id)
+                        startActivity(intent)
+                    }
+                    .setNegativeButton(getString(R.string.btn_cancelar), null)
+                    .show()
             }
         }
 
@@ -85,8 +98,6 @@ class DetalleCultivoActivity : AppCompatActivity() {
         binding.btnStatusActivo.setOnClickListener { updateStatus("activo") }
         binding.btnStatusCosechado.setOnClickListener { updateStatus("cosechado") }
         binding.btnStatusPerdido.setOnClickListener { updateStatus("perdido") }
-
-        binding.btnEliminarCultivo.setOnClickListener { mostrarDialogoEliminar() }
 
         binding.rvLabores.layoutManager = LinearLayoutManager(this)
         binding.rvCosechas.layoutManager = LinearLayoutManager(this)
@@ -142,7 +153,8 @@ class DetalleCultivoActivity : AppCompatActivity() {
             binding.tvHeaderVariedad.text = cultivo.variedad
             binding.tvArea.text = "${cultivo.area_destinada ?: 0.0} ha"
             binding.tvAreaTotalTerreno.text = "${currentTerreno?.area_hectareas ?: 0.0} ha"
-            binding.tvFechaSiembra.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(cultivo.fecha_siembra * 1000))
+            val fechaMostrar = (cultivo.fecha_siembra ?: cultivo.fecha_planificada ?: 0L) * 1000
+            binding.tvFechaSiembra.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(fechaMostrar))
 
             // Tenencia y Foto
             binding.tvTenenciaBadge.text = currentTerreno?.tipo_tenencia?.uppercase() ?: "PROPIO"
@@ -176,9 +188,10 @@ class DetalleCultivoActivity : AppCompatActivity() {
 
     private fun updateProgress(cultivo: CultivoEntity, catCultivo: CatalogoCultivoEntity?) {
         val diasEstimados = catCultivo?.dias_a_cosecha_promedio ?: 0
-        if (diasEstimados > 0 && cultivo.fecha_siembra > 0) {
+        val fechaSiembra = cultivo.fecha_siembra
+        if (diasEstimados > 0 && fechaSiembra != null && fechaSiembra > 0) {
             val fechaActualMs = System.currentTimeMillis()
-            val fechaSiembraMs = cultivo.fecha_siembra * 1000
+            val fechaSiembraMs = fechaSiembra * 1000
             val diasTranscurridos = ((fechaActualMs - fechaSiembraMs) / (1000 * 60 * 60 * 24)).toInt().coerceAtLeast(0)
             
             binding.tvDiaActual.text = getString(R.string.label_dia_count, diasTranscurridos)

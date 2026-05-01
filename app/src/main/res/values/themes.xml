@@ -61,12 +61,19 @@
         <item name="tint">#16a34a</item>
     </style>
 
-    <style name="LaborTextStyle">
+    <style name="LaborTextStyle" parent="">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">11sp</item>
         <item name="android:textColor">#374151</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textAlignment">center</item>
+    </style>
+
+    <style name="ShapeAppearance.AgroSys.CardImage" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerSizeTopLeft">16dp</item>
+        <item name="cornerSizeTopRight">0dp</item>
+        <item name="cornerSizeBottomLeft">16dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
     </style>
 </resources>

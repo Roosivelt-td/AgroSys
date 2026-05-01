@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <external-path name="my_images" path="Android/data/com.sigcpa.agrosys/files/Pictures" />
+    <external-files-path name="external_files" path="." />
     <files-path name="internal_images" path="." />
+    <external-cache-path name="external_cache" path="." />
 </paths>

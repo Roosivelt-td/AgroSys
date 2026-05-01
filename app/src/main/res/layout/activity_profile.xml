@@ -472,6 +472,10 @@
                     android:textStyle="bold" />
 
                 <include
+                    android:id="@+id/menuAdminRequests"
+                    layout="@layout/item_profile_menu" />
+
+                <include
                     android:id="@+id/menuAdminCrops"
                     layout="@layout/item_profile_menu" />
 

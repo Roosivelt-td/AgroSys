@@ -50,7 +50,9 @@ data class CatalogoCultivoEntity(
     val instrucciones_base_plagas: String?,
     @ColumnInfo(defaultValue = "(strftime('%s', 'now'))") val created_at: Long = System.currentTimeMillis() / 1000,
     @ColumnInfo(defaultValue = "0") val sincronizado: Int = 0,
-    val foto_path: String? = null
+    val foto_path: String? = null,
+    @ColumnInfo(defaultValue = "0") val es_personalizado: Int = 0, // 1 si fue creado por el usuario
+    val usuario_creador_id: Int? = null // ID del usuario que lo creó
 )
 
 @Entity(
@@ -77,7 +79,7 @@ data class CultivoEntity(
     val catalogo_cultivo_id: Int,
     val nombre_lote: String?,
     val fecha_planificada: Long? = null,
-    val fecha_siembra: Long,
+    val fecha_siembra: Long? = null,
     val fecha_finalizacion: Long?,
     @ColumnInfo(defaultValue = "activo") val estado: String = "activo",
     val area_destinada: Double?,

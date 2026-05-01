@@ -145,18 +145,37 @@
                                         android:textStyle="bold" />
                                 </LinearLayout>
 
-                                <TextView
-                                    android:id="@+id/badgeStatus"
+                                <LinearLayout
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_alignParentEnd="true"
-                                    android:background="@drawable/chip_bg_green"
-                                    android:paddingHorizontal="10dp"
-                                    android:paddingVertical="4dp"
-                                    android:text="Propio"
-                                    android:textColor="#ffffff"
-                                    android:textSize="10sp"
-                                    android:textStyle="bold" />
+                                    android:gravity="end"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:id="@+id/badgeStatus"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:background="@drawable/chip_bg_green"
+                                        android:paddingHorizontal="10dp"
+                                        android:paddingVertical="4dp"
+                                        android:text="Propio"
+                                        android:textColor="#ffffff"
+                                        android:textSize="10sp"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:id="@+id/btnSelectTerreno"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="8dp"
+                                        android:text="CAMBIAR"
+                                        android:textColor="#BD22C1"
+                                        android:textSize="11sp"
+                                        android:textStyle="bold"
+                                        android:clickable="true"
+                                        android:focusable="true"/>
+                                </LinearLayout>
                             </RelativeLayout>
 
                             <View
@@ -251,7 +270,8 @@
                         android:textStyle="bold" />
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        android:id="@+id/tilCultivo"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
@@ -261,7 +281,9 @@
                         app:boxCornerRadiusTopEnd="12dp"
                         app:boxCornerRadiusTopStart="12dp"
                         app:boxStrokeColor="#15803d"
-                        app:hintEnabled="false">
+                        app:hintEnabled="false"
+                        app:endIconMode="dropdown_menu"
+                        app:endIconTint="#15803d">
 
                         <AutoCompleteTextView
                             android:id="@+id/autoCompleteCultivo"
@@ -270,7 +292,8 @@
                             android:hint="@string/hint_busca_cultivo"
                             android:inputType="text"
                             android:paddingHorizontal="16dp"
-                            android:textSize="14sp" />
+                            android:textSize="14sp"
+                            android:completionThreshold="1" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- Sugerencias Rápidas -->
@@ -318,49 +341,63 @@
                         android:singleLine="true"
                         android:imeOptions="actionNext" />
 
-                    <!-- Fecha Planificada -->
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <!-- Nueva Sección de Fecha Unificada -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"
-                        android:text="@string/label_fecha_planificada"
-                        android:textColor="#374151"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:orientation="vertical">
 
-                    <EditText
-                        android:id="@+id/etFechaPlanificada"
-                        android:layout_width="match_parent"
-                        android:layout_height="54dp"
-                        android:layout_marginTop="6dp"
-                        android:background="@drawable/edit_text_elegant"
-                        android:clickable="true"
-                        android:focusable="false"
-                        android:hint="@string/hint_seleccionar_fecha"
-                        android:textSize="14sp"
-                        android:paddingHorizontal="16dp" />
+                        <RadioGroup
+                            android:id="@+id/rgTipoFecha"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
 
-                    <!-- Fecha Siembra -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:text="@string/label_fecha_siembra_real"
-                        android:textColor="#374151"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Fecha Siembra"
+                                android:textColor="#374151"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
 
-                    <EditText
-                        android:id="@+id/etFechaSiembra"
-                        android:layout_width="match_parent"
-                        android:layout_height="54dp"
-                        android:layout_marginTop="6dp"
-                        android:background="@drawable/edit_text_elegant"
-                        android:clickable="true"
-                        android:focusable="false"
-                        android:hint="@string/hint_opcional_fecha"
-                        android:textSize="14sp"
-                        android:paddingHorizontal="16dp" />
+                            <RadioButton
+                                android:id="@+id/rbSiembra"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checked="true"
+                                android:buttonTint="#15803d" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:text="Planificada"
+                                android:textColor="#374151"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <RadioButton
+                                android:id="@+id/rbPlanificada"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:buttonTint="#15803d" />
+                        </RadioGroup>
+
+                        <EditText
+                            android:id="@+id/etFechaUnica"
+                            android:layout_width="match_parent"
+                            android:layout_height="54dp"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/edit_text_elegant"
+                            android:clickable="true"
+                            android:focusable="false"
+                            android:hint="@string/hint_seleccionar_fecha"
+                            android:textSize="14sp"
+                            android:paddingHorizontal="16dp" />
+                    </LinearLayout>
 
                     <!-- Estado -->
                     <TextView
@@ -463,6 +500,45 @@
                         android:padding="16dp"
                         android:textSize="14sp"
                         android:imeOptions="actionDone" />
+
+                    <!-- Foto del Cultivo -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="Foto del Cultivo"
+                        android:textColor="#374151"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="180dp"
+                        android:layout_marginTop="8dp"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="#f1f5f9"
+                        app:strokeWidth="2dp">
+
+                        <ImageView
+                            android:id="@+id/ivCultivo"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="#f8fafc"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/ic_edit_01"
+                            app:tint="#cbd5e1" />
+
+                        <TextView
+                            android:id="@+id/tvAddFotoLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom|center_horizontal"
+                            android:layout_marginBottom="12dp"
+                            android:text="Toca para agregar foto"
+                            android:textColor="#94a3b8"
+                            android:textSize="11sp" />
+                    </com.google.android.material.card.MaterialCardView>
 
                     <!-- Save Button -->
                     <com.google.android.material.button.MaterialButton

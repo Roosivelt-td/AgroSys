@@ -121,14 +121,14 @@ class TerrenosListActivity : AppCompatActivity() {
             val user = db.userDao().getUsuarioById(userId)
             if (user != null) {
                 val agricultorId = user.usuario.id
-                val terrenos = db.assetDao().getTerrenosByAgricultor(agricultorId)
+                val terrenosConStats = db.assetDao().getTerrenosConStats(agricultorId)
                 val cultivos = db.assetDao().getCultivosByAgricultor(agricultorId)
                 
-                hasTerrenos = terrenos.isNotEmpty()
+                hasTerrenos = terrenosConStats.isNotEmpty()
                 hasCultivos = cultivos.isNotEmpty()
                 
                 applyLocks()
-                updateUI(terrenos)
+                updateUI(terrenosConStats)
             } else {
                 updateUI(emptyList())
             }
@@ -142,7 +142,7 @@ class TerrenosListActivity : AppCompatActivity() {
         binding.navReportes.alpha = if (hasCultivos) 1.0f else 0.4f
     }
 
-    private fun updateUI(terrenos: List<com.sigcpa.agrosys.database.entities.TerrenoEntity>) {
+    private fun updateUI(terrenos: List<com.sigcpa.agrosys.database.entities.TerrenoConStats>) {
         if (terrenos.isEmpty()) {
             binding.emptyState.visibility = View.VISIBLE
             binding.rvTerrenos.visibility = View.GONE
