@@ -22,6 +22,7 @@ import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.database.AppDatabase
 import com.sigcpa.agrosys.database.entities.CatalogoCultivoEntity
 import com.sigcpa.agrosys.database.entities.CultivoEntity
+import com.sigcpa.agrosys.database.entities.LaborRealizadaEntity
 import com.sigcpa.agrosys.database.entities.TerrenoEntity
 import com.sigcpa.agrosys.databinding.ActivityRegisterCultivoBinding
 import com.sigcpa.agrosys.databinding.DialogAddCustomCultivoBinding
@@ -561,6 +562,31 @@ class RegisterCultivoActivity : AppCompatActivity() {
             }
 
             if (id > 0) {
+                // Registrar costo de alquiler como labor inicial si el terreno es alquilado
+                if (terreno.tipo_tenencia.lowercase() == "alquilado" && existingCultivo == null) {
+                    val baseCosto = terreno.costo_alquiler_anual
+                    val areaTotal = terreno.area_hectareas
+                    
+                    val costoProrrateado = if (terreno.alquiler_modalidad == "hectarea") {
+                        baseCosto * areaNueva
+                    } else {
+                        (baseCosto / areaTotal) * areaNueva
+                    }
+
+                    if (costoProrrateado > 0) {
+                        val laborAlquiler = LaborRealizadaEntity(
+                            cultivo_id = id.toInt(),
+                            catalogo_labor_id = 10, // ID 10 para 'Alquiler de Terreno'
+                            fecha_realizacion = timestamp,
+                            costo_mano_obra_total = 0.0,
+                            costo_maquinaria_total = costoProrrateado,
+                            observaciones = "Costo de alquiler prorrateado por área (${areaNueva} ha)",
+                            creado_por_usuario_id = currentUserId
+                        )
+                        db.assetDao().insertLabor(laborAlquiler)
+                    }
+                }
+
                 val msg = if (existingCultivo != null) "Cultivo actualizado" else getString(R.string.msg_cultivo_registered)
                 Toast.makeText(this@RegisterCultivoActivity, msg, Toast.LENGTH_LONG).show()
                 finish()

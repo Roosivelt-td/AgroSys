@@ -43,7 +43,7 @@
                     android:id="@+id/tvHeaderLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/label_detalle_de"
+                    android:text="Detalle de cultivo"
                     android:textColor="#dcfce7"
                     android:textSize="12sp" />
 
@@ -134,25 +134,6 @@
                                 android:textSize="14sp"
                                 android:textStyle="bold"
                                 tools:text="Fundo La Esperanza" />
-
-                            <TextView
-                                android:id="@+id/tvNombreLote"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:textColor="#111827"
-                                android:textSize="22sp"
-                                android:textStyle="bold"
-                                tools:text="Lote 01" />
-
-                            <TextView
-                                android:id="@+id/tvVariedad"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:textColor="#6b7280"
-                                android:textSize="14sp"
-                                tools:text="Variedad: Maiz Híbrido" />
                         </LinearLayout>
 
                         <TextView
@@ -190,6 +171,39 @@
                                 android:layout_height="match_parent"
                                 android:scaleType="centerCrop"
                                 android:src="@drawable/uploap" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="bottom|start"
+                                android:layout_margin="16dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvNombreLote"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="#ffffff"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold"
+                                    android:shadowColor="#80000000"
+                                    android:shadowDx="1"
+                                    android:shadowDy="1"
+                                    android:shadowRadius="4"
+                                    tools:text="Quinua - negra" />
+
+                                <TextView
+                                    android:id="@+id/tvVariedad"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="#e2e8f0"
+                                    android:textSize="14sp"
+                                    android:shadowColor="#80000000"
+                                    android:shadowDx="1"
+                                    android:shadowDy="1"
+                                    android:shadowRadius="2"
+                                    tools:text="negra" />
+                            </LinearLayout>
 
                             <LinearLayout
                                 android:id="@+id/containerAcciones"
@@ -482,6 +496,12 @@
 
                     <!-- Desglose de Finanzas via include -->
                     <include
+                        android:id="@+id/rowAlquiler"
+                        layout="@layout/row_finanzas_detalle"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <include
                         android:id="@+id/rowPrep"
                         layout="@layout/row_finanzas_detalle" />
 
@@ -495,6 +515,10 @@
 
                     <include
                         android:id="@+id/rowCosecha"
+                        layout="@layout/row_finanzas_detalle" />
+
+                    <include
+                        android:id="@+id/rowOtros"
                         layout="@layout/row_finanzas_detalle" />
 
                 </LinearLayout>

@@ -219,9 +219,45 @@
                     android:layout_marginTop="16dp"
                     android:orientation="vertical"
                     android:visibility="gone">
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="Periodo de Alquiler"
+                        android:textColor="#374151"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/togglePeriodoAlquiler"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:checkedButton="@+id/btnAlquilerFecha"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAlquilerFecha"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Por Fecha"
+                            android:textAllCaps="false" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAlquilerCampania"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Por Campaña"
+                            android:textAllCaps="false" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                    <TextView
+                        android:id="@+id/tvLabelCostoAlquiler"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
                         android:text="@string/label_costo_alquiler"
                         android:textColor="#374151"
                         android:textSize="14sp"
@@ -242,6 +278,7 @@
 
                     <!-- Fecha Alquiler -->
                     <TextView
+                        android:id="@+id/tvLabelFechaAlquiler"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
@@ -263,6 +300,7 @@
 
                     <!-- Fecha Vencimiento -->
                     <TextView
+                        android:id="@+id/tvLabelFechaVencimiento"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"

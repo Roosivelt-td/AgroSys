@@ -28,8 +28,11 @@ class RegisterCosechaActivity : AppCompatActivity() {
     private val db by lazy { AppDatabase.getDatabase(this) }
     
     private var currentCultivoId: Int = -1
+    private var laborId: Int = -1
+    private var cosechaId: Int = -1
     private var currentCultivo: CultivoEntity? = null
     private var selectedCalidad: String? = null
+    private var selectedUnidad: String = "kg"
     private val calendar = Calendar.getInstance()
 
     private var selectedImageUri: Uri? = null
@@ -85,6 +88,8 @@ class RegisterCosechaActivity : AppCompatActivity() {
         }
 
         currentCultivoId = intent.getIntExtra("CULTIVO_ID", -1)
+        laborId = intent.getIntExtra("LABOR_ID", -1)
+        cosechaId = intent.getIntExtra("COSECHA_ID", -1)
         if (currentCultivoId == -1) {
             Toast.makeText(this, "Error: Cultivo no especificado", Toast.LENGTH_SHORT).show()
             finish()
@@ -104,6 +109,7 @@ class RegisterCosechaActivity : AppCompatActivity() {
         binding.etFechaCosecha.setText(sdf.format(calendar.time))
 
         setupCalidadButtons()
+        setupUnidadButtons()
         setupPhotoLogic()
 
         binding.btnSaveCosecha.setOnClickListener { saveCosecha() }
@@ -152,13 +158,41 @@ class RegisterCosechaActivity : AppCompatActivity() {
         binding.etLoteCodigo.setText("LOTE-$currentCultivoId-$dateStr")
     }
 
+    private fun setupUnidadButtons() {
+        val btns = mapOf(
+            "kg" to binding.btnUnitKg,
+            "sacos" to binding.btnUnitSacos,
+            "unidades" to binding.btnUnitUnidades,
+            "cajas" to binding.btnUnitCajas,
+            "jabas" to binding.btnUnitJabas,
+            "otros" to binding.btnUnitOtros
+        )
+
+        btns.forEach { (unidad, btn) ->
+            btn.setOnClickListener {
+                selectedUnidad = unidad
+                binding.tvUnitLabel.text = unidad
+                btns.values.forEach { 
+                    it.backgroundTintList = getColorStateList(android.R.color.transparent)
+                    it.setTextColor(getColor(android.R.color.darker_gray))
+                    it.strokeColor = getColorStateList(com.sigcpa.agrosys.R.color.green_100)
+                }
+                btn.backgroundTintList = getColorStateList(com.sigcpa.agrosys.R.color.green_primary)
+                btn.setTextColor(getColor(android.R.color.white))
+                btn.strokeColor = getColorStateList(android.R.color.transparent)
+            }
+        }
+        
+        // Seleccionar kg por defecto
+        binding.btnUnitKg.performClick()
+    }
+
     private fun setupCalidadButtons() {
         val btns = mapOf(
             "Extra" to binding.btnCalidadExtra,
             "Primera" to binding.btnCalidadPrimera,
             "Segunda" to binding.btnCalidadSegunda,
-            "Tercera" to binding.btnCalidadTercera,
-            "Descarte" to binding.btnCalidadDescarte
+            "Tercera" to binding.btnCalidadTercera
         )
 
         btns.forEach { (calidad, btn) ->
@@ -182,6 +216,35 @@ class RegisterCosechaActivity : AppCompatActivity() {
                 val terreno = db.assetDao().getTerrenoById(cultivo.terreno_id)
                 binding.tvCultivoNombre.text = "${cultivo.nombre_lote} (${terreno?.nombre ?: "Sin terreno"})"
             }
+
+            // Si ya existe una cosecha para esta labor, cargarla para editar
+            val cosechaExistente = when {
+                laborId != -1 -> db.assetDao().getCosechasByCultivo(currentCultivoId).find { it.labor_id == laborId }
+                cosechaId != -1 -> db.assetDao().getCosechaById(cosechaId)
+                else -> null
+            }
+
+            cosechaExistente?.let { cos ->
+                cosechaId = cos.id
+                binding.etCantidadKg.setText(cos.cantidad_kg.toString())
+                binding.etLoteCodigo.setText(cos.lote_codigo)
+                binding.etCostoOperativo.setText(cos.costo_operativo_cosecha.toString())
+                binding.etObservaciones.setText(cos.observaciones)
+                selectedCalidad = cos.calidad
+                selectedUnidad = cos.unidad_medida ?: "kg"
+                setupCalidadButtons() // Refrescar visualmente
+                setupUnidadButtons() // Refrescar visualmente
+                
+                if (cos.foto_path != null) {
+                    selectedImageUri = Uri.parse(cos.foto_path)
+                    showSelectedImage(selectedImageUri!!)
+                }
+                
+                // Si estamos editando una cosecha existente, actualizar el calendario
+                calendar.timeInMillis = cos.fecha_cosecha * 1000
+                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                binding.etFechaCosecha.setText(sdf.format(calendar.time))
+            }
         }
     }
 
@@ -201,7 +264,11 @@ class RegisterCosechaActivity : AppCompatActivity() {
         val marcarCosechado = binding.cbMarcarCosechado.isChecked
 
         if (cantidadStr.isEmpty()) {
-            Toast.makeText(this, "Ingresa la cantidad cosechada", Toast.LENGTH_SHORT).show()
+            AlertDialog.Builder(this)
+                .setTitle("⚠️ Campo Obligatorio")
+                .setMessage("No puedes guardar el registro sin ingresar una cantidad cosechada. Por favor, ingresa el peso o cantidad obtenida.")
+                .setPositiveButton("Entendido", null)
+                .show()
             return
         }
 
@@ -230,8 +297,10 @@ class RegisterCosechaActivity : AppCompatActivity() {
 
             val nuevaCosecha = CosechaEntity(
                 cultivo_id = currentCultivoId,
+                labor_id = if (laborId != -1) laborId else null,
                 fecha_cosecha = calendar.timeInMillis / 1000,
                 cantidad_kg = cantidad,
+                unidad_medida = selectedUnidad,
                 calidad = selectedCalidad,
                 lote_codigo = loteCodigo,
                 costo_operativo_cosecha = costoOp,
@@ -241,11 +310,30 @@ class RegisterCosechaActivity : AppCompatActivity() {
                 sincronizado = 0
             )
 
-            val id = db.assetDao().insertCosecha(nuevaCosecha)
+            val cosechaExistenteId = when {
+                laborId != -1 -> db.assetDao().getCultivoById(currentCultivoId)?.let { db.assetDao().getCosechasByCultivo(currentCultivoId).find { it.labor_id == laborId }?.id }
+                cosechaId != -1 -> cosechaId
+                else -> null
+            }
+            
+            val paraInsertar = if (cosechaExistenteId != null) {
+                nuevaCosecha.copy(id = cosechaExistenteId)
+            } else {
+                nuevaCosecha
+            }
+
+            val id = db.assetDao().insertCosecha(paraInsertar)
             if (id > 0) {
                 if (marcarCosechado && currentCultivo != null) {
                     val updated = currentCultivo!!.copy(estado = "cosechado", updated_at = System.currentTimeMillis() / 1000)
                     db.assetDao().updateCultivo(updated)
+                    
+                    // Actualizar fecha de vencimiento si el terreno es alquilado por campaña
+                    val terreno = db.assetDao().getTerrenoById(currentCultivo!!.terreno_id)
+                    if (terreno != null && terreno.tipo_tenencia == "alquilado" && terreno.alquiler_periodo == "campania") {
+                        val updatedTerreno = terreno.copy(fecha_vencimiento_alquiler = nuevaCosecha.fecha_cosecha)
+                        db.assetDao().updateTerreno(updatedTerreno)
+                    }
                 }
                 Toast.makeText(this@RegisterCosechaActivity, "Cosecha registrada con éxito", Toast.LENGTH_LONG).show()
                 finish()

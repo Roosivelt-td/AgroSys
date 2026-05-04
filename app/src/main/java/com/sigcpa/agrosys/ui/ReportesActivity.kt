@@ -153,13 +153,29 @@ class ReportesActivity : AppCompatActivity() {
         val ventas = db.assetDao().getVentasByCultivo(cultivo.id)
         val terreno = db.assetDao().getTerrenoById(cultivo.terreno_id)
 
+        val costoAlquiler = if (terreno?.tipo_tenencia?.lowercase() == "alquilado") {
+            val baseCosto = terreno.costo_alquiler_anual ?: 0.0
+            val areaCultivo = cultivo.area_destinada ?: 0.0
+            val areaTotal = terreno.area_hectareas ?: 1.0
+
+            if (terreno.alquiler_modalidad == "hectarea") {
+                baseCosto * areaCultivo
+            } else {
+                (baseCosto / areaTotal) * areaCultivo
+            }
+        } else {
+            0.0
+        }
+
         var prep = 0.0
         var siembra = 0.0
         var mant = 0.0
         var cosechaCost = 0.0
 
         for (labor in labores) {
-            val laborCost = (labor.costo_mano_obra_total ?: 0.0) + (labor.costo_maquinaria_total ?: 0.0)
+            val laborInsumos = insumos.filter { it.labor_id == labor.id }
+            val laborInsumoCost = laborInsumos.sumOf { (it.cantidad ?: 0.0) * (it.costo_unitario ?: 0.0) + (it.costo_flete ?: 0.0) }
+            val laborCost = (labor.costo_mano_obra_total ?: 0.0) + (labor.costo_maquinaria_total ?: 0.0) + laborInsumoCost
             
             // Categorización simple basada en el ID o nombre del catálogo
             when (labor.catalogo_labor_id) {
@@ -171,8 +187,10 @@ class ReportesActivity : AppCompatActivity() {
             }
         }
 
-        for (insumo in insumos) {
-            val insumoCost = (insumo.cantidad ?: 0.0) * (insumo.costo_unitario ?: 0.0)
+        // Insumos que no están asociados a una labor específica (si los hay)
+        val insumosHuérfanos = insumos.filter { it.labor_id == 0 }
+        for (insumo in insumosHuérfanos) {
+            val insumoCost = (insumo.cantidad ?: 0.0) * (insumo.costo_unitario ?: 0.0) + (insumo.costo_flete ?: 0.0)
             mant += insumoCost
         }
 
@@ -181,12 +199,13 @@ class ReportesActivity : AppCompatActivity() {
             ingresos += (venta.cantidad_vendida_kg ?: 0.0) * (venta.precio_por_kg ?: 0.0)
         }
 
-        val totalCostos = prep + siembra + mant + cosechaCost
+        val totalCostos = prep + siembra + mant + cosechaCost + costoAlquiler
 
         return CultivoReportInfo(
             id = cultivo.id,
             nombre = cultivo.nombre_lote ?: "Cultivo #${cultivo.id}",
             terrenoNombre = terreno?.nombre ?: "Sin terreno",
+            costoAlquiler = costoAlquiler,
             costoPrep = prep,
             costoSiembra = siembra,
             costoMant = mant,
@@ -335,9 +354,17 @@ class ReportesActivity : AppCompatActivity() {
         y += 25f
 
         for (item in lastReportData) {
-            if (y > 780) break // Evitar desborde simple (en una sola página por ahora)
+            if (y > 750) break // Espacio para los subtotales si es necesario
             
             canvas.drawText(if (item.nombre.length > 25) item.nombre.take(22) + "..." else item.nombre, 40f, y, paint)
+            
+            // Mostrar desglose pequeño de costos debajo del nombre
+            paint.textSize = 8f
+            paint.color = Color.GRAY
+            canvas.drawText("Alq: ${String.format(Locale.getDefault(), "%.0f", item.costoAlquiler)} | Prep: ${String.format(Locale.getDefault(), "%.0f", item.costoPrep)} | Mant: ${String.format(Locale.getDefault(), "%.0f", item.costoMant)}", 40f, y + 10, paint)
+            
+            paint.textSize = 10f
+            paint.color = Color.BLACK
             canvas.drawText("S/ ${String.format(Locale.getDefault(), "%.0f", item.totalCostos)}", 250f, y, paint)
             canvas.drawText("S/ ${String.format(Locale.getDefault(), "%.0f", item.totalIngresos)}", 350f, y, paint)
             
@@ -346,7 +373,7 @@ class ReportesActivity : AppCompatActivity() {
             canvas.drawText("S/ ${String.format(Locale.getDefault(), "%.2f", item.ganancia)}", 460f, y, paint)
             paint.color = originalColor
             
-            y += 20f
+            y += 30f // Aumentado para el desglose
         }
 
         pdfDocument.finishPage(page)
@@ -371,6 +398,7 @@ class ReportesActivity : AppCompatActivity() {
         val id: Int,
         val nombre: String,
         val terrenoNombre: String,
+        val costoAlquiler: Double,
         val costoPrep: Double,
         val costoSiembra: Double,
         val costoMant: Double,
@@ -397,6 +425,7 @@ class ReportesActivity : AppCompatActivity() {
                 tvGananciaCultivo.setTextColor(if (item.ganancia >= 0) "#15803D".toColorInt() else Color.RED)
                 
                 tvCostoPrep.text = String.format(Locale.getDefault(), "S/ %.2f", item.costoPrep)
+                tvCostoAlquiler.text = String.format(Locale.getDefault(), "S/ %.2f", item.costoAlquiler)
                 tvCostoSiembra.text = String.format(Locale.getDefault(), "S/ %.2f", item.costoSiembra)
                 tvCostoMant.text = String.format(Locale.getDefault(), "S/ %.2f", item.costoMant)
                 tvCostoCosecha.text = String.format(Locale.getDefault(), "S/ %.2f", item.costoCosecha)

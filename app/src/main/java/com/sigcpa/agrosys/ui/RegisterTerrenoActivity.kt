@@ -118,7 +118,18 @@ class RegisterTerrenoActivity : AppCompatActivity() {
                     binding.btnAlquilado.isChecked = true
                     binding.layoutCosto.visibility = View.VISIBLE
                     binding.etCostoAlquiler.setText(it.costo_alquiler_anual.toString())
+
+                    val isCampania = it.alquiler_periodo == "campania"
+                    if (isCampania) {
+                        binding.btnAlquilerCampania.isChecked = true
+                    } else {
+                        binding.btnAlquilerFecha.isChecked = true
+                    }
                     
+                    // Ajustar visibilidad inicial de vencimiento
+                    binding.etFechaVencimiento.visibility = if (isCampania) View.GONE else View.VISIBLE
+                    binding.tvLabelFechaVencimiento.visibility = if (isCampania) View.GONE else View.VISIBLE
+
                     it.fecha_alquiler?.let { f ->
                         fechaAlquilerMs = f
                         binding.etFechaAlquiler.setText(formatDate(f))
@@ -208,7 +219,28 @@ class RegisterTerrenoActivity : AppCompatActivity() {
 
         binding.toggleTenencia.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
-                binding.layoutCosto.visibility = if (checkedId == binding.btnAlquilado.id) View.VISIBLE else View.GONE
+                if (checkedId == binding.btnAlquilado.id) {
+                    binding.layoutCosto.visibility = View.VISIBLE
+                    // Trigger initial state for labels/visibility
+                    val isFecha = binding.btnAlquilerFecha.isChecked
+                    binding.etFechaVencimiento.visibility = if (isFecha) View.VISIBLE else View.GONE
+                    binding.tvLabelFechaVencimiento.visibility = if (isFecha) View.VISIBLE else View.GONE
+                } else {
+                    binding.layoutCosto.visibility = View.GONE
+                }
+            }
+        }
+
+        // REMOVED toggleModalidadAlquiler listener as it was deleted from XML
+
+        binding.togglePeriodoAlquiler.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                val isFecha = checkedId == binding.btnAlquilerFecha.id
+                binding.etFechaAlquiler.visibility = View.VISIBLE
+                binding.tvLabelFechaAlquiler.visibility = View.VISIBLE
+                
+                binding.etFechaVencimiento.visibility = if (isFecha) View.VISIBLE else View.GONE
+                binding.tvLabelFechaVencimiento.visibility = if (isFecha) View.VISIBLE else View.GONE
             }
         }
 
@@ -216,12 +248,14 @@ class RegisterTerrenoActivity : AppCompatActivity() {
             fechaAlquilerMs = date
             binding.etFechaAlquiler.setText(formatDate(date))
             
-            // Auto-set expiration date to 6 months later
-            val cal = Calendar.getInstance()
-            cal.timeInMillis = date * 1000
-            cal.add(Calendar.MONTH, 6)
-            fechaVencimientoMs = cal.timeInMillis / 1000
-            binding.etFechaVencimiento.setText(formatDate(fechaVencimientoMs!!))
+            // Auto-sugerir fecha de vencimiento a 6 meses solo si la modalidad es por FECHA
+            if (binding.btnAlquilerFecha.isChecked) {
+                val cal = Calendar.getInstance()
+                cal.timeInMillis = date * 1000
+                cal.add(Calendar.MONTH, 6)
+                fechaVencimientoMs = cal.timeInMillis / 1000
+                binding.etFechaVencimiento.setText(formatDate(fechaVencimientoMs!!))
+            }
         }}
 
         binding.etFechaVencimiento.setOnClickListener { 
@@ -271,6 +305,8 @@ class RegisterTerrenoActivity : AppCompatActivity() {
         val water = binding.etFuenteAgua.text.toString().trim()
         val costStr = binding.etCostoAlquiler.text.toString().trim()
         val isAlquilado = binding.btnAlquilado.isChecked
+        val modalidad = "global"
+        val periodo = if (binding.btnAlquilerCampania.isChecked) "campania" else "fecha"
 
         // VALIDACIONES OBLIGATORIAS
         if (nombre.isEmpty()) {
@@ -310,17 +346,19 @@ class RegisterTerrenoActivity : AppCompatActivity() {
             return
         }
 
+        // Fecha de inicio obligatoria para ambos casos de alquiler
         if (isAlquilado && fechaAlquilerMs == null) {
             Toast.makeText(this, getString(R.string.error_fecha_alquiler_required), Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (isAlquilado && fechaVencimientoMs == null) {
+        // Fecha de vencimiento obligatoria solo si es por "fecha"
+        if (isAlquilado && periodo == "fecha" && fechaVencimientoMs == null) {
             Toast.makeText(this, getString(R.string.error_fecha_vencimiento_required), Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (isAlquilado && fechaVencimientoMs != null && fechaAlquilerMs != null) {
+        if (isAlquilado && periodo == "fecha" && fechaVencimientoMs != null && fechaAlquilerMs != null) {
             if (fechaVencimientoMs!! <= fechaAlquilerMs!!) {
                 Toast.makeText(this, getString(R.string.error_fecha_vencimiento_invalid), Toast.LENGTH_SHORT).show()
                 return
@@ -361,10 +399,12 @@ class RegisterTerrenoActivity : AppCompatActivity() {
                 area_hectareas = area,
                 tipo_tenencia = if (isAlquilado) "alquilado" else "propio",
                 costo_alquiler_anual = cost,
+                alquiler_modalidad = modalidad,
+                alquiler_periodo = periodo,
                 calidad_suelo = quality,
                 fuente_agua = water,
                 fecha_alquiler = if (isAlquilado) fechaAlquilerMs else null,
-                fecha_vencimiento_alquiler = if (isAlquilado) fechaVencimientoMs else null,
+                fecha_vencimiento_alquiler = if (isAlquilado && periodo == "fecha") fechaVencimientoMs else null,
                 foto_path = finalFotoPath
             )
 

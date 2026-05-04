@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -19,6 +20,7 @@ import com.sigcpa.agrosys.database.entities.TerrenoEntity
 import com.sigcpa.agrosys.databinding.ActivityDetalleTerrenoBinding
 import com.sigcpa.agrosys.databinding.ItemCultivoBinding
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -220,28 +222,57 @@ class DetalleTerrenoActivity : AppCompatActivity() {
             binding.layoutCostoInfo.visibility = android.view.View.VISIBLE
             binding.tvCostoValor.text = "S/ ${terreno.costo_alquiler_anual}/año"
 
-            if (terreno.fecha_alquiler != null && terreno.fecha_vencimiento_alquiler != null) {
+            // Mostramos el layout de fechas si es por fecha O si es por campaña
+            if (terreno.alquiler_periodo == "campania" || (terreno.fecha_alquiler != null && terreno.fecha_vencimiento_alquiler != null)) {
                 binding.layoutFechasAlquiler.visibility = android.view.View.VISIBLE
                 val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                binding.tvFechaAlquilerInfo.text = getString(R.string.label_alquilado_el, sdf.format(Date(terreno.fecha_alquiler * 1000)))
-                binding.tvFechaVencimientoInfo.text = getString(R.string.label_vence_el, sdf.format(Date(terreno.fecha_vencimiento_alquiler * 1000)))
-
-                // Lógica de barra de progreso de tiempo de alquiler
-                val hoy = System.currentTimeMillis() / 1000
-                val totalTiempo = terreno.fecha_vencimiento_alquiler - terreno.fecha_alquiler
-                val transcurrido = hoy - terreno.fecha_alquiler
                 
-                if (totalTiempo > 0) {
-                    val porcentajeTiempo = (transcurrido.toDouble() / totalTiempo.toDouble() * 100).toInt()
-                    binding.progressTiempoAlquiler.progress = porcentajeTiempo.coerceIn(0, 100)
-                    
-                    // Color de la barra de tiempo
-                    val colorTiempo = when {
-                        porcentajeTiempo >= 90 -> "#ef4444" // Rojo (Casi vence)
-                        porcentajeTiempo >= 70 -> "#f97316" // Naranja
-                        else                   -> "#15803d" // Verde
+                // Fecha de Inicio
+                if (terreno.fecha_alquiler != null) {
+                    binding.tvFechaAlquilerInfo.text = getString(R.string.label_alquilado_el, sdf.format(Date(terreno.fecha_alquiler * 1000)))
+                } else {
+                    binding.tvFechaAlquilerInfo.text = "Sin fecha de inicio"
+                }
+
+                if (terreno.alquiler_periodo == "campania") {
+                    // Lógica para Alquiler por Campaña
+                    val ultimoCultivoCosechado = cultivos.filter { it.estado == "cosechado" }
+                        .maxByOrNull { it.fecha_finalizacion ?: 0L }
+
+                    if (ultimoCultivoCosechado != null && ultimoCultivoCosechado.fecha_finalizacion != null) {
+                        // Si ya se cumplió la campaña (cosechado)
+                        binding.tvFechaVencimientoInfo.text = "Cosechado el: ${sdf.format(Date(ultimoCultivoCosechado.fecha_finalizacion * 1000))}"
+                        binding.tvFechaVencimientoInfo.setTextColor(android.graphics.Color.parseColor("#15803d")) // Verde
+                        binding.progressTiempoAlquiler.progress = 100
+                        binding.progressTiempoAlquiler.setIndicatorColor(android.graphics.Color.parseColor("#15803d"))
+                    } else {
+                        // Si está en curso
+                        binding.tvFechaVencimientoInfo.text = "Por campaña"
+                        binding.tvFechaVencimientoInfo.setTextColor(android.graphics.Color.parseColor("#b45309")) // Ambar
+                        binding.progressTiempoAlquiler.progress = 0 // Ocultar progreso real ya que es por evento
+                        binding.progressTiempoAlquiler.visibility = android.view.View.INVISIBLE
                     }
-                    binding.progressTiempoAlquiler.setIndicatorColor(android.graphics.Color.parseColor(colorTiempo))
+                } else {
+                    // Lógica original para Alquiler por Fecha
+                    binding.progressTiempoAlquiler.visibility = android.view.View.VISIBLE
+                    binding.tvFechaVencimientoInfo.text = getString(R.string.label_vence_el, sdf.format(Date(terreno.fecha_vencimiento_alquiler!! * 1000)))
+                    binding.tvFechaVencimientoInfo.setTextColor(android.graphics.Color.parseColor("#ef4444")) // Rojo
+
+                    val hoy = System.currentTimeMillis() / 1000
+                    val totalTiempo = terreno.fecha_vencimiento_alquiler - (terreno.fecha_alquiler ?: hoy)
+                    val transcurrido = hoy - (terreno.fecha_alquiler ?: hoy)
+                    
+                    if (totalTiempo > 0) {
+                        val porcentajeTiempo = (transcurrido.toDouble() / totalTiempo.toDouble() * 100).toInt()
+                        binding.progressTiempoAlquiler.progress = porcentajeTiempo.coerceIn(0, 100)
+                        
+                        val colorTiempo = when {
+                            porcentajeTiempo >= 90 -> "#ef4444" 
+                            porcentajeTiempo >= 70 -> "#f97316" 
+                            else                   -> "#15803d" 
+                        }
+                        binding.progressTiempoAlquiler.setIndicatorColor(android.graphics.Color.parseColor(colorTiempo))
+                    }
                 }
             } else {
                 binding.layoutFechasAlquiler.visibility = android.view.View.GONE
@@ -405,6 +436,20 @@ class DetalleTerrenoActivity : AppCompatActivity() {
                 "cosechado" -> getString(R.string.filter_cosechado)
                 "perdido" -> getString(R.string.filter_perdido)
                 else -> item.estado
+            }
+
+            // Mostrar imagen del cultivo
+            item.foto_path?.let { path ->
+                val file = File(path)
+                val uri = if (file.exists()) Uri.fromFile(file) else Uri.parse(path)
+                Glide.with(holder.itemView.context)
+                    .load(uri)
+                    .placeholder(R.drawable.agro_cosecha)
+                    .error(R.drawable.agro_cosecha)
+                    .centerCrop()
+                    .into(holder.binding.ivCultivo)
+            } ?: run {
+                holder.binding.ivCultivo.setImageResource(R.drawable.agro_cosecha)
             }
 
             holder.binding.root.setOnClickListener {

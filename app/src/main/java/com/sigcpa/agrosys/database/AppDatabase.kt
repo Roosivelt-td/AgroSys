@@ -21,7 +21,7 @@ import com.sigcpa.agrosys.database.entities.*
         ManoObraTipoEntity::class, ManoObraEntity::class,
         TipoRedSocialEntity::class, RedSocialEntity::class
     ],
-    version = 15,
+    version = 17,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -71,6 +71,7 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("INSERT INTO catalogo_labores (nombre, categoria, descripcion, sincronizado) VALUES ('Fertilización', 'mantenimiento', 'Aplicación de fertilizantes', 1)")
                 db.execSQL("INSERT INTO catalogo_labores (nombre, categoria, descripcion, sincronizado) VALUES ('Poda', 'mantenimiento', 'Corte de ramas o plantas', 1)")
                 db.execSQL("INSERT INTO catalogo_labores (nombre, categoria, descripcion, sincronizado) VALUES ('Cosecha', 'cosecha', 'Recolección de frutos', 1)")
+                db.execSQL("INSERT INTO catalogo_labores (nombre, categoria, descripcion, sincronizado) VALUES ('Alquiler de Terreno', 'otro', 'Costo prorrateado del alquiler del terreno', 1)")
 
                 // Catálogo de insumos base
                 db.execSQL("INSERT INTO catalogo_insumos (nombre, categoria, unidad_medida, sincronizado) VALUES ('Urea', 'fertilizante', 'kg', 1)")

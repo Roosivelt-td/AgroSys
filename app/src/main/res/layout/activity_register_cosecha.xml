@@ -146,15 +146,95 @@
                 android:paddingHorizontal="16dp"
                 android:textColor="#1f2937" />
 
-            <!-- Cantidad cosechada (kg) -->
+            <!-- Cantidad cosechada -->
             <TextView
+                android:id="@+id/tvLabelCantidad"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="@string/label_cantidad_cosechada_kg"
+                android:text="@string/label_cantidad_cosechada"
                 android:textColor="#374151"
                 android:textSize="14sp"
                 android:textStyle="bold" />
+
+            <!-- Selector de Unidad -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:scrollbars="none">
+                <LinearLayout
+                    android:id="@+id/llUnidades"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUnitKg"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/unit_kg"
+                        android:textAllCaps="false"
+                        app:cornerRadius="20dp"
+                        app:strokeColor="#e2e8f0" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUnitSacos"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/unit_sacos"
+                        android:textAllCaps="false"
+                        app:cornerRadius="20dp"
+                        app:strokeColor="#e2e8f0" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUnitUnidades"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/unit_unidades"
+                        android:textAllCaps="false"
+                        app:cornerRadius="20dp"
+                        app:strokeColor="#e2e8f0" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUnitCajas"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/unit_cajas"
+                        android:textAllCaps="false"
+                        app:cornerRadius="20dp"
+                        app:strokeColor="#e2e8f0" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUnitJabas"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/unit_jabas"
+                        android:textAllCaps="false"
+                        app:cornerRadius="20dp"
+                        app:strokeColor="#e2e8f0" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUnitOtros"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/unit_otros"
+                        android:textAllCaps="false"
+                        app:cornerRadius="20dp"
+                        app:strokeColor="#e2e8f0" />
+                </LinearLayout>
+            </HorizontalScrollView>
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -173,6 +253,7 @@
                     android:textColor="#1f2937" />
 
                 <TextView
+                    android:id="@+id/tvUnitLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
@@ -267,19 +348,6 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:text="⚠️ Tercera"
-                    android:textAllCaps="false"
-                    android:textColor="#374151"
-                    app:strokeColor="#e2e8f0"
-                    app:cornerRadius="12dp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCalidadDescarte"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnSpan="2"
-                    android:layout_margin="4dp"
-                    android:text="🗑️ Descarte"
                     android:textAllCaps="false"
                     android:textColor="#374151"
                     app:strokeColor="#e2e8f0"

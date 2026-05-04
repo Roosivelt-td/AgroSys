@@ -317,6 +317,24 @@ class LaboresListActivity : AppCompatActivity() {
                 if (terreno.estado == "activo") Color.parseColor("#166534") else Color.parseColor("#1d4ed8")
             )
 
+            // 1. Mostrar Fecha de Alquiler
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            if (terreno.fecha_alquiler != null && terreno.fecha_alquiler > 0) {
+                holder.binding.tvFechaAlquiler.text = "Alq: ${sdf.format(Date(terreno.fecha_alquiler * 1000))}"
+                holder.binding.tvFechaAlquiler.visibility = View.VISIBLE
+            } else {
+                holder.binding.tvFechaAlquiler.visibility = View.GONE
+            }
+
+            // 2. Mostrar Tipo de Tenencia (Estado: Propio o Alquilado)
+            val tenencia = terreno.tipo_tenencia.uppercase()
+            holder.binding.tvTipoTenencia.text = tenencia
+            if (tenencia == "PROPIO") {
+                holder.binding.tvTipoTenencia.setTextColor(Color.parseColor("#15803D"))
+            } else {
+                holder.binding.tvTipoTenencia.setTextColor(Color.parseColor("#B45309"))
+            }
+
             lifecycleScope.launch {
                 val cultivos = db.assetDao().getCultivosActivosByTerreno(terreno.id)
                 val areaOcupada = cultivos.sumOf { it.area_destinada ?: 0.0 }
@@ -356,7 +374,27 @@ class LaboresListActivity : AppCompatActivity() {
             dialog.setContentView(modalBinding.root)
 
             modalBinding.tvTerrenoNombre.text = terreno.nombre
-            modalBinding.tvTerrenoDetalles.text = "${terreno.area_hectareas} ${getString(R.string.unit_ha)} ${getString(R.string.label_totales)} | ${String.format("%.2f", disponible)} ${getString(R.string.unit_ha)} ${getString(R.string.label_disponibles)}"
+
+            // 1. Fecha de Alquiler
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            if (terreno.fecha_alquiler != null && terreno.fecha_alquiler > 0) {
+                modalBinding.tvFechaAlquiler.text = "Alq: ${sdf.format(Date(terreno.fecha_alquiler * 1000))}"
+                modalBinding.tvFechaAlquiler.visibility = View.VISIBLE
+            } else {
+                modalBinding.tvFechaAlquiler.visibility = View.GONE
+            }
+
+            // 2. Tipo de Tenencia
+            val tenencia = terreno.tipo_tenencia.uppercase()
+            modalBinding.tvTipoTenencia.text = tenencia
+            if (tenencia == "PROPIO") {
+                modalBinding.tvTipoTenencia.setTextColor(Color.parseColor("#15803D"))
+            } else {
+                modalBinding.tvTipoTenencia.setTextColor(Color.parseColor("#B45309"))
+            }
+
+            // 3. Formato de Hectáreas solicitado
+            modalBinding.tvTerrenoDetalles.text = "${String.format("%.2f", disponible)} ha. disponibles de ${terreno.area_hectareas} ha."
 
             if (cultivos.isEmpty()) {
                 modalBinding.tvNoCultivos.text = getString(R.string.msg_no_cultivos_terreno)

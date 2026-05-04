@@ -1,146 +1,341 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:strokeColor="#E5E7EB"
-    app:strokeWidth="1dp">
+    android:clipToPadding="false">
 
-    <LinearLayout
+    <!-- Timeline Elements (Ocultos por defecto) -->
+    <View
+        android:id="@+id/timelineLine"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:background="#E2E8F0"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/markerContainer" />
+
+    <FrameLayout
+        android:id="@+id/markerContainer"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+        <View
+            android:id="@+id/markerCircle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/circle_bg_white" />
+        <View
+            android:id="@+id/markerDot"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_gravity="center"
+            android:background="@drawable/circle_bg_white" />
+    </FrameLayout>
+
+    <!-- Tarjeta de Contenido -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="2dp"
+        app:strokeWidth="0dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <!-- Bloque de Imagen -->
+            <FrameLayout
+                android:id="@+id/flHeaderContainer"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/tvLaborNombre"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Riego"
-                    android:textColor="#111827"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvLaborFecha"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="15/05/2026"
-                    android:textColor="#6B7280"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/btnEditLabor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:text="Editar"
-                    android:textColor="#15803D"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                android:background="#15803D">
 
                 <ImageView
-                    android:id="@+id/btnRemoveLabor"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:padding="4dp"
-                    android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    app:tint="#EF4444" />
-            </LinearLayout>
-        </RelativeLayout>
+                    android:id="@+id/ivLaborFoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:minHeight="140dp"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    tools:src="@drawable/logo"
+                    tools:visibility="visible" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginVertical="12dp"
-            android:background="#F3F4F6" />
+                <View
+                    android:id="@+id/vGradientOverlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:minHeight="140dp"
+                    android:background="@drawable/gradient_bottom_shadow"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="2">
+                <!-- Botones de Acción sobre la imagen (Mantenemos IDs originales) -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="12dp"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/btnEditLabor"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:background="@drawable/circle_bg_white"
+                        android:src="@drawable/ic_edit_02"
+                        android:padding="5dp"
+                        android:scaleType="centerInside"
+                        app:tint="#48BB78"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <ImageButton
+                        android:id="@+id/btnRemoveLabor"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/circle_bg_white"
+                        android:src="@drawable/ic_close"
+                        android:padding="5dp"
+                        android:scaleType="centerInside"
+                        app:tint="#EF4444"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </LinearLayout>
+
+                <!-- Esta barra inferior contiene ahora los textos -->
+                <LinearLayout
+                    android:id="@+id/llImageBottomBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:id="@+id/tvLaborBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Labor"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvLaborFecha"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--/--/----"
+                        android:textColor="#E2E8F0"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tvManoObraResumen"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Mano de Obra"
+                        android:textColor="#CBD5E0"
+                        android:textSize="12sp"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal"
+                        android:weightSum="3">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvLabelCategoria"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="TOTAL INVERSIÓN"
+                                android:textColor="#CBD5E0"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvLaborCostos"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="S/ 0.00"
+                                android:textColor="#FFFFFF"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvLabelTotalSession"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="INSUMOS"
+                                android:textColor="#CBD5E0"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvLaborInsumosCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="0"
+                                android:textColor="#4ADE80"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvLabelTotalMO"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="PERSONAS"
+                                android:textColor="#CBD5E0"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvLaborManoObraCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="0"
+                                android:textColor="#4ADE80"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="COSTOS MO/MAQ" android:textColor="#9CA3AF" android:textSize="10sp" android:textStyle="bold" />
-                <TextView android:id="@+id/tvLaborCostos" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="S/ 0.00" android:textColor="#374151" android:textSize="13sp" />
-            </LinearLayout>
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp">
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:orientation="vertical">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="INSUMOS" android:textColor="#9CA3AF" android:textSize="10sp" android:textStyle="bold" />
-                <TextView android:id="@+id/tvLaborInsumosCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 items" android:textColor="#15803D" android:textSize="13sp" android:textStyle="bold" />
+                <!-- Contenedor Detalles (Expandible) -->
+                <LinearLayout
+                    android:id="@+id/llInsumosDetalle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical"
+                    android:visibility="gone" />
+
+                <!-- Botón Detalles Moderno y Compacto -->
+                <LinearLayout
+                    android:id="@+id/btnExpandAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <TextView
+                        android:id="@+id/tvVerMasDetalles"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ver detalles"
+                        android:textColor="#94A3B8"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textAllCaps="true"
+                        android:letterSpacing="0.1" />
+
+                    <ImageView
+                        android:id="@+id/ivChevron"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginStart="6dp"
+                        android:src="@drawable/direccion_abajo"
+                        app:tint="#94A3B8" />
+                </LinearLayout>
+
+                <!-- Footer para modo Sesión (Opcional) -->
+                <LinearLayout
+                    android:id="@+id/llFooterSession"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:id="@+id/btnAddInsumoItem"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="8dp">
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_agregar"
+                            app:tint="#15803D" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Agregar Insumos"
+                            android:textColor="#15803D"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/tvLaborTotal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="S/ 0.00"
+                        android:textColor="#1A202C"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
-        <!-- Contenedor para la lista de insumos detallados -->
-        <LinearLayout
-            android:id="@+id/llInsumosDetalle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="vertical" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAddInsumoItem"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="32dp"
-                android:text="Agregar Insumos"
-                android:textAllCaps="false"
-                android:textColor="#047857"
-                android:textSize="12sp"
-                app:icon="@drawable/agro_planta_buena"
-                app:iconPadding="4dp"
-                app:iconSize="14dp"
-                app:iconTint="#047857" />
-
-            <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/tvLaborTotal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Subtotal: S/ 0.00"
-                android:textColor="#111827"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-    </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

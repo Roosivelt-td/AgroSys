@@ -14,8 +14,8 @@
     <string name="label_ganancia">Ganancia</string>
     <string name="label_resumen_financiero">Resumen financiero</string>
     <string name="label_ingresos">INGRESOS</string>
-    <string name="label_costos">COSTOS</string>
-    <string name="label_neto">NETO</string>
+    <string name="label_costos">INVERSIÓN</string>
+    <string name="label_neto">GANANCIA</string>
     <string name="label_mensaje_reciente">Mensaje más reciente</string>
     <string name="msg_bienvenida">¡Bienvenido a AgroSys! Comienza registrando tus parcelas.</string>
     <string name="label_cultivos_en_curso">Cultivos en curso</string>
@@ -216,10 +216,16 @@
 
     <!-- Register Cosecha -->
     <string name="label_fecha_cosecha">Fecha de cosecha *</string>
-    <string name="label_cantidad_cosechada_kg">Cantidad cosechada (kg) *</string>
+    <string name="label_cantidad_cosechada">Cantidad cosechada *</string>
+    <string name="unit_sacos">Sacos</string>
+    <string name="unit_unidades">Unidades</string>
+    <string name="unit_kg">Kg</string>
+    <string name="unit_cajas">Cajas</string>
+    <string name="unit_jabas">Jabas</string>
+    <string name="unit_otros">Otros</string>
     <string name="label_codigo_lote">Código de Lote</string>
     <string name="label_calidad_producto">Calidad del producto</string>
-    <string name="label_costo_operativo_cosecha">Costo operativo de cosecha (S/)</string>
+    <string name="label_costo_operativo_cosecha">Costo operativo de cosecha (S/) (Opcional)</string>
     <string name="label_observaciones">Observaciones</string>
     <string name="hint_notas_adicionales">Notas adicionales...</string>
     <string name="label_marcar_como_cosechado">Marcar cultivo como \'Cosechado\'</string>

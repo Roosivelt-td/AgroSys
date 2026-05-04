@@ -66,6 +66,29 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <TextView
+                android:id="@+id/tvFechaAlquiler"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#6B7280"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvEstadoTerreno"
+                android:text="Alq: --/--/----" />
+
+            <TextView
+                android:id="@+id/tvTipoTenencia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="#4B5563"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvFechaAlquiler"
+                android:text="ALQUILADO" />
+
             <LinearLayout
                 android:id="@+id/llStats"
                 android:layout_width="0dp"

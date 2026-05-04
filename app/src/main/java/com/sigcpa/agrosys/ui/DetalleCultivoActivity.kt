@@ -240,6 +240,8 @@ class DetalleCultivoActivity : AppCompatActivity() {
         var costoPrep = 0.0
         var costoSiembra = 0.0
         var costoMant = 0.0
+        var costoAlquiler = 0.0
+        var costoOtros = 0.0
 
         labores.forEach { labor ->
             val totalLabor = labor.costo_mano_obra_total + labor.costo_maquinaria_total + 
@@ -247,12 +249,14 @@ class DetalleCultivoActivity : AppCompatActivity() {
             when (labor.catalogo_labor_id) {
                 1 -> costoPrep += totalLabor
                 2 -> costoSiembra += totalLabor
+                10 -> costoAlquiler += totalLabor
+                8 -> costoOtros += totalLabor // ID 8 corresponde a 'Otros'
                 else -> costoMant += totalLabor
             }
         }
 
         val costoCosecha = cosechas.sumOf { it.costo_operativo_cosecha } + ventas.sumOf { it.costo_flete + it.impuestos }
-        val costoTotal = costoPrep + costoSiembra + costoMant + costoCosecha
+        val costoTotal = costoPrep + costoSiembra + costoMant + costoCosecha + costoAlquiler + costoOtros
         val ingresosTotal = ventas.sumOf { it.cantidad_vendida_kg * it.precio_por_kg }
         val ganancia = ingresosTotal - costoTotal
 
@@ -260,10 +264,21 @@ class DetalleCultivoActivity : AppCompatActivity() {
         binding.tvCostosTotalesCard.text = "S/ ${String.format("%.2f", costoTotal)}" // Punto 3
         binding.tvIngresosTotales.text = "S/ ${String.format("%.2f", ingresosTotal)}"
         
+        binding.rowAlquiler.apply { 
+            root.visibility = if (costoAlquiler > 0) android.view.View.VISIBLE else android.view.View.GONE
+            tvLabel.text = "Alquiler de Terreno"
+            tvValue.text = "S/ ${String.format("%.2f", costoAlquiler)}"
+        }
         binding.rowPrep.apply { tvLabel.text = "Preparación"; tvValue.text = "S/ ${String.format("%.2f", costoPrep)}" }
         binding.rowSiembra.apply { tvLabel.text = "Siembra"; tvValue.text = "S/ ${String.format("%.2f", costoSiembra)}" }
         binding.rowMant.apply { tvLabel.text = "Mantenimiento"; tvValue.text = "S/ ${String.format("%.2f", costoMant)}" }
-        binding.rowCosecha.apply { tvLabel.text = "Cosecha y Ventas"; tvValue.text = "S/ ${String.format("%.2f", costoCosecha)}" }
+        binding.rowCosecha.apply { tvLabel.text = "Cosecha"; tvValue.text = "S/ ${String.format("%.2f", costoCosecha)}" }
+
+        binding.rowOtros.apply {
+            root.visibility = android.view.View.VISIBLE
+            tvLabel.text = "Otros"
+            tvValue.text = "S/ ${String.format("%.2f", costoOtros)}"
+        }
 
         binding.tvGanancia.text = "S/ ${String.format("%.2f", ganancia)}"
         binding.tvGanancia.setTextColor(if (ganancia >= 0) Color.parseColor("#15803d") else Color.parseColor("#ef4444"))
@@ -274,7 +289,7 @@ class DetalleCultivoActivity : AppCompatActivity() {
             val catalogo = db.assetDao().getCatalogoLabores()
             val groupedLabores = labores.groupBy { it.catalogo_labor_id }.map { (id, items) -> LaborGroup(id, catalogo.find { it.id == id }?.nombre ?: "Labor", items) }
             binding.rvLabores.adapter = LaboresGroupAdapter(groupedLabores)
-            binding.tvLaboresTitulo.text = "Labores Realizadas (${labores.size})"
+            binding.tvLaboresTitulo.text = "Historial de Labores (${groupedLabores.size})"
         }
         binding.tvCosechasTitulo.text = "Cosechas (${cosechas.size})"
         binding.rvCosechas.adapter = CosechasAdapter(cosechas, ventas)
@@ -293,11 +308,39 @@ class DetalleCultivoActivity : AppCompatActivity() {
 
     private fun checkLaboresYProceder() {
         lifecycleScope.launch {
-            val labores = db.assetDao().getLaboresByCultivo(currentCultivoId).map { it.catalogo_labor_id }
-            if (!labores.contains(1) || !labores.contains(2)) {
-                AlertDialog.Builder(this@DetalleCultivoActivity).setTitle("Atención").setMessage("Debe registrar Preparación y Siembra antes de cosechar.").setPositiveButton("Ok", null).show()
-            } else {
-                startActivity(Intent(this@DetalleCultivoActivity, RegisterCosechaActivity::class.java).putExtra("CULTIVO_ID", currentCultivoId))
+            val todasLasLabores = db.assetDao().getLaboresByCultivo(currentCultivoId)
+            val laboresCosecha = todasLasLabores.filter { it.catalogo_labor_id == 9 }
+            val cosechasExistentes = db.assetDao().getCosechasByCultivo(currentCultivoId)
+            
+            // Obtener IDs de labores que ya tienen un registro de producción vinculado
+            val laborIdsConProduccion = cosechasExistentes.mapNotNull { it.labor_id }
+            
+            // Encontrar labores de cosecha que NO tienen producción registrada
+            val laboresPendientes = laboresCosecha.filter { !laborIdsConProduccion.contains(it.id) }
+
+            when {
+                laboresPendientes.isNotEmpty() -> {
+                    // Si hay labores de cosecha sin producción, procedemos a registrar la producción para la primera pendiente
+                    val laborParaVincular = laboresPendientes.first()
+                    val intent = Intent(this@DetalleCultivoActivity, RegisterCosechaActivity::class.java)
+                    intent.putExtra("CULTIVO_ID", currentCultivoId)
+                    intent.putExtra("LABOR_ID", laborParaVincular.id)
+                    startActivity(intent)
+                }
+                else -> {
+                    // Si no hay labores de cosecha previas o todas ya tienen producción, 
+                    // primero debemos registrar el trabajo (mano de obra/insumos) de la nueva cosecha.
+                    val intent = Intent(this@DetalleCultivoActivity, RegisterLaborActivity::class.java)
+                    intent.putExtra("CULTIVO_ID", currentCultivoId)
+                    intent.putExtra("PRE_SELECT_LABOR_ID", 9)
+                    intent.putExtra("LABOR_NOMBRE", "Cosecha")
+                    currentCultivo?.let { cultivo ->
+                        intent.putExtra("TERRENO_NOMBRE", currentTerreno?.nombre ?: "")
+                        intent.putExtra("CULTIVO_DETALLE", "${cultivo.nombre_lote} (${cultivo.variedad})")
+                    }
+                    startActivity(intent)
+                    Toast.makeText(this@DetalleCultivoActivity, "Primero registre los gastos de la nueva cosecha", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
@@ -314,7 +357,13 @@ class DetalleCultivoActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val group = groups[position]
             holder.binding.tvNombreCultivo.text = group.nombre
-            holder.binding.tvResumenLabores.text = "${group.items.size} registros"
+            
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            val ultimaFecha = group.items.maxOfOrNull { it.fecha_realizacion } ?: 0L
+            val fechaStr = if (ultimaFecha > 0) sdf.format(Date(ultimaFecha * 1000)) else "--/--/----"
+            
+            holder.binding.tvResumenLabores.text = "${group.items.size} registros • Último: $fechaStr\nVer más detalles"
+
             holder.binding.root.setOnClickListener {
                 startActivity(Intent(this@DetalleCultivoActivity, LaborTypeDetailActivity::class.java).apply {
                     putExtra("CULTIVO_ID", currentCultivoId); putExtra("LABOR_ID", group.id); putExtra("LABOR_NOMBRE", group.nombre)
@@ -330,8 +379,28 @@ class DetalleCultivoActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = lista[position]
             val total = ventas.filter { it.cosecha_id == item.id }.sumOf { it.cantidad_vendida_kg * it.precio_por_kg }
-            holder.binding.tvCosechaInfo.text = "${item.cantidad_kg} kg · ${item.calidad ?: "Estándar"}"
+            
+            val unidad = item.unidad_medida ?: "kg"
+            holder.binding.tvCosechaInfo.text = "${item.cantidad_kg} $unidad · ${item.calidad ?: "Estándar"}"
             holder.binding.tvCosechaIngreso.text = "S/ ${String.format("%.2f", total)}"
+
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            holder.binding.tvCosechaFecha.text = sdf.format(Date(item.fecha_cosecha * 1000))
+
+            holder.itemView.setOnClickListener {
+                if (item.labor_id != null) {
+                    val intent = Intent(this@DetalleCultivoActivity, RegisterCosechaActivity::class.java)
+                    intent.putExtra("CULTIVO_ID", currentCultivoId)
+                    intent.putExtra("LABOR_ID", item.labor_id)
+                    startActivity(intent)
+                } else {
+                    // Si por alguna razón no tiene labor_id, permitimos editar normalmente
+                    val intent = Intent(this@DetalleCultivoActivity, RegisterCosechaActivity::class.java)
+                    intent.putExtra("CULTIVO_ID", currentCultivoId)
+                    intent.putExtra("COSECHA_ID", item.id) // Necesitaría manejar COSECHA_ID en RegisterCosechaActivity
+                    startActivity(intent)
+                }
+            }
         }
         override fun getItemCount() = lista.size
         inner class ViewHolder(val binding: ItemCosechaDetalleBinding) : RecyclerView.ViewHolder(binding.root)

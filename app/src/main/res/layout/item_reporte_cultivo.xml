@@ -85,6 +85,25 @@
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
+            <!-- Costo Alquiler -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="Alquiler Terreno"
+                android:textColor="#64748B"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvCostoAlquiler"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="S/ 0.00"
+                android:textColor="#1E293B"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
             <!-- Costo Siembra -->
             <TextView
                 android:layout_width="0dp"

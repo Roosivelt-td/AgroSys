@@ -189,7 +189,7 @@ class CultivosListActivity : AppCompatActivity() {
 
                 val cultivosConTerreno = cultivos.map { cultivo ->
                     val terreno = terrenos.find { it.id == cultivo.terreno_id }
-                    cultivo to (terreno?.nombre ?: "N/A")
+                    Triple(cultivo, terreno?.nombre ?: "N/A", terreno?.tipo_tenencia ?: "propio")
                 }
                 
                 updateUI(cultivosConTerreno)
@@ -343,7 +343,7 @@ class CultivosListActivity : AppCompatActivity() {
         binding.navReportes.alpha = if (hasCultivos) 1.0f else 0.4f
     }
 
-    private fun updateUI(data: List<Pair<com.sigcpa.agrosys.database.entities.CultivoEntity, String>>) {
+    private fun updateUI(data: List<Triple<com.sigcpa.agrosys.database.entities.CultivoEntity, String, String>>) {
         if (data.isEmpty()) {
             binding.emptyState.visibility = View.VISIBLE
             binding.rvCultivos.visibility = View.GONE

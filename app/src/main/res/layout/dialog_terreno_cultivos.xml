@@ -8,23 +8,57 @@
     android:orientation="vertical"
     android:padding="24dp">
 
-    <TextView
-        android:id="@+id/tvTerrenoNombre"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Nombre del Terreno"
-        android:textColor="#111827"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/tvTerrenoDetalles"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Hectáreas totales | Área disponible"
-        android:textColor="#6b7280"
-        android:textSize="14sp" />
+        <TextView
+            android:id="@+id/tvTerrenoNombre"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Nombre del Terreno"
+            android:textColor="#111827"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/tvFechaAlquiler"/>
+
+        <TextView
+            android:id="@+id/tvTerrenoDetalles"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Hectáreas totales | Área disponible"
+            android:textColor="#6b7280"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTerrenoNombre"
+            app:layout_constraintEnd_toStartOf="@+id/tvTipoTenencia"/>
+
+        <TextView
+            android:id="@+id/tvFechaAlquiler"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#6B7280"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:text="Alq: --/--/----" />
+
+        <TextView
+            android:id="@+id/tvTipoTenencia"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="#4B5563"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvFechaAlquiler"
+            android:text="ALQUILADO" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <View
         android:layout_width="match_parent"

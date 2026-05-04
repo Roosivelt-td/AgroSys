@@ -13,11 +13,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class CultivosAdapter(
-    private var cultivos: List<Pair<CultivoEntity, String>>, // Cultivo and Terreno Name
+    private var cultivos: List<Triple<CultivoEntity, String, String>>, // Cultivo, Terreno Name, Tenencia
     private val onItemClick: (CultivoEntity) -> Unit
 ) : RecyclerView.Adapter<CultivosAdapter.CultivoViewHolder>() {
 
-    fun updateData(newData: List<Pair<CultivoEntity, String>>) {
+    fun updateData(newData: List<Triple<CultivoEntity, String, String>>) {
         this.cultivos = newData
         notifyDataSetChanged()
     }
@@ -34,12 +34,24 @@ class CultivosAdapter(
     override fun getItemCount(): Int = cultivos.size
 
     inner class CultivoViewHolder(private val binding: ItemCultivoBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: Pair<CultivoEntity, String>) {
+        fun bind(item: Triple<CultivoEntity, String, String>) {
             val cultivo = item.first
             val terrenoNombre = item.second
+            val tenencia = item.third
             
             binding.tvNombreLote.text = cultivo.nombre_lote ?: "Sin nombre"
             binding.tvTerreno.text = terrenoNombre
+            binding.tvTenencia.text = tenencia.uppercase()
+            
+            // Color para tenencia
+            if (tenencia.lowercase() == "alquilado") {
+                binding.tvTenencia.setTextColor(binding.root.context.getColor(R.color.blue_700))
+                binding.tvTenencia.backgroundTintList = binding.root.context.getColorStateList(R.color.blue_100)
+            } else {
+                binding.tvTenencia.setTextColor(binding.root.context.getColor(R.color.green_700))
+                binding.tvTenencia.backgroundTintList = binding.root.context.getColorStateList(R.color.green_100)
+            }
+
             binding.tvArea.text = "${cultivo.area_destinada ?: 0.0} ha"
             
             val sdf = SimpleDateFormat("dd/MM", Locale.getDefault())

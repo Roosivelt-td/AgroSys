@@ -106,13 +106,25 @@ interface AssetDao {
     @Insert
     suspend fun insertLabor(labor: LaborRealizadaEntity): Long
 
+    @Delete
+    suspend fun deleteLabor(labor: LaborRealizadaEntity)
+
+    @Update
+    suspend fun updateLabor(labor: LaborRealizadaEntity)
+
+    @Query("DELETE FROM insumos_usados WHERE labor_id = :laborId")
+    suspend fun deleteInsumosByLabor(laborId: Int)
+
+    @Query("DELETE FROM mano_obra WHERE labor_realizada_id = :laborId")
+    suspend fun deleteManoObraByLabor(laborId: Int)
+
     @Query("SELECT * FROM catalogo_labores WHERE id = :id")
     suspend fun getCatalogoLaborById(id: Int): CatalogoLaborEntity?
 
     @Query("SELECT * FROM catalogo_labores")
     suspend fun getCatalogoLabores(): List<CatalogoLaborEntity>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCosecha(cosecha: CosechaEntity): Long
 
     @Query("SELECT * FROM cosechas WHERE id = :id")
@@ -138,6 +150,12 @@ interface AssetDao {
 
     @Insert
     suspend fun insertInsumoUsado(insumo: InsumoUsadoEntity): Long
+
+    @Update
+    suspend fun updateInsumoUsado(insumo: InsumoUsadoEntity)
+
+    @Delete
+    suspend fun deleteInsumoUsado(insumo: InsumoUsadoEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCatalogoInsumo(insumo: CatalogoInsumoEntity): Long

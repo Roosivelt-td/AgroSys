@@ -56,24 +56,39 @@
                         android:textSize="12sp" />
 
                     <TextView
-                        android:id="@+id/tvHeaderTitle"
+                        android:id="@+id/tvHeaderSubtitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Nombre del Terreno"
+                        android:text="Detalle del cultivo"
                         android:textColor="#ffffff"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
-                    <TextView
-                        android:id="@+id/tvHeaderSubtitle"
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Detalle del Cultivo"
-                        android:textColor="#dcfce7"
-                        android:textSize="13sp" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_ubicacion"
+                            app:tint="#ffffff" />
+
+                        <TextView
+                            android:id="@+id/tvHeaderTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Nombre del Cultivo"
+                            android:textColor="#dcfce7"
+                            android:textSize="13sp" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <ImageView
+                    android:id="@+id/btnViewDetalle"
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:background="@drawable/circle_bg_green_light"
@@ -104,6 +119,33 @@
                     android:background="@android:color/white"
                     android:orientation="vertical"
                     android:padding="24dp">
+
+                    <!-- Información de Contexto -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                            android:id="@+id/tvInfoFecha"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="F. Siembra: --/--/----"
+                            android:textColor="#6B7280"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvInfoTenencia"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="ALQUILADO"
+                            android:textColor="#B45309"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                     <!-- Selector de Labores (Grid) -->
                     <TextView

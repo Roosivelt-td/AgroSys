@@ -20,8 +20,10 @@ import androidx.room.Index
 data class CosechaEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val cultivo_id: Int,
+    val labor_id: Int? = null,
     val fecha_cosecha: Long,
     val cantidad_kg: Double,
+    val unidad_medida: String? = "kg",
     val calidad: String?,
     val lote_codigo: String?,
     val costo_operativo_cosecha: Double = 0.0,

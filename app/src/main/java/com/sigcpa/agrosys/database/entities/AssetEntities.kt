@@ -23,6 +23,8 @@ data class TerrenoEntity(
     val area_hectareas: Double,
     val tipo_tenencia: String,
     @ColumnInfo(defaultValue = "0") val costo_alquiler_anual: Double = 0.0,
+    @ColumnInfo(defaultValue = "global") val alquiler_modalidad: String = "global", // 'hectarea', 'global'
+    @ColumnInfo(defaultValue = "fecha") val alquiler_periodo: String = "fecha", // 'campania', 'fecha'
     val calidad_suelo: String?,
     val fuente_agua: String?,
     @ColumnInfo(defaultValue = "activo") val estado: String = "activo",
