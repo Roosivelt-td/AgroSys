@@ -188,6 +188,9 @@ interface AssetDao {
     @Query("SELECT * FROM mano_obra WHERE labor_realizada_id = :laborId")
     suspend fun getManoObraByLabor(laborId: Int): List<ManoObraEntity>
 
+    @Query("SELECT * FROM mano_obra WHERE labor_realizada_id IN (SELECT id FROM labores_realizadas WHERE cultivo_id = :cultivoId)")
+    suspend fun getManoObraByCultivo(cultivoId: Int): List<ManoObraEntity>
+
     @Query("SELECT unidad_medida FROM catalogo_insumos WHERE id = :id")
     suspend fun getUnidadInsumo(id: Int): String?
 

@@ -1,100 +1,175 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@android:color/white"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:strokeColor="#F3F4F6"
-    app:strokeWidth="1dp">
+    android:orientation="horizontal"
+    android:paddingBottom="16dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- Timeline Indicator -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="40dp"
+        android:layout_height="match_parent">
+
+        <View
+            android:id="@+id/timelineLine"
+            android:layout_width="2dp"
+            android:layout_height="0dp"
+            android:background="#E2E8F0"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/timelineMarker"
+            app:layout_constraintStart_toStartOf="@id/timelineMarker"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/timelineMarker"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/circle_bg_white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#15803D" />
+
+        <View
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:background="@drawable/circle_bg_white"
+            android:backgroundTint="#15803D"
+            app:layout_constraintBottom_toBottomOf="@id/timelineMarker"
+            app:layout_constraintEnd_toEndOf="@id/timelineMarker"
+            app:layout_constraintStart_toStartOf="@id/timelineMarker"
+            app:layout_constraintTop_toTopOf="@id/timelineMarker" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Card Content -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardLabor"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_weight="1"
+        android:layout_marginEnd="16dp"
+        app:cardBackgroundColor="@android:color/white"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp"
+        app:strokeColor="#F3F4F6"
+        app:strokeWidth="1dp">
 
-        <!-- Cabecera del Cultivo -->
-        <RelativeLayout
-            android:id="@+id/layoutHeader"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
+            android:orientation="vertical"
             android:padding="16dp">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_toStartOf="@id/ivExpand"
-                android:orientation="vertical">
+            <!-- Header Row: Category, Date and Total Session -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:id="@+id/tvNombreCultivo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Papa Canchan - Lote A"
-                    android:textColor="#111827"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:background="@drawable/chip_bg_green"
+                    android:backgroundTint="#DCFCE7"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="#15803D"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="Preparación de terreno" />
+
+                <TextView
+                    android:id="@+id/tvFecha"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_toEndOf="@id/tvNombreCultivo"
+                    android:layout_centerVertical="true"
+                    android:textColor="#9CA3AF"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:text="23/09/2025" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:gravity="end"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total inversión"
+                        android:textColor="#9CA3AF"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/tvCostoTotal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#111827"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        tools:text="S/ 5,000.00" />
+                </LinearLayout>
+            </RelativeLayout>
+
+            <!-- Insumos Row -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/rounded_background"
+                android:backgroundTint="#FEF9C3"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_img"
+                    app:tint="#A16207" />
 
                 <TextView
                     android:id="@+id/tvResumenLabores"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="5 labores realizadas"
-                    android:textColor="#6B7280"
-                    android:textSize="12sp" />
+                    android:layout_marginStart="6dp"
+                    android:textColor="#A16207"
+                    android:textSize="12sp"
+                    tools:text="2 insumos utilizados" />
             </LinearLayout>
-
-            <ImageView
-                android:id="@+id/ivExpand"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:src="@drawable/direccion_abajo"
-                app:tint="#9CA3AF" />
-        </RelativeLayout>
-
-        <!-- Contenedor Expandible -->
-        <LinearLayout
-            android:id="@+id/layoutExpandible"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone"
-            tools:visibility="visible">
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginHorizontal="16dp"
-                android:background="#F3F4F6" />
+                android:layout_marginTop="16dp"
+                android:background="#F3F4F6"
+                android:visibility="gone" />
 
-            <!-- Contenedor para las 3 labores -->
-            <LinearLayout
-                android:id="@+id/containerLaboresMini"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingTop="8dp" />
-
-            <Button
+            <!-- Footer Row: Detalle Link (Point 1) -->
+            <TextView
                 android:id="@+id/btnVerDetalles"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="8dp"
-                android:text="Ver todos los detalles y gastos"
-                android:textAllCaps="false"
-                android:textColor="#15803d"
-                android:textStyle="bold" />
+                android:layout_gravity="end"
+                android:layout_marginTop="8dp"
+                android:text="••• Detalle"
+                android:textColor="#9CA3AF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"
+                android:padding="4dp"
+                android:visibility="gone" />
+
         </LinearLayout>
-    </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

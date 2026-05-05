@@ -344,14 +344,26 @@
                                 android:textColor="#64748b"
                                 android:textSize="12sp" />
 
-                            <TextView
-                                android:id="@+id/tvFechaSiembra"
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textColor="#1e293b"
-                                android:textSize="15sp"
-                                android:textStyle="bold"
-                                tools:text="15/05/2026" />
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+                                <ImageView
+                                    android:layout_width="14dp"
+                                    android:layout_height="14dp"
+                                    android:src="@drawable/ic_calendario"
+                                    android:layout_marginEnd="4dp"
+                                    app:tint="#64748b" />
+                                <TextView
+                                    android:id="@+id/tvFechaSiembra"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="#1e293b"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold"
+                                    tools:text="15/05/2026" />
+                            </LinearLayout>
                         </LinearLayout>
 
                         <LinearLayout
@@ -591,30 +603,78 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
+                android:background="@drawable/rounded_background"
+                android:backgroundTint="#15803D"
+                android:padding="16dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/tvLaboresTitulo"
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/agro_planta_hoja"
+                    app:tint="#FFFFFF" />
+
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textColor="#111827"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    tools:text="Labores (0)" />
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAgregarLabor"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/btn_agregar"
-                    android:textAllCaps="false"
-                    android:textColor="#15803d"
-                    app:icon="@android:drawable/ic_input_add"
-                    app:iconTint="#15803d" />
+                    <TextView
+                        android:id="@+id/tvLaboresTitulo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        tools:text="Historial de Labores (2)" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:src="@drawable/ic_ubicacion"
+                            app:tint="#D1FAE5" />
+
+                        <TextView
+                            android:id="@+id/tvLaboresSubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:textColor="#D1FAE5"
+                            android:textSize="12sp"
+                            tools:text="2 registros" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/btnMasOpcionesLabores"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_admin"
+                    app:tint="#FFFFFF" />
             </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAgregarLabor"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="@string/btn_agregar"
+                android:textAllCaps="false"
+                android:textColor="#15803d"
+                app:icon="@android:drawable/ic_input_add"
+                app:iconSize="16dp"
+                app:iconTint="#15803d" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvLabores"

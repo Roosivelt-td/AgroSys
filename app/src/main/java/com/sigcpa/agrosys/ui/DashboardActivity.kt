@@ -337,10 +337,8 @@ class DashboardActivity : AppCompatActivity() {
             else -> getString(R.string.weather_tip_default)
         }
         
-        binding.tvWeatherTip.apply {
-            text = tip
-            visibility = View.VISIBLE
-        }
+        binding.llWeatherTipContainer.visibility = View.VISIBLE
+        binding.tvWeatherTip.text = tip
     }
 
     private fun actualizarSaludo() {

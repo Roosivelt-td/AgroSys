@@ -232,73 +232,159 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <TextView
-                android:id="@+id/mensajeNotificacion"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:background="@drawable/bg_notification_gradient"
-                android:padding="12dp"
-                android:text="@string/msg_bienvenida"
-                android:textSize="12sp"
-                android:textColor="#166534" />
-
-            <!-- Tarjeta del Clima -->
+            <!-- Integrated Weather and Welcome Section -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cvWeatherCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="16dp"
+                android:layout_marginTop="8dp"
+                app:cardCornerRadius="20dp"
                 app:cardElevation="0dp"
                 app:strokeWidth="1dp"
                 app:strokeColor="#e2e8f0">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
                     android:padding="16dp"
-                    android:gravity="center_vertical"
                     android:background="#FFFFFF">
-                    <ImageView
-                        android:id="@+id/ivWeatherIcon"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:src="@drawable/ic_weather_default" />
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="12dp"
-                        android:orientation="vertical">
-                        <TextView android:id="@+id/tvCityName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/weather_loading" android:textStyle="bold" android:textColor="#1e293b" />
-                        <TextView android:id="@+id/tvTemperature" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--°C" android:textColor="#16a34a" android:textSize="20sp" android:textStyle="bold" />
-                        <TextView android:id="@+id/tvWeatherDescription" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textSize="12sp" android:textColor="#64748b" />
 
-                        <!-- Burbuja de consejo dinámico -->
+                    <!-- Welcome Bubble -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/welcome_bubble_bg"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="8dp"
+                        android:paddingHorizontal="12dp">
+
+                        <View
+                            android:layout_width="4dp"
+                            android:layout_height="24dp"
+                            android:background="#16A34A" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=" 🌾 "
+                            android:textSize="14sp"
+                            android:layout_marginStart="8dp"/>
+
+                        <TextView
+                            android:id="@+id/mensajeNotificacion"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/msg_bienvenida"
+                            android:textColor="#166534"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Weather row -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_toStartOf="@+id/llTempContainer"
+                            android:orientation="horizontal"
+                            android:gravity="top">
+
+                            <ImageView
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
+                                android:layout_marginTop="2dp"
+                                android:src="@drawable/ic_ubicacion"
+                                app:tint="#EF4444" />
+
+                            <TextView
+                                android:id="@+id/tvCityName"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:text="@string/weather_loading"
+                                android:textColor="#64748b"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/llTempContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:gravity="end"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvTemperature"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="22°C"
+                                android:textColor="#F97316"
+                                android:textSize="24sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvWeatherDescription"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Algo de nubes"
+                                android:textColor="#16A34A"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </RelativeLayout>
+
+                    <!-- Tip Bubble -->
+                    <LinearLayout
+                        android:id="@+id/llWeatherTipContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/rounded_soft"
+                        android:backgroundTint="#F0FDF4"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="8dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_ubicacion"
+                            app:tint="#EF4444" />
+
                         <TextView
                             android:id="@+id/tvWeatherTip"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:background="@drawable/rounded_soft"
-                            android:backgroundTint="#eff6ff"
-                            android:paddingHorizontal="10dp"
-                            android:paddingVertical="4dp"
+                            android:layout_marginStart="8dp"
                             android:text="@string/weather_tip_consulting"
-                            android:textColor="#1d4ed8"
-                            android:textSize="10sp"
-                            android:textStyle="bold"
-                            android:visibility="gone"
-                            tools:visibility="visible" />
+                            android:textColor="#166534"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
+
                     <ProgressBar
                         android:id="@+id/progressWeather"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:layout_gravity="center"
                         android:visibility="gone" />
+
+                    <!-- Ocultamos el icono grande del clima para seguir el modelo -->
+                    <ImageView
+                        android:id="@+id/ivWeatherIcon"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

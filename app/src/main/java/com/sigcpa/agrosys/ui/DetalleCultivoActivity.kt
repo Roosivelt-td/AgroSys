@@ -287,7 +287,16 @@ class DetalleCultivoActivity : AppCompatActivity() {
     private fun updateListas(labores: List<LaborRealizadaEntity>, cosechas: List<CosechaEntity>, ventas: List<VentaEntity>) {
         lifecycleScope.launch {
             val catalogo = db.assetDao().getCatalogoLabores()
-            val groupedLabores = labores.groupBy { it.catalogo_labor_id }.map { (id, items) -> LaborGroup(id, catalogo.find { it.id == id }?.nombre ?: "Labor", items) }
+            val insumos = db.assetDao().getInsumosByCultivo(currentCultivoId)
+            
+            val groupedLabores = labores.groupBy { it.catalogo_labor_id }.map { (id, items) ->
+                val totalCost = items.sumOf { labor ->
+                    labor.costo_mano_obra_total + labor.costo_maquinaria_total +
+                            insumos.filter { it.labor_id == labor.id }.sumOf { (it.cantidad * it.costo_unitario) + it.costo_flete }
+                }
+                val lastDate = items.maxOfOrNull { it.fecha_realizacion } ?: 0L
+                LaborGroup(id, catalogo.find { it.id == id }?.nombre ?: "Labor", items, totalCost, lastDate)
+            }
             binding.rvLabores.adapter = LaboresGroupAdapter(groupedLabores)
             binding.tvLaboresTitulo.text = "Historial de Labores (${groupedLabores.size})"
         }
@@ -351,7 +360,7 @@ class DetalleCultivoActivity : AppCompatActivity() {
         }.setNegativeButton("Cancelar", null).show()
     }
 
-    data class LaborGroup(val id: Int, val nombre: String, val items: List<LaborRealizadaEntity>)
+    data class LaborGroup(val id: Int, val nombre: String, val items: List<LaborRealizadaEntity>, val totalCost: Double, val lastDate: Long)
     inner class LaboresGroupAdapter(private val groups: List<LaborGroup>) : RecyclerView.Adapter<LaboresGroupAdapter.ViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(com.sigcpa.agrosys.databinding.ItemLaborGroupBinding.inflate(LayoutInflater.from(parent.context), parent, false))
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -359,9 +368,10 @@ class DetalleCultivoActivity : AppCompatActivity() {
             holder.binding.tvNombreCultivo.text = group.nombre
             
             val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            val ultimaFecha = group.items.maxOfOrNull { it.fecha_realizacion } ?: 0L
-            val fechaStr = if (ultimaFecha > 0) sdf.format(Date(ultimaFecha * 1000)) else "--/--/----"
+            val fechaStr = if (group.lastDate > 0) sdf.format(Date(group.lastDate * 1000)) else "--/--/----"
             
+            holder.binding.tvFecha.text = fechaStr
+            holder.binding.tvCostoTotal.text = "S/ ${String.format("%.2f", group.totalCost)}"
             holder.binding.tvResumenLabores.text = "${group.items.size} registros • Último: $fechaStr\nVer más detalles"
 
             holder.binding.root.setOnClickListener {
