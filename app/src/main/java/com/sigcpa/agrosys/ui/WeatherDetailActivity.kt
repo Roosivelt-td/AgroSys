@@ -104,7 +104,12 @@ class WeatherDetailActivity : AppCompatActivity() {
     private fun updateCurrentUI(weather: WeatherResponse) {
         binding.tvCurrentTempDetail.text = "${weather.main.temp.toInt()}°"
         binding.tvCurrentDescDetail.text = mapWeatherType(weather.weather[0].main, weather.weather[0].description, weather.main.temp)
-        binding.tvHumidityDetail.text = "Humedad: ${weather.main.humidity}%"
+        
+        binding.tvFeelsLike.text = "${weather.main.feelsLike.toInt()}°"
+        binding.tvHumidityDetail.text = "${weather.main.humidity}%"
+        binding.tvWindDetail.text = "${weather.wind?.speed?.toInt() ?: "--"} km/h"
+        binding.tvVisibilityDetail.text = "${(weather.visibility?.div(1000) ?: "--")} km"
+
         Glide.with(this).load(weatherViewModel.getWeatherIconUrl(weather.weather[0].icon)).into(binding.ivWeatherMain)
         generate5Recommendations(weather)
     }
@@ -121,30 +126,22 @@ class WeatherDetailActivity : AppCompatActivity() {
         indices.forEach { i ->
             if (i < list.size) {
                 val item = list[i]
-                val timeLabel = when(i) { 0 -> "ahora"; 2 -> "dentro de +6h"; else -> "dentro de +12h" }
-                val fullType = mapWeatherType(item.weather[0].main, item.weather[0].description, item.main.temp)
-                val stateShort = fullType.split(" ").first()
-                addStatusCard("$stateShort - $timeLabel", item)
+                val timeLabel = when(i) { 0 -> "ahora"; 2 -> "+6h"; else -> "+12h" }
+                addStatusCard(timeLabel, item)
             }
         }
 
-        // 2. 6 PICOS TÉRMICOS INTELIGENTES
+        // 2. ALERTAS DE PICOS TÉRMICOS (En lugar de tarjetas separadas, una lista en texto)
         val absMax = list.maxByOrNull { it.main.tempMax }
         val absMin = list.minByOrNull { it.main.tempMin }
-        val averageTemp = list.map { it.main.temp }.average()
-
-        // Calor fuerte
-        absMax?.takeIf { it.main.tempMax > 28 }?.let { addExtremeCard("Día de Calor Fuerte", it, "#ef4444", "🔥") }
-        // Media (Ambiente Estable)
-        list.minByOrNull { abs(it.main.temp - averageTemp) }?.let { addExtremeCard("Clima Estable", it, "#f97316", "☀️") }
-        // Templado
-        list.find { it.main.temp in 19.0..24.0 }?.let { addExtremeCard("Día Templado", it, "#fbbf24", "🍃") }
-        // Ambiente Frío
-        list.find { it.main.temp in 8.0..14.0 }?.let { addExtremeCard("Ambiente Frío", it, "#3b82f6", "❄️") }
-        // Riesgo Helada
-        absMin?.takeIf { it.main.tempMin < 5 }?.let { addExtremeCard("Riesgo de Helada", it, "#06b6d4", "🧊") }
-        // Frío Extremo
-        absMin?.takeIf { it.main.tempMin < 1 }?.let { addExtremeCard("Peligro: Frío Extremo", it, "#1e1b4b", "🥶") }
+        val alerts = mutableListOf<String>()
+        
+        absMax?.takeIf { it.main.tempMax > 28 }?.let { alerts.add("Día de Calor Fuerte") }
+        alerts.add("Clima Estable")
+        alerts.add("Día Templado")
+        absMin?.takeIf { it.main.tempMin < 5 }?.let { alerts.add("Riesgo de Helada") }
+        
+        binding.tvAlertasPicos.text = "Alertas de picos térmicos · ${alerts.joinToString(" · ")}"
 
         // 3. PRÓXIMOS DÍAS (Buscando datos del mediodía para precisión real)
         val dailyGroups = list.groupBy { 
@@ -188,14 +185,35 @@ class WeatherDetailActivity : AppCompatActivity() {
     private fun addStatusCard(label: String, item: WeatherResponse) {
         val card = com.google.android.material.card.MaterialCardView(this).apply {
             layoutParams = LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(8, 0, 8, 0) }
-            radius = 24f; setCardBackgroundColor(Color.parseColor("#1e293b"))
+            radius = 44f; setCardBackgroundColor(Color.parseColor("#F4F9EF"))
+            strokeWidth = 2; strokeColor = Color.parseColor("#DAE8D0")
         }
-        val layout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER; setPadding(16, 16, 16, 16) }
-        val iconImg = ImageView(this).apply { layoutParams = LinearLayout.LayoutParams(60, 60) }
-        Glide.with(this).load(weatherViewModel.getWeatherIconUrl(item.weather[0].icon)).into(iconImg)
-        layout.addView(iconImg)
-        layout.addView(TextView(this).apply { text = "${item.main.temp.toInt()}°"; setTextColor(Color.WHITE); setTypeface(null, android.graphics.Typeface.BOLD) })
-        layout.addView(TextView(this).apply { text = label; setTextColor(Color.parseColor("#94a3b8")); textSize = 7f; gravity = Gravity.CENTER })
+        val layout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER; setPadding(12, 24, 12, 24) }
+        
+        layout.addView(TextView(this).apply { 
+            text = "${item.main.temp.toInt()}°"
+            setTextColor(Color.parseColor("#BC6A32"))
+            textSize = 24f
+            setTypeface(null, android.graphics.Typeface.BOLD) 
+        })
+        
+        val desc = mapWeatherType(item.weather[0].main, item.weather[0].description, item.main.temp).split(" ").first()
+        layout.addView(TextView(this).apply { 
+            text = desc
+            setTextColor(Color.parseColor("#598055"))
+            textSize = 10f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            gravity = Gravity.CENTER 
+        })
+        
+        layout.addView(TextView(this).apply { 
+            text = label
+            setTextColor(Color.parseColor("#89A47A"))
+            textSize = 9f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            gravity = Gravity.CENTER 
+        })
+        
         card.addView(layout); binding.llWeatherStatusGrid.addView(card)
     }
 
@@ -214,29 +232,84 @@ class WeatherDetailActivity : AppCompatActivity() {
     }
 
     private fun addDailyCard(label: String, item: WeatherResponse, max: Double, min: Double, pop: Double) {
-        val card = com.google.android.material.card.MaterialCardView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, 0, 0, 16) }
-            radius = 32f; setCardBackgroundColor(Color.parseColor("#1e293b"))
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, 20, 0, 20)
         }
-        val rel = android.widget.RelativeLayout(this).apply { setPadding(32, 32, 32, 32) }
-        val iconImg = ImageView(this).apply { id = View.generateViewId(); layoutParams = android.widget.RelativeLayout.LayoutParams(100, 100).apply { addRule(android.widget.RelativeLayout.CENTER_VERTICAL) } }
-        Glide.with(this).load(weatherViewModel.getWeatherIconUrl(item.weather[0].icon)).into(iconImg)
-        val texts = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = android.widget.RelativeLayout.LayoutParams(-2, -2).apply { addRule(android.widget.RelativeLayout.END_OF, iconImg.id); marginStart = 24 }
-            addView(TextView(this@WeatherDetailActivity).apply { text = label; setTextColor(Color.WHITE); setTypeface(null, android.graphics.Typeface.BOLD) })
-            
-            val probStr = if (pop > 0) " (${(pop * 100).toInt()}%)" else ""
-            addView(TextView(this@WeatherDetailActivity).apply { text = mapWeatherType(item.weather[0].main, item.weather[0].description, item.main.temp) + probStr; setTextColor(Color.parseColor("#94a3b8")); textSize = 12f })
+        
+        // Divider view logic is handled by parent's divider or manual border if needed
+        // but for list style we just add a divider at the end if not the last one
+        
+        val tvLabel = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(0, -2, 1.2f)
+            text = label
+            setTextColor(Color.parseColor("#3A6235"))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            textSize = 14f
         }
-        val temps = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; gravity = Gravity.END
-            layoutParams = android.widget.RelativeLayout.LayoutParams(-2, -2).apply { addRule(android.widget.RelativeLayout.ALIGN_PARENT_END) }
-            addView(TextView(this@WeatherDetailActivity).apply { text = "${max.toInt()}° / ${min.toInt()}°"; setTextColor(Color.WHITE); setTypeface(null, android.graphics.Typeface.BOLD) })
-            addView(TextView(this@WeatherDetailActivity).apply { text = if (pop > 0.4) "⚠️ Lluvia" else if (max > 25) "⚠️ Estrés" else "🌱 Óptimo"; setTextColor(if (pop > 0.4) Color.CYAN else if (max > 25) Color.YELLOW else Color.GREEN); textSize = 10f })
+        
+        val iconEmoji = when(item.weather[0].main.lowercase()) {
+            "rain", "drizzle" -> "🌧️"
+            "clouds" -> "🌥️"
+            "clear" -> "☀️"
+            else -> "🌥️"
         }
-        rel.addView(iconImg); rel.addView(texts); rel.addView(temps); card.addView(rel); binding.llDailyForecast.addView(card)
+        val probStr = if (pop > 0.1) " (${(pop * 100).toInt()}%)" else ""
+        val tvClima = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(0, -2, 1.5f)
+            text = "$iconEmoji " + mapWeatherType(item.weather[0].main, item.weather[0].description, item.main.temp) + probStr
+            setTextColor(Color.parseColor("#608A52"))
+            textSize = 12f
+        }
+        
+        val tvTemp = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(wrapContent, wrapContent)
+            text = "${max.toInt()}°/${min.toInt()}°"
+            setTextColor(Color.parseColor("#3D7037"))
+            setPadding(16, 4, 16, 4)
+            background = getRoundedDrawable("#EEF6E8", 40f)
+            textSize = 12f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+        
+        val tvBadge = TextView(this).apply {
+            val lp = LinearLayout.LayoutParams(wrapContent, wrapContent)
+            lp.marginStart = 16
+            layoutParams = lp
+            text = if (pop > 0.4) "Lluvia" else if (max > 25) "Estrés" else "Óptimo"
+            setPadding(24, 8, 24, 8)
+            background = getRoundedDrawable("#C8E0B5", 60f)
+            setTextColor(Color.parseColor("#2C6B26"))
+            textSize = 11f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+        
+        layout.addView(tvLabel)
+        layout.addView(tvClima)
+        layout.addView(tvTemp)
+        layout.addView(tvBadge)
+        
+        binding.llDailyForecast.addView(layout)
+        
+        // Add divider
+        val divider = View(this).apply {
+            layoutParams = LinearLayout.LayoutParams(-1, 2)
+            setBackgroundColor(Color.parseColor("#E3EDD9"))
+        }
+        binding.llDailyForecast.addView(divider)
     }
+
+    private fun getRoundedDrawable(color: String, radius: Float): android.graphics.drawable.GradientDrawable {
+        return android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = radius
+            setColor(Color.parseColor(color))
+        }
+    }
+    
+    private val wrapContent = LinearLayout.LayoutParams.WRAP_CONTENT
+
 
     private fun loadNearbyCitiesWeather(lat: Double, lon: Double) {
         binding.llRegionalForecast.removeAllViews()
@@ -255,16 +328,16 @@ class WeatherDetailActivity : AppCompatActivity() {
     private fun addRegionalCard(weather: WeatherResponse) {
         val card = com.google.android.material.card.MaterialCardView(this).apply {
             layoutParams = LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(8, 0, 8, 0) }
-            radius = 32f; setCardBackgroundColor(Color.parseColor("#1e293b"))
+            radius = 48f; setCardBackgroundColor(Color.parseColor("#EBF3E5"))
+            strokeWidth = 2; strokeColor = Color.parseColor("#D3E2C6")
         }
-        val layout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(20, 20, 20, 20); gravity = Gravity.CENTER }
-        layout.addView(TextView(this).apply { text = weather.name; setTextColor(Color.WHITE); textSize = 10f; gravity = Gravity.CENTER; maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-        val iconImg = ImageView(this).apply { layoutParams = LinearLayout.LayoutParams((40 * resources.displayMetrics.density).toInt(), (40 * resources.displayMetrics.density).toInt()) }
-        Glide.with(this).load(weatherViewModel.getWeatherIconUrl(weather.weather[0].icon)).into(iconImg)
-        layout.addView(iconImg)
-        layout.addView(TextView(this).apply { text = "${weather.main.temp.toInt()}°C"; setTextColor(Color.WHITE); textSize = 14f; setTypeface(null, android.graphics.Typeface.BOLD) })
+        val layout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16, 24, 16, 24); gravity = Gravity.CENTER }
+        layout.addView(TextView(this).apply { text = weather.name; setTextColor(Color.parseColor("#3F6B3A")); textSize = 12f; gravity = Gravity.CENTER; maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; setTypeface(null, android.graphics.Typeface.BOLD) })
+        
+        layout.addView(TextView(this).apply { text = "${weather.main.temp.toInt()}°C"; setTextColor(Color.parseColor("#C16232")); textSize = 18f; setTypeface(null, android.graphics.Typeface.BOLD) })
+        
         val state = mapWeatherType(weather.weather[0].main, "", weather.main.temp).split(" ")[0]
-        layout.addView(TextView(this).apply { text = state; setTextColor(Color.parseColor("#94a3b8")); textSize = 8f })
+        layout.addView(TextView(this).apply { text = state; setTextColor(Color.parseColor("#71935F")); textSize = 10f; setTypeface(null, android.graphics.Typeface.BOLD) })
         card.addView(layout); binding.llRegionalForecast.addView(card)
     }
 

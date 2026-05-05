@@ -48,6 +48,17 @@ import java.io.File
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import android.view.Gravity
+import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.sigcpa.agrosys.databinding.ItemChatMessageBinding
 
 class DashboardActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDashboardBinding
@@ -57,11 +68,18 @@ class DashboardActivity : AppCompatActivity() {
     private val db by lazy { AppDatabase.getDatabase(this) }
     private val catalogImporter by lazy { CatalogImporter(this) }
 
+    // Variables para el Chat Integrado
+    private val chatMessages = mutableListOf<ChatMessage>()
+    private lateinit var chatAdapter: ChatDashboardAdapter
+    private val n8nWebhookUrl = "https://juanmaria123.app.n8n.cloud/webhook/b567d98b-aabb-4963-b0f8-6b1e8b5f8959/chat"
+
     private var hasTerrenos = false
     private var hasCultivos = false
     
     private var currentLat: Double = 0.0
     private var currentLon: Double = 0.0
+
+    private var welcomeActionClosed = false
 
     private lateinit var cultivoCursoAdapter: CultivoCursoAdapter
 
@@ -360,6 +378,29 @@ class DashboardActivity : AppCompatActivity() {
         binding.ivUserAvatar.setOnClickListener { showUserMenu() }
         binding.btnProfileCard.setOnClickListener { showUserMenu() }
 
+        binding.btnNotifications.setOnClickListener {
+            startActivity(Intent(this, NotificacionesActivity::class.java))
+        }
+
+        binding.btnCloseWelcomeAction.setOnClickListener {
+            welcomeActionClosed = true
+            binding.layoutWelcomeAction.visibility = View.GONE
+        }
+
+        setupChatInDashboard()
+
+        binding.fabChat.setOnClickListener {
+            if (binding.cardChatPanel.visibility == View.GONE) {
+                binding.cardChatPanel.visibility = View.VISIBLE
+                binding.fabChat.hide()
+            }
+        }
+
+        binding.btnCloseChat.setOnClickListener {
+            binding.cardChatPanel.visibility = View.GONE
+            binding.fabChat.show()
+        }
+
         // Abrir detalles del clima al tocar la tarjeta
         binding.cvWeatherCard.setOnClickListener {
             val intent = Intent(this, WeatherDetailActivity::class.java)
@@ -478,15 +519,27 @@ class DashboardActivity : AppCompatActivity() {
                 val agricultorId = userWithRol.usuario.id
                 val numTerrenos = db.assetDao().countTerrenosByAgricultor(agricultorId)
                 val cultivos = db.assetDao().getCultivosByAgricultor(agricultorId)
+                val labores = db.assetDao().getLaboresByAgricultor(agricultorId)
+                
                 hasTerrenos = numTerrenos > 0
                 hasCultivos = cultivos.isNotEmpty()
+                val hasLabores = labores.isNotEmpty()
+                val hasPlannedCultivos = cultivos.any { it.estado == "planificado" }
+
                 binding.tvStatTerrenos.text = numTerrenos.toString()
                 binding.tvStatCultivos.text = cultivos.size.toString()
+                
+                // Actualizar burbuja de bienvenida dinámica
+                updateWelcomeAction(userWithRol.usuario.nombre, hasLabores, hasPlannedCultivos)
                 
                 // Actualizar resumen financiero
                 val ingresos = db.assetDao().getIngresosTotalesByAgricultor(agricultorId) ?: 0.0
                 val costos = db.assetDao().getCostosTotalesByAgricultor(agricultorId) ?: 0.0
                 val neto = ingresos - costos
+                
+                val unreadNotifs = db.assetDao().countUnreadNotificaciones(userId)
+                binding.notifCount.text = unreadNotifs.toString()
+                binding.notifCount.visibility = if (unreadNotifs > 0) View.VISIBLE else View.GONE
                 
                 val currencyFormat = NumberFormat.getCurrencyInstance(Locale("es", "PE"))
                 binding.tvIngresosDash.text = currencyFormat.format(ingresos)
@@ -608,6 +661,72 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateWelcomeAction(userName: String, hasLabores: Boolean, hasPlannedCultivos: Boolean) {
+        if (welcomeActionClosed) {
+            binding.layoutWelcomeAction.visibility = View.GONE
+            return
+        }
+
+        val userId = getSharedPreferences("agrosys_prefs", Context.MODE_PRIVATE).getInt("USER_ID", -1)
+
+        lifecycleScope.launch {
+            when {
+                !hasTerrenos -> {
+                    val title = "Registro Inicial"
+                    val msg = "¡Bienvenido a AgroSys! Comienza registrando tus Terrenos."
+                    showOrNotify(userId, title, msg, " 🌾 ") {
+                        startActivity(Intent(this@DashboardActivity, RegisterTerrenoActivity::class.java))
+                    }
+                }
+                !hasCultivos -> {
+                    val title = "Sugerencia"
+                    val msg = "¡Hola $userName! Te sugerimos registrar tu primer cultivo para comenzar."
+                    showOrNotify(userId, title, msg, " 🌱 ") {
+                        startActivity(Intent(this@DashboardActivity, RegisterCultivoActivity::class.java))
+                    }
+                }
+                hasPlannedCultivos -> {
+                    val title = "Tarea Pendiente"
+                    val msg = "Tienes cultivos planificados. ¡Es hora de registrar su siembra!"
+                    showOrNotify(userId, title, msg, " 🚜 ") {
+                        startActivity(Intent(this@DashboardActivity, CultivosListActivity::class.java))
+                    }
+                }
+                !hasLabores -> {
+                    val title = "Próximo Paso"
+                    val msg = "¡Buen trabajo! Ahora registra las labores diarias de tus cultivos."
+                    showOrNotify(userId, title, msg, " ✍️ ") {
+                        startActivity(Intent(this@DashboardActivity, LaboresListActivity::class.java))
+                    }
+                }
+                else -> {
+                    binding.layoutWelcomeAction.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private suspend fun showOrNotify(userId: Int, title: String, msg: String, icon: String, action: () -> Unit) {
+        binding.layoutWelcomeAction.visibility = View.VISIBLE
+        binding.tvWelcomeActionIcon.text = icon
+        binding.tvWelcomeActionMessage.text = msg
+        binding.layoutWelcomeAction.setOnClickListener { action() }
+
+        // Verificar si ya existe esta notificación para no duplicar
+        val existing = db.assetDao().getNotificacionesByUsuario(userId)
+        if (existing.none { it.mensaje == msg }) {
+            db.assetDao().insertNotificacion(
+                com.sigcpa.agrosys.database.entities.NotificacionEntity(
+                    usuario_id = userId,
+                    titulo = title,
+                    mensaje = msg,
+                    tipo = "sugerencia",
+                    fecha_programada = System.currentTimeMillis() / 1000
+                )
+            )
+        }
+    }
+
     private fun applyLockStyles() {
         val alphaCultivo = if (hasTerrenos) 1.0f else 0.4f
         binding.navCultivoQuick.alpha = alphaCultivo
@@ -622,6 +741,80 @@ class DashboardActivity : AppCompatActivity() {
     private fun showLockMessage(type: String) {
         val msg = if (type == "terreno") "⚠️ Registra un terreno primero." else "⚠️ Registra un cultivo primero."
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+    }
+
+    private fun setupChatInDashboard() {
+        chatAdapter = ChatDashboardAdapter(chatMessages)
+        binding.rvChatDashboard.layoutManager = LinearLayoutManager(this).apply {
+            stackFromEnd = true
+        }
+        binding.rvChatDashboard.adapter = chatAdapter
+
+        if (chatMessages.isEmpty()) {
+            chatMessages.add(ChatMessage("¡Hola! Soy tu asistente AgroSys. ¿Tienes alguna duda sobre tus cultivos?", false))
+            chatAdapter.notifyItemInserted(0)
+        }
+
+        binding.btnSendChatDash.setOnClickListener {
+            val text = binding.etChatMessageDash.text.toString().trim()
+            if (text.isNotEmpty()) {
+                sendChatMessage(text)
+            }
+        }
+    }
+
+    private fun sendChatMessage(text: String) {
+        chatMessages.add(ChatMessage(text, true))
+        chatAdapter.notifyItemInserted(chatMessages.size - 1)
+        binding.rvChatDashboard.scrollToPosition(chatMessages.size - 1)
+        binding.etChatMessageDash.setText("")
+
+        lifecycleScope.launch {
+            val response = callN8nChat(text)
+            chatMessages.add(ChatMessage(response, false))
+            chatAdapter.notifyItemInserted(chatMessages.size - 1)
+            binding.rvChatDashboard.scrollToPosition(chatMessages.size - 1)
+        }
+    }
+
+    private suspend fun callN8nChat(userMessage: String): String {
+        return withContext(Dispatchers.IO) {
+            try {
+                val client = OkHttpClient()
+                val json = JSONObject().apply {
+                    put("message", userMessage)
+                    put("timestamp", System.currentTimeMillis())
+                }
+                val body = json.toString().toRequestBody("application/json".toMediaType())
+                val request = Request.Builder().url(n8nWebhookUrl).post(body).build()
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val jsonResponse = JSONObject(response.body?.string() ?: "{}")
+                    jsonResponse.optString("output", jsonResponse.optString("response", "Entendido, lo revisaré."))
+                } else "Error de conexión."
+            } catch (e: Exception) {
+                "Lo siento, no puedo responder ahora."
+            }
+        }
+    }
+
+    inner class ChatDashboardAdapter(private val list: List<ChatMessage>) : RecyclerView.Adapter<ChatDashboardAdapter.ViewHolder>() {
+        inner class ViewHolder(val b: ItemChatMessageBinding) : RecyclerView.ViewHolder(b.root)
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(ItemChatMessageBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        override fun getItemCount() = list.size
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val msg = list[position]
+            holder.b.tvMessage.text = msg.text
+            val params = holder.b.cardMessage.layoutParams as LinearLayout.LayoutParams
+            if (msg.isUser) {
+                params.gravity = Gravity.END
+                holder.b.cardMessage.setCardBackgroundColor(android.graphics.Color.parseColor("#dcfce7"))
+            } else {
+                params.gravity = Gravity.START
+                holder.b.cardMessage.setCardBackgroundColor(android.graphics.Color.parseColor("#ffffff"))
+            }
+            holder.b.cardMessage.layoutParams = params
+        }
     }
 
     private fun logout() {

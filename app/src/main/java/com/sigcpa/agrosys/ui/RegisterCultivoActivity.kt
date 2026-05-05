@@ -241,6 +241,9 @@ class RegisterCultivoActivity : AppCompatActivity() {
             } else if (preSelectedTerrenoId != -1) {
                 val terreno = db.assetDao().getTerrenoById(preSelectedTerrenoId)
                 if (terreno != null) displaySelectedTerreno(terreno)
+            } else {
+                // Si no hay terreno pre-seleccionado ni es edición, forzar la selección al inicio
+                showTerrenoSelectionDialog()
             }
 
             val catalogo = db.assetDao().getCatalogoByUsuario(userId)

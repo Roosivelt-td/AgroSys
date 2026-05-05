@@ -240,4 +240,20 @@ interface AssetDao {
         LIMIT 10
     """)
     suspend fun getCosechasRecientesByAgricultor(agricultorId: Int): List<CosechaEntity>
+
+    // Notificaciones
+    @Insert
+    suspend fun insertNotificacion(notificacion: NotificacionEntity): Long
+
+    @Update
+    suspend fun updateNotificacion(notificacion: NotificacionEntity)
+
+    @Query("SELECT * FROM notificaciones WHERE usuario_id = :usuarioId ORDER BY created_at DESC")
+    suspend fun getNotificacionesByUsuario(usuarioId: Int): List<NotificacionEntity>
+
+    @Query("SELECT COUNT(*) FROM notificaciones WHERE usuario_id = :usuarioId AND leido = 0")
+    suspend fun countUnreadNotificaciones(usuarioId: Int): Int
+
+    @Query("DELETE FROM notificaciones WHERE id = :id")
+    suspend fun deleteNotificacion(id: Int)
 }

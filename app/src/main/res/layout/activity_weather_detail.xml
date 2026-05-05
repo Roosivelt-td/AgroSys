@@ -5,66 +5,59 @@
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#f8fafc">
+    android:background="#E8F0E3">
 
-    <!-- Header Estandarizado -->
+    <!-- Header Estandarizado con botón volver -->
     <LinearLayout
         android:id="@+id/header_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/header_gradient_bg"
-        android:orientation="vertical"
-        android:paddingHorizontal="20dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
         android:paddingTop="16dp"
-        android:paddingBottom="16dp"
+        android:paddingBottom="8dp"
+        android:gravity="center_vertical"
         app:layout_constraintTop_toTopOf="parent">
 
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/direccion_izquierda"
+            app:tint="#2F6B2F" />
+
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/btnBack"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/direccion_izquierda"
-                app:tint="#ffffff"/>
-
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/tvHeaderTitle"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:text="🌾 AgroClima"
+                android:textColor="#2F6B2F"
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tvHeaderLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/header_agroclima"
-                    android:textColor="#dcfce7"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/tvHeaderTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/header_inteligente"
-                    android:textColor="#ffffff"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="@drawable/circle_bg_green_light"
-                android:padding="8dp"
-                android:src="@drawable/ic_weather_default"
-                app:tint="#15803d" />
+            <TextView
+                android:id="@+id/tvHeaderLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inteligencia Agrícola"
+                android:textColor="#6F8F66"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
+
+        <!-- Espaciador para centrar el título -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="40dp" />
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -85,67 +78,61 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="#1d4ed8"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="4dp">
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="4dp"
+                app:strokeColor="#DDE8D4"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
 
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_estado_actual"
-                                android:textColor="#bfdbfe"
-                                android:textSize="12sp" />
-
-                            <TextView
-                                android:id="@+id/tvCurrentTempDetail"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="--°"
-                                android:textColor="#FFFFFF"
-                                android:textSize="48sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tvCurrentDescDetail"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/weather_loading"
-                                android:textColor="#FFFFFF"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/tvCurrentTempDetail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="22°"
+                        android:textColor="#C45A2C"
+                        android:textSize="80sp"
+                        android:textStyle="bold" />
                         <ImageView
                             android:id="@+id/ivWeatherMain"
-                            android:layout_width="80dp"
-                            android:layout_height="80dp"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:src="@drawable/ic_weather_default" />
-                    </RelativeLayout>
+                        <TextView
+                            android:id="@+id/tvCurrentDescDetail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Nublado"
+                            android:textColor="#4E6E44"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="2dp"
+                        android:layout_marginTop="20dp"
+                        android:background="#E2EDD8" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:orientation="horizontal"
-                        android:baselineAligned="false">
+                        android:layout_marginTop="16dp"
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -156,22 +143,17 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="🌡️"
-                                android:textSize="18sp" />
+                                android:text="🌡️ Sensación"
+                                android:textColor="#6A8760"
+                                android:textSize="10sp" />
                             <TextView
                                 android:id="@+id/tvFeelsLike"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="--°"
-                                android:textColor="#FFFFFF"
-                                android:textSize="13sp"
+                                android:textColor="#3D6B3A"
+                                android:textSize="14sp"
                                 android:textStyle="bold" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_sensacion"
-                                android:textColor="#bfdbfe"
-                                android:textSize="10sp" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -183,22 +165,17 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="💧"
-                                android:textSize="18sp" />
+                                android:text="💧 Humedad"
+                                android:textColor="#6A8760"
+                                android:textSize="10sp" />
                             <TextView
                                 android:id="@+id/tvHumidityDetail"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="--%"
-                                android:textColor="#FFFFFF"
-                                android:textSize="13sp"
+                                android:text="37%"
+                                android:textColor="#3D6B3A"
+                                android:textSize="14sp"
                                 android:textStyle="bold" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_humedad"
-                                android:textColor="#bfdbfe"
-                                android:textSize="10sp" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -210,22 +187,17 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="💨"
-                                android:textSize="18sp" />
+                                android:text="💨 Viento"
+                                android:textColor="#6A8760"
+                                android:textSize="10sp" />
                             <TextView
                                 android:id="@+id/tvWindDetail"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="-- km/h"
-                                android:textColor="#FFFFFF"
-                                android:textSize="13sp"
+                                android:textColor="#3D6B3A"
+                                android:textSize="14sp"
                                 android:textStyle="bold" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_viento"
-                                android:textColor="#bfdbfe"
-                                android:textSize="10sp" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -237,22 +209,17 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="👁️"
-                                android:textSize="18sp" />
+                                android:text="👁️ Visib."
+                                android:textColor="#6A8760"
+                                android:textSize="10sp" />
                             <TextView
                                 android:id="@+id/tvVisibilityDetail"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="-- km"
-                                android:textColor="#FFFFFF"
-                                android:textSize="13sp"
+                                android:textColor="#3D6B3A"
+                                android:textSize="14sp"
                                 android:textStyle="bold" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_visibilidad"
-                                android:textColor="#bfdbfe"
-                                android:textSize="10sp" />
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -263,117 +230,217 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                app:cardBackgroundColor="#064e3b"
-                app:cardCornerRadius="20dp">
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#DDE8D4"
+                app:strokeWidth="1dp">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/label_recomendaciones_dia"
-                        android:textColor="#FFFFFF"
+                        android:layout_marginBottom="16dp"
+                        android:background="@drawable/rounded_soft"
+                        android:backgroundTint="#FFFFFF"
+                        android:paddingLeft="12dp"
+                        android:text="🌿 Recomendaciones del día"
+                        android:textColor="#2C6E2A"
+                        android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textSize="14sp" />
-                    <TextView android:id="@+id/tvRec1" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:textColor="#d1fae5" android:textSize="12sp" />
-                    <TextView android:id="@+id/tvRec2" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="#d1fae5" android:textSize="12sp" />
-                    <TextView android:id="@+id/tvRec3" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="#d1fae5" android:textSize="12sp" />
-                    <TextView android:id="@+id/tvRec4" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="#d1fae5" android:textSize="12sp" />
-                    <TextView android:id="@+id/tvRec5" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="#d1fae5" android:textSize="12sp" />
+                        app:drawableStartCompat="@drawable/circle_bg_green"
+                        app:drawableTint="#7CB15D"
+                        android:drawablePadding="0dp"
+                        tools:ignore="SmallSp" />
+                    <!-- Nota: El HTML usa border-left, simularemos con un view si es necesario o un drawable -->
+                    <View android:layout_width="4dp" android:layout_height="24dp" android:background="#7CB15D" android:layout_marginTop="-40dp" android:layout_marginBottom="16dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView android:id="@+id/tvRec1" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="8dp" android:background="@drawable/rounded_soft" android:backgroundTint="#F5F9F0" android:padding="12dp" android:textColor="#2F4F2D" android:textSize="12sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/tvRec2" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="8dp" android:background="@drawable/rounded_soft" android:backgroundTint="#F5F9F0" android:padding="12dp" android:textColor="#2F4F2D" android:textSize="12sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/tvRec3" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="8dp" android:background="@drawable/rounded_soft" android:backgroundTint="#F5F9F0" android:padding="12dp" android:textColor="#2F4F2D" android:textSize="12sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/tvRec4" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="8dp" android:background="@drawable/rounded_soft" android:backgroundTint="#F5F9F0" android:padding="12dp" android:textColor="#2F4F2D" android:textSize="12sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/tvRec5" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/rounded_soft" android:backgroundTint="#F5F9F0" android:padding="12dp" android:textColor="#2F4F2D" android:textSize="12sp" android:textStyle="bold" />
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- 3. EVOLUCIÓN -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/label_evolucion_hoy"
-                android:textColor="#1e293b"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:drawableStartCompat="@android:drawable/ic_menu_recent_history"
-                app:drawableTint="#15803d" />
-
-            <LinearLayout
-                android:id="@+id/llWeatherStatusGrid"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal" />
+                android:layout_marginTop="20dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#DDE8D4"
+                app:strokeWidth="1dp">
 
-            <!-- 4. CIUDADES -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/label_ciudades_regionales"
-                android:textColor="#1e293b"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:drawableStartCompat="@android:drawable/ic_menu_compass"
-                app:drawableTint="#1d4ed8" />
-
-            <LinearLayout
-                android:id="@+id/llRegionalForecast"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal" />
-
-            <!-- 5. PICOS TÉRMICOS -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/label_alertas_picos"
-                android:textColor="#1e293b"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:drawableStartCompat="@android:drawable/ic_dialog_alert"
-                app:drawableTint="#dc2626" />
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:scrollbars="none">
                 <LinearLayout
-                    android:id="@+id/llExtremeTempsList"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal" />
-            </HorizontalScrollView>
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-            <!-- 6. PRÓXIMOS DÍAS -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/label_pronostico_proximos"
-                android:textColor="#1e293b"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:drawableStartCompat="@android:drawable/ic_menu_day"
-                app:drawableTint="#b45309" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+                        <View android:layout_width="4dp" android:layout_height="24dp" android:background="#7CB15D" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="⏱️ Evolución hoy (cada 6h)"
+                            android:textColor="#2C6E2A"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/llDailyForecast"
+                    <LinearLayout
+                        android:id="@+id/llWeatherStatusGrid"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 4. CIUDADES Y ALERTAS -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical" />
+                android:layout_marginTop="20dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#DDE8D4"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+                        <View android:layout_width="4dp" android:layout_height="24dp" android:background="#7CB15D" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="📍 Ciudades regionales cercanas"
+                            android:textColor="#2C6E2A"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/llRegionalForecast"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/rounded_soft"
+                        android:backgroundTint="#FFF3E0"
+                        android:padding="14dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⚠️"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/tvAlertasPicos"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Alertas de picos térmicos · Cargando..."
+                            android:textColor="#AA633A"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                    <!-- Hidden container for logic compatibility -->
+                    <HorizontalScrollView
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone">
+                        <LinearLayout android:id="@+id/llExtremeTempsList" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    </HorizontalScrollView>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 5. PRÓXIMOS DÍAS -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#DDE8D4"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+                        <View android:layout_width="4dp" android:layout_height="24dp" android:background="#7CB15D" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="📅 Pronóstico próximos días"
+                            android:textColor="#2C6E2A"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/llDailyForecast"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="32dp"
-                android:text="@string/footer_actualizado_agrosys"
-                android:textColor="#94a3b8"
-                android:textSize="10sp" />
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp"
+                android:text="🌱 Datos actualizados · AgroSys Intel · Campo conectado"
+                android:textColor="#97B386"
+                android:textSize="11sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

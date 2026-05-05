@@ -122,6 +122,15 @@
             android:label="Reportes Financieros"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.NotificacionesActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.ChatbotActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- Actividad para el recorte de imágenes -->
         <activity
             android:name="com.canhub.cropper.CropImageActivity"
