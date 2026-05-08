@@ -35,7 +35,6 @@ import com.sigcpa.agrosys.R
 import com.sigcpa.agrosys.database.AppDatabase
 import com.sigcpa.agrosys.database.entities.CatalogoCultivoEntity
 import com.sigcpa.agrosys.database.entities.CosechaEntity
-import com.sigcpa.agrosys.database.entities.CultivoEntity
 import com.sigcpa.agrosys.databinding.ActivityDashboardBinding
 import com.sigcpa.agrosys.databinding.DialogAddCatalogoCultivoBinding
 import com.sigcpa.agrosys.databinding.DialogUserMenuBinding
@@ -48,17 +47,12 @@ import java.io.File
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
-import android.view.Gravity
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.sigcpa.agrosys.databinding.ItemChatMessageBinding
+import android.view.MotionEvent
+import android.graphics.Rect
 
 class DashboardActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDashboardBinding
@@ -67,11 +61,6 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var geocodingService: GeocodingService
     private val db by lazy { AppDatabase.getDatabase(this) }
     private val catalogImporter by lazy { CatalogImporter(this) }
-
-    // Variables para el Chat Integrado
-    private val chatMessages = mutableListOf<ChatMessage>()
-    private lateinit var chatAdapter: ChatDashboardAdapter
-    private val n8nWebhookUrl = "https://juanmaria123.app.n8n.cloud/webhook/b567d98b-aabb-4963-b0f8-6b1e8b5f8959/chat"
 
     private var hasTerrenos = false
     private var hasCultivos = false
@@ -115,24 +104,24 @@ class DashboardActivity : AppCompatActivity() {
         window.statusBarColor = android.graphics.Color.parseColor("#15803D")
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
 
-        // SOLUCIÓN: Ajustar el menú inferior para que no lo tapen los botones del sistema
+        // SOLUCIÓN ÚNICA: Ajustar Header, BottomNav y ChatPanel para Insets (Teclado y Barras de Sistema)
         val initialBottomPadding = binding.bottomNav.paddingBottom
-        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNav) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, initialBottomPadding + systemBars.bottom)
-            insets
-        }
-
-        // También ajustamos el Header para que respete la barra de estado superior
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            // 1. Ajustar Header (Top)
             val header = binding.root.findViewById<LinearLayout>(R.id.header_container)
-            header?.setPadding(
-                header.paddingLeft,
-                systemBars.top,
-                header.paddingRight,
-                header.paddingBottom
+            header?.setPadding(header.paddingLeft, systemBars.top, header.paddingRight, header.paddingBottom)
+
+            // 2. Controlar visibilidad de BottomNav
+            binding.bottomNav.visibility = View.VISIBLE
+            binding.bottomNav.setPadding(
+                binding.bottomNav.paddingLeft,
+                binding.bottomNav.paddingTop,
+                binding.bottomNav.paddingRight,
+                initialBottomPadding + systemBars.bottom
             )
+
             insets
         }
 
@@ -382,24 +371,18 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(Intent(this, NotificacionesActivity::class.java))
         }
 
+        binding.btnMessages.setOnClickListener {
+            startActivity(Intent(this, ChatHistoryActivity::class.java))
+        }
+
         binding.btnCloseWelcomeAction.setOnClickListener {
             welcomeActionClosed = true
             binding.layoutWelcomeAction.visibility = View.GONE
         }
 
-        setupChatInDashboard()
+        setupDraggableFab()
 
-        binding.fabChat.setOnClickListener {
-            if (binding.cardChatPanel.visibility == View.GONE) {
-                binding.cardChatPanel.visibility = View.VISIBLE
-                binding.fabChat.hide()
-            }
-        }
-
-        binding.btnCloseChat.setOnClickListener {
-            binding.cardChatPanel.visibility = View.GONE
-            binding.fabChat.show()
-        }
+        // El clic simple se maneja dentro de setupDraggableFab (ACTION_UP sin MOVE)
 
         // Abrir detalles del clima al tocar la tarjeta
         binding.cvWeatherCard.setOnClickListener {
@@ -743,77 +726,107 @@ class DashboardActivity : AppCompatActivity() {
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
     }
 
-    private fun setupChatInDashboard() {
-        chatAdapter = ChatDashboardAdapter(chatMessages)
-        binding.rvChatDashboard.layoutManager = LinearLayoutManager(this).apply {
-            stackFromEnd = true
-        }
-        binding.rvChatDashboard.adapter = chatAdapter
+    private fun setupDraggableFab() {
+        var dX = 0f
+        var dY = 0f
+        var startX = 0f
+        var startY = 0f
+        var isMoving = false
 
-        if (chatMessages.isEmpty()) {
-            chatMessages.add(ChatMessage("¡Hola! Soy tu asistente AgroSys. ¿Tienes alguna duda sobre tus cultivos?", false))
-            chatAdapter.notifyItemInserted(0)
-        }
-
-        binding.btnSendChatDash.setOnClickListener {
-            val text = binding.etChatMessageDash.text.toString().trim()
-            if (text.isNotEmpty()) {
-                sendChatMessage(text)
-            }
-        }
-    }
-
-    private fun sendChatMessage(text: String) {
-        chatMessages.add(ChatMessage(text, true))
-        chatAdapter.notifyItemInserted(chatMessages.size - 1)
-        binding.rvChatDashboard.scrollToPosition(chatMessages.size - 1)
-        binding.etChatMessageDash.setText("")
-
-        lifecycleScope.launch {
-            val response = callN8nChat(text)
-            chatMessages.add(ChatMessage(response, false))
-            chatAdapter.notifyItemInserted(chatMessages.size - 1)
-            binding.rvChatDashboard.scrollToPosition(chatMessages.size - 1)
-        }
-    }
-
-    private suspend fun callN8nChat(userMessage: String): String {
-        return withContext(Dispatchers.IO) {
-            try {
-                val client = OkHttpClient()
-                val json = JSONObject().apply {
-                    put("message", userMessage)
-                    put("timestamp", System.currentTimeMillis())
+        binding.fabChat.setOnTouchListener { v, event ->
+            val layoutParams = v.layoutParams as android.view.ViewGroup.MarginLayoutParams
+            val screenWidth = resources.displayMetrics.widthPixels
+            val screenHeight = resources.displayMetrics.heightPixels
+            
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    dX = v.x - event.rawX
+                    dY = v.y - event.rawY
+                    startX = event.rawX
+                    startY = event.rawY
+                    isMoving = false
+                    true
                 }
-                val body = json.toString().toRequestBody("application/json".toMediaType())
-                val request = Request.Builder().url(n8nWebhookUrl).post(body).build()
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
-                    val jsonResponse = JSONObject(response.body?.string() ?: "{}")
-                    jsonResponse.optString("output", jsonResponse.optString("response", "Entendido, lo revisaré."))
-                } else "Error de conexión."
-            } catch (e: Exception) {
-                "Lo siento, no puedo responder ahora."
-            }
-        }
-    }
+                MotionEvent.ACTION_MOVE -> {
+                    if (Math.abs(event.rawX - startX) > 10 || Math.abs(event.rawY - startY) > 10) {
+                        isMoving = true
+                        binding.layoutDeleteFab.visibility = View.VISIBLE
+                    }
+                    
+                    if (isMoving) {
+                        v.x = event.rawX + dX
+                        v.y = event.rawY + dY
+                        
+                        // Verificar si está sobre la zona de eliminación (Hitbox más grande)
+                        val trashRect = Rect()
+                        binding.layoutDeleteFab.getGlobalVisibleRect(trashRect)
+                        // Expandir hitbox para que sea más fácil de tirar
+                        trashRect.inset(-50, -50)
+                        
+                        val fabRect = Rect()
+                        v.getGlobalVisibleRect(fabRect)
+                        
+                        if (Rect.intersects(trashRect, fabRect)) {
+                            binding.ivDeleteFabIcon.scaleX = 1.2f
+                            binding.ivDeleteFabIcon.scaleY = 1.2f
+                            binding.ivDeleteFabIcon.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#44EF4444"))
+                            binding.ivDeleteFabIcon.imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.RED)
+                        } else {
+                            binding.ivDeleteFabIcon.scaleX = 1.0f
+                            binding.ivDeleteFabIcon.scaleY = 1.0f
+                            binding.ivDeleteFabIcon.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#11000000"))
+                            binding.ivDeleteFabIcon.imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#94a3b8"))
+                        }
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    binding.layoutDeleteFab.visibility = View.GONE
+                    
+                    if (!isMoving) {
+                        // Fue un clic, abrir historial
+                        startActivity(Intent(this@DashboardActivity, ChatHistoryActivity::class.java))
+                    } else {
+                        // Verificar si debe eliminarse (Hitbox más grande)
+                        val trashRect = Rect()
+                        binding.layoutDeleteFab.getGlobalVisibleRect(trashRect)
+                        trashRect.inset(-50, -50)
+                        
+                        val fabRect = Rect()
+                        v.getGlobalVisibleRect(fabRect)
+                        
+                        if (Rect.intersects(trashRect, fabRect)) {
+                            v.animate()
+                                .scaleX(0f)
+                                .scaleY(0f)
+                                .alpha(0f)
+                                .setDuration(200)
+                                .withEndAction { v.visibility = View.GONE }
+                                .start()
+                        } else {
+                            // Snap a los costados
+                            val finalX = if (v.x + v.width / 2 < screenWidth / 2) {
+                                16f 
+                            } else {
+                                screenWidth.toFloat() - v.width - 16f
+                            }
+                            
+                            // Mantener dentro de los límites verticales
+                            var finalY = v.y
+                            if (finalY < 100) finalY = 100f
+                            if (finalY > screenHeight - 300) finalY = screenHeight.toFloat() - 300f
 
-    inner class ChatDashboardAdapter(private val list: List<ChatMessage>) : RecyclerView.Adapter<ChatDashboardAdapter.ViewHolder>() {
-        inner class ViewHolder(val b: ItemChatMessageBinding) : RecyclerView.ViewHolder(b.root)
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(ItemChatMessageBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-        override fun getItemCount() = list.size
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val msg = list[position]
-            holder.b.tvMessage.text = msg.text
-            val params = holder.b.cardMessage.layoutParams as LinearLayout.LayoutParams
-            if (msg.isUser) {
-                params.gravity = Gravity.END
-                holder.b.cardMessage.setCardBackgroundColor(android.graphics.Color.parseColor("#dcfce7"))
-            } else {
-                params.gravity = Gravity.START
-                holder.b.cardMessage.setCardBackgroundColor(android.graphics.Color.parseColor("#ffffff"))
+                            v.animate()
+                                .x(finalX)
+                                .y(finalY)
+                                .setDuration(200)
+                                .start()
+                        }
+                    }
+                    true
+                }
+                else -> false
             }
-            holder.b.cardMessage.layoutParams = params
         }
     }
 

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff">
+
+    <!-- Header Section (Punto 4 & 5: Back, Title, Close) -->
+    <LinearLayout
+        android:id="@+id/header_chat_history"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#15803D"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="12dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:rotation="180"
+            android:padding="4dp"
+            android:src="@drawable/direccion_izquierda"
+            app:tint="#ffffff"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:text="Mensajes"
+            android:textColor="#ffffff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btnMenuMore"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_view"
+            app:tint="#ffffff"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="More options" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChatHistory"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:padding="8dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomOptions"
+        app:layout_constraintTop_toBottomOf="@id/header_chat_history"
+        tools:listitem="@layout/item_chat_session" />
+
+    <!-- Punto 3: Opciones de ayuda horizontales -->
+    <HorizontalScrollView
+        android:id="@+id/bottomOptions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#f8fafc"
+        android:paddingVertical="12dp"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toBottomOf="parent">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHelpSiembra"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="¿Cómo sembrar?"
+                android:textAllCaps="false"
+                android:textSize="12sp"
+                app:cornerRadius="20dp"
+                app:strokeColor="#15803d"
+                android:textColor="#15803d"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHelpRiego"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="¿Cómo regar?"
+                android:textAllCaps="false"
+                android:textSize="12sp"
+                app:cornerRadius="20dp"
+                app:strokeColor="#15803d"
+                android:textColor="#15803d"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHelpPlagas"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Control de plagas"
+                android:textAllCaps="false"
+                android:textSize="12sp"
+                app:cornerRadius="20dp"
+                app:strokeColor="#15803d"
+                android:textColor="#15803d"/>
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Punto 1: Atajo Chat IA (Meta AI style) -->
+    <FrameLayout
+        android:id="@+id/containerFabChatIA"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@id/containerFabContacts"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabChatIA"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_chatbot_01"
+            app:backgroundTint="#ffffff"
+            app:tint="#15803d"
+            app:fabSize="mini"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.AgroSys.Circle"
+            app:elevation="4dp" />
+
+        <TextView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="2dp"
+            android:background="@drawable/circle_bg_green"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="#ffffff"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:elevation="6dp"
+            tools:ignore="SmallSp,HardcodedText" />
+    </FrameLayout>
+
+    <!-- Punto 2: Botón Nuevo Chat / Contactos -->
+    <FrameLayout
+        android:id="@+id/containerFabContacts"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomOptions"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabContacts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ico_sms"
+            app:backgroundTint="#15803d"
+            app:tint="#ffffff"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Rounded12"
+            app:elevation="4dp" />
+
+        <TextView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="4dp"
+            android:background="@drawable/circle_bg_white"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="#15803d"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:elevation="6dp"
+            tools:ignore="HardcodedText" />
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

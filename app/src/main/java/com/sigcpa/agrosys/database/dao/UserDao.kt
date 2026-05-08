@@ -122,6 +122,9 @@ interface UserDao {
     """)
     suspend fun getRedesSocialesByUsuario(userId: Int): List<RedSocialWithMetadata>
 
+    @Query("SELECT u.* FROM usuarios u WHERE u.id != :currentUserId")
+    suspend fun getAllOtherUsers(currentUserId: Int): List<UsuarioEntity>
+
     @Insert
     suspend fun insertRedSocial(redSocial: RedSocialEntity): Long
 

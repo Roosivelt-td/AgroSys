@@ -70,6 +70,10 @@
         <item name="android:textAlignment">center</item>
     </style>
 
+    <style name="ShapeAppearance.AgroSys.Circle" parent="">
+        <item name="cornerSize">50%</item>
+    </style>
+
     <style name="ShapeAppearance.AgroSys.CardImage" parent="ShapeAppearance.Material3.SmallComponent">
         <item name="cornerSizeTopLeft">16dp</item>
         <item name="cornerSizeTopRight">0dp</item>

@@ -21,6 +21,7 @@
         <ImageView
             android:id="@+id/btnBack"
             android:layout_width="24dp"
+            android:rotation="180"
             android:layout_height="24dp"
             android:src="@drawable/direccion_izquierda"
             app:tint="#ffffff" />

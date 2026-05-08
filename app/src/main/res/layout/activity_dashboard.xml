@@ -315,7 +315,8 @@
                             android:layout_alignParentStart="true"
                             android:layout_toStartOf="@+id/llTempContainer"
                             android:orientation="horizontal"
-                            android:gravity="top">
+                            android:gravity="top"
+                            android:visibility="gone">
 
                             <ImageView
                                 android:layout_width="14dp"
@@ -888,105 +889,47 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Panel de Chat Integrado (Inicialmente Oculto) -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardChatPanel"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:layout_marginHorizontal="16dp"
+    <!-- Panel de Chat Integrado (Removido, se movió a ChatHistoryActivity) -->
+
+
+    <!-- Zona de eliminación para el FAB (Se muestra al arrastrar) -->
+    <LinearLayout
+        android:id="@+id/layoutDeleteFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="80dp"
+        android:gravity="center"
+        android:orientation="vertical"
         android:visibility="gone"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="12dp"
-        app:layout_constraintBottom_toTopOf="@id/bottomNav"
-        app:strokeColor="#e2e8f0"
-        app:strokeWidth="1dp">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+        <ImageView
+            android:id="@+id/ivDeleteFabIcon"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/circle_bg_green_light"
+            android:backgroundTint="#11000000"
+            android:padding="16dp"
+            android:src="@drawable/ic_delet"
+            app:tint="#94a3b8" />
+    </LinearLayout>
 
-            <!-- Cabecera del mini-chat -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#f8fafc"
-                android:gravity="center_vertical"
-                android:padding="12dp">
-
-                <View
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:background="@drawable/circle_bg_green" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:text="Asistente AgroSys"
-                    android:textColor="#1e293b"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:id="@+id/btnCloseChat"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    app:tint="#64748b" />
-            </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvChatDashboard"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:background="#ffffff"
-                android:padding="8dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#f8fafc"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="8dp">
-
-                <EditText
-                    android:id="@+id/etChatMessageDash"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_soft"
-                    android:backgroundTint="#ffffff"
-                    android:hint="Pregúntame algo..."
-                    android:inputType="textShortMessage"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="8dp"
-                    android:textSize="13sp" />
-
-                <ImageButton
-                    android:id="@+id/btnSendChatDash"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="8dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@android:drawable/ic_menu_send"
-                    app:tint="#15803d" />
-            </LinearLayout>
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
+    <!-- Draggable FAB (Estilo circular WhatsApp/Meta AI) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabChat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="24dp"
-        android:src="@android:drawable/stat_notify_chat"
-        app:backgroundTint="#15803d"
-        app:tint="#ffffff"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_chatbot_01"
+        app:backgroundTint="#5E35B1"
+        app:elevation="8dp"
+        app:fabSize="normal"
+        app:maxImageSize="32dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.AgroSys.Circle"
         app:layout_constraintBottom_toTopOf="@id/bottomNav"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="#FFEBEE" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -22,6 +22,7 @@
             android:layout_height="40dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
+            android:rotation="180"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/direccion_izquierda"
             app:layout_constraintStart_toStartOf="parent"

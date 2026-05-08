@@ -10,6 +10,8 @@
     <!-- Para versiones Android 10+ -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Permisos de almacenamiento para exportar PDF en versiones antiguas -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
@@ -50,7 +52,8 @@
 
         <activity
             android:name=".ui.DashboardActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".ui.WeatherDetailActivity"
@@ -125,6 +128,16 @@
         <activity
             android:name=".ui.NotificacionesActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".ui.ChatHistoryActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.ContactsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".ui.ChatbotActivity"

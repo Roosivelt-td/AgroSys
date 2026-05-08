@@ -256,4 +256,47 @@ interface AssetDao {
 
     @Query("DELETE FROM notificaciones WHERE id = :id")
     suspend fun deleteNotificacion(id: Int)
+
+    // Chat
+    @Insert
+    suspend fun insertChatSession(session: ChatSessionEntity): Long
+
+    @Query("""
+        SELECT * FROM chat_sessions 
+        WHERE usuario_id = :usuarioId AND is_archived = 0 
+        AND id IN (SELECT DISTINCT session_id FROM chat_messages_history)
+        ORDER BY last_message_at DESC
+    """)
+    suspend fun getChatSessionsByUsuario(usuarioId: Int): List<ChatSessionEntity>
+
+    @Query("""
+        SELECT * FROM chat_sessions 
+        WHERE usuario_id = :usuarioId AND is_archived = 1 
+        ORDER BY last_message_at DESC
+    """)
+    suspend fun getArchivedChatSessionsByUsuario(usuarioId: Int): List<ChatSessionEntity>
+
+    @Query("DELETE FROM chat_sessions WHERE id NOT IN (SELECT DISTINCT session_id FROM chat_messages_history)")
+    suspend fun cleanEmptyChatSessions()
+
+    @Query("SELECT * FROM chat_sessions WHERE id = :sessionId")
+    suspend fun getChatSessionById(sessionId: Int): ChatSessionEntity?
+
+    @Insert
+    suspend fun insertChatMessageHistory(message: ChatMessageHistoryEntity): Long
+
+    @Query("SELECT * FROM chat_messages_history WHERE session_id = :sessionId ORDER BY created_at ASC")
+    fun getChatMessagesBySessionFlow(sessionId: Int): kotlinx.coroutines.flow.Flow<List<ChatMessageHistoryEntity>>
+
+    @Query("SELECT * FROM chat_messages_history WHERE session_id = :sessionId ORDER BY created_at ASC")
+    suspend fun getChatMessagesBySession(sessionId: Int): List<ChatMessageHistoryEntity>
+
+    @Update
+    suspend fun updateChatSession(session: ChatSessionEntity)
+
+    @Query("DELETE FROM chat_sessions WHERE id = :sessionId")
+    suspend fun deleteChatSession(sessionId: Int)
+
+    @Query("SELECT * FROM chat_messages_history WHERE session_id = :sessionId ORDER BY created_at DESC LIMIT 1")
+    suspend fun getLastMessageBySession(sessionId: Int): ChatMessageHistoryEntity?
 }

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#f8fafc">
+    android:background="#ffffff">
 
     <LinearLayout
         android:id="@+id/headerChat"
@@ -13,26 +13,61 @@
         android:background="#15803d"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="20dp"
+        android:paddingHorizontal="12dp"
         android:paddingTop="32dp"
-        android:paddingBottom="16dp"
+        android:paddingBottom="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
+        <!-- Punto 4: Retroceso -->
         <ImageView
             android:id="@+id/btnBack"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:padding="4dp"
+            android:rotation="180"
             android:src="@drawable/direccion_izquierda"
-            app:tint="#ffffff" />
+            app:tint="#ffffff"
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
-        <TextView
-            android:layout_width="wrap_content"
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
+            <ImageView
+                android:id="@+id/ivChatAvatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_chatbot_02"
+                android:padding="8dp"
+                android:background="#f0fdf4"
+                app:tint="#15803d" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Punto 4: Nombre -->
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="Asistente AgroSys"
-            android:textColor="#ffffff"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/tvChatTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Asistente AgroSys"
+                android:textColor="#ffffff"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvChatStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="En línea"
+                android:textColor="#dcfce7"
+                android:textSize="12sp" />
+        </LinearLayout>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

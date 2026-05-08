@@ -1,27 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="8dp">
+    android:paddingVertical="4dp"
+    android:paddingHorizontal="12dp">
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp">
+        app:cardCornerRadius="18dp"
+        app:cardElevation="0.5dp"
+        app:strokeWidth="0dp"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintWidth_max="300dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/tvMessage"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="8dp"
-            android:textColor="#1e293b"
-            android:textSize="14sp" />
+            android:orientation="vertical"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="10dp">
+
+            <TextView
+                android:id="@+id/tvMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#1e293b"
+                android:lineSpacingExtra="2dp"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/tvTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="2dp"
+                android:alpha="0.7"
+                android:text="10:00"
+                android:textColor="#64748b"
+                android:textSize="11sp" />
+        </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

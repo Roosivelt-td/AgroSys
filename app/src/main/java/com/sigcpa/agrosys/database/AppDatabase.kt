@@ -19,9 +19,10 @@ import com.sigcpa.agrosys.database.entities.*
         CosechaEntity::class, CompradorEntity::class, VentaEntity::class,
         ArchivoMultimediaEntity::class, NotificacionEntity::class,
         ManoObraTipoEntity::class, ManoObraEntity::class,
-        TipoRedSocialEntity::class, RedSocialEntity::class
+        TipoRedSocialEntity::class, RedSocialEntity::class,
+        ChatSessionEntity::class, ChatMessageHistoryEntity::class
     ],
-    version = 17,
+    version = 20,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

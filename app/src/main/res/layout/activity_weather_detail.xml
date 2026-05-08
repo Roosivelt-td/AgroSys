@@ -22,6 +22,7 @@
         <ImageView
             android:id="@+id/btnBack"
             android:layout_width="40dp"
+            android:rotation="180"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="8dp"

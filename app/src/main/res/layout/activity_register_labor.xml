@@ -35,6 +35,7 @@
 
                 <ImageView
                     android:id="@+id/btnBack"
+                    android:rotation="180"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/direccion_izquierda"
