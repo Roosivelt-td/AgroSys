@@ -17,15 +17,15 @@ class AgroStorageService
      * @param UploadedFile $file
      * @param User $user
      * @param string $category 'perfil', 'portada', 'terreno', 'cultivo', 'labor'
+     * @param int|null $orgId
      * @return array
      */
-    public static function storeUserFile(UploadedFile $file, User $user, string $category): array
+    public static function storeUserFile(UploadedFile $file, User $user, string $category, ?int $orgId = null): array
     {
         $userHash = md5($user->email);
         $mime = $file->getMimeType();
 
         // Clasificación Técnica por Tipo
-        $mime = $file->getMimeType();
         $fileType = 'otros';
         if (str_contains($mime, 'image')) $fileType = 'img';
         elseif (str_contains($mime, 'video')) $fileType = 'video';
@@ -34,7 +34,7 @@ class AgroStorageService
         // Ruta: users/{hash}/{tipo_archivo}/{category}/
         $path = "users/{$userHash}/{$fileType}/{$category}";
 
-        return self::executeUpload($file, $path, $user->id);
+        return self::executeUpload($file, $path, $user->id, $orgId);
     }
 
     /**
@@ -68,13 +68,13 @@ class AgroStorageService
         elseif (str_contains($mime, 'pdf') || str_contains($mime, 'word') || str_contains($mime, 'excel')) $path .= "/doc";
         else $path .= "/otros";
 
-        return self::executeUpload($file, $path, $sender->id);
+        return self::executeUpload($file, $path, $sender->id, $conv->organizacion_id);
     }
 
     /**
      * Ejecuta el proceso físico de subida y normalización de nombres
      */
-    private static function executeUpload(UploadedFile $file, string $path, int $userId): array
+    private static function executeUpload(UploadedFile $file, string $path, int $userId, ?int $orgId = null): array
     {
         // Nomenclatura AgroSys: dia-mes-año_horaminseg_nombre
         $now = Carbon::now()->format('d-m-Y_His');
@@ -87,6 +87,7 @@ class AgroStorageService
 
         return [
             'usuario_id' => $userId,
+            'organizacion_id' => $orgId,
             'nombre_original' => $originalName,
             'nombre_archivo_unique' => $fileName,
             'ruta_completa' => $fullPath,

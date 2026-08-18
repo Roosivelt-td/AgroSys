@@ -169,4 +169,32 @@ class User extends Authenticatable
     {
         return $this->tieneRolEnCualquierOrganizacion('Supervisor');
     }
+
+    /**
+     * Obtiene los IDs de los agricultores que este usuario supervisa en una organización.
+     */
+    public function getIdsAgricultoresAsignados($organizacionId)
+    {
+        $miembro = $this->membresias()->where('organizacion_id', $organizacionId)->where('estado', 1)->first();
+        if (!$miembro) return [];
+
+        return AsignacionSupervisor::where('supervisor_miembro_id', $miembro->id)
+            ->where('organizacion_id', $organizacionId)
+            ->pluck('agricultor_usuario_id')
+            ->toArray();
+    }
+
+    /**
+     * Verifica si el usuario supervisa a un agricultor específico en una organización.
+     */
+    public function esSupervisorDe($agricultorId, $organizacionId)
+    {
+        $miembro = $this->membresias()->where('organizacion_id', $organizacionId)->where('estado', 1)->first();
+        if (!$miembro) return false;
+
+        return AsignacionSupervisor::where('supervisor_miembro_id', $miembro->id)
+            ->where('organizacion_id', $organizacionId)
+            ->where('agricultor_usuario_id', $agricultorId)
+            ->exists();
+    }
 }

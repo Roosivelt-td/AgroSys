@@ -51,8 +51,13 @@
                                         <i class="fa-solid fa-fingerprint text-agri-green text-lg"></i>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-black text-slate-800 dark:text-agri-green leading-tight italic">{{ $log->usuario->nombres }}</p>
-                                        <p class="text-[10px] text-slate-400 font-bold uppercase italic tracking-tighter">{{ $log->usuario->rol->nombre }}</p>
+                                        @if($log->usuario)
+                                            <p class="text-sm font-black text-slate-800 dark:text-agri-green leading-tight italic">{{ $log->usuario->nombres }}</p>
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase italic tracking-tighter">{{ $log->usuario->rol->nombre ?? 'Sin Rol' }}</p>
+                                        @else
+                                            <p class="text-sm font-black text-rose-500 leading-tight italic">Usuario Eliminado</p>
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase italic tracking-tighter">ID: {{ $log->usuario_id }}</p>
+                                        @endif
                                     </div>
                                 </div>
                             </td>

@@ -69,7 +69,7 @@ return [
         'preview_mimes' => [   // Supported file types for temporary previews.
             'png', 'gif', 'bmp', 'svg', 'wav', 'mp4',
             'mov', 'avi', 'wmv', 'mp3', 'm4a',
-            'jpg', 'jpeg', 'mpga', 'webp', 'pdf',
+            'jpg', 'jpeg', 'mpga', 'webp', 'pdf', 'avif',
         ],
         'rules' => 'max:102400', // Aumentado a 100MB (102400 KB)
     ],

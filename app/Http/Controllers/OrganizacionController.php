@@ -175,6 +175,8 @@ class OrganizacionController extends Controller
                 $msg = 'Has sido ascendido a Supervisor.';
             } elseif ($solicitud->tipo === 'renuncia_rol') {
                 MiembroRol::where('miembro_id', $miembro->id)->where('rol_id', 2)->update(['estado' => 0]);
+                // Regla: Si deja de ser supervisor, se eliminan sus agricultores asignados
+                AsignacionSupervisor::where('supervisor_miembro_id', $miembro->id)->where('organizacion_id', $solicitud->organizacion_id)->delete();
                 $msg = 'Ya no eres Supervisor.';
             }
 

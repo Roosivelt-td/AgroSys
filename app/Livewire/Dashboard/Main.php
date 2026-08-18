@@ -48,15 +48,31 @@ class Main extends Component
             ]);
         }
 
-        // Si tiene organización, calculamos métricas reales
+        // Si tiene organización, calculamos métricas respetando la visibilidad por rol
+        $orgId = $membresia->organizacion_id;
+        $esAdmin = $membresia->roles()->whereHas('rolDetalle', fn($q) => $q->where('nombre', 'Administrador'))->where('estado', 1)->exists();
+        $esSupervisor = $membresia->roles()->whereHas('rolDetalle', fn($q) => $q->where('nombre', 'Supervisor'))->where('estado', 1)->exists();
+
+        $allowedUserIds = [$usuario->id];
+        if ($esSupervisor) {
+            $assignedIds = $usuario->getIdsAgricultoresAsignados($orgId);
+            $allowedUserIds = array_merge($allowedUserIds, $assignedIds);
+        }
+
+        $queryTerrenos = Terreno::where('organizacion_id', $orgId);
+        $queryCultivos = Cultivo::whereHas('terreno', fn($q) => $q->where('organizacion_id', $orgId));
+        $queryLabores = Labor::whereHas('cultivo.terreno', fn($q) => $q->where('organizacion_id', $orgId));
+
+        if (!$esAdmin) {
+            $queryTerrenos->whereIn('usuario_id', $allowedUserIds);
+            $queryCultivos->whereHas('terreno', fn($q) => $q->whereIn('usuario_id', $allowedUserIds));
+            $queryLabores->whereHas('cultivo.terreno', fn($q) => $q->whereIn('usuario_id', $allowedUserIds));
+        }
+
         $stats = [
-            'terrenos' => Terreno::where('organizacion_id', $membresia->organizacion_id)->count(),
-            'cultivos' => Cultivo::whereHas('terreno', function($q) use ($membresia) {
-                $q->where('organizacion_id', $membresia->organizacion_id);
-            })->where('estado', 'En crecimiento')->count(),
-            'labores' => Labor::whereHas('cultivo.terreno', function($q) use ($membresia) {
-                $q->where('organizacion_id', $membresia->organizacion_id);
-            })->where('estado', 'Pendiente')->count(),
+            'terrenos' => $queryTerrenos->count(),
+            'cultivos' => $queryCultivos->where('estado', 'En crecimiento')->count(),
+            'labores' => $queryLabores->where('estado', 'Pendiente')->count(),
         ];
 
         return view('livewire.dashboard.main', [

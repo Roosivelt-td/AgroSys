@@ -69,4 +69,20 @@ class Terreno extends Model
     {
         return $this->hasMany(ClimaRegistro::class, 'terreno_id');
     }
+
+    /**
+     * Área ocupada por cultivos activos.
+     */
+    public function getAreaOcupadaAttribute()
+    {
+        return $this->cultivos()->whereIn('estado', ['Planificado', 'En crecimiento'])->sum('area_destinada');
+    }
+
+    /**
+     * Área disponible para nuevos cultivos.
+     */
+    public function getAreaDisponibleAttribute()
+    {
+        return max(0, $this->hectareas - $this->area_ocupada);
+    }
 }

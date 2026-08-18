@@ -26,9 +26,9 @@ class Register extends Component
     public function register(): void
     {
         $validated = $this->validate([
-            'nombres' => ['required', 'string', 'max:100'],
-            'apellidos' => ['required', 'string', 'max:100'],
-            'dni' => ['required', 'string', 'max:20', 'unique:usuarios,dni'],
+            'nombres' => ['required', 'string', 'max:100', 'regex:/^(?:[A-Za-zÁÉÍÓÚáéíóúÑñ]{3,})(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]{3,}){0,2}$/u'],
+            'apellidos' => ['required', 'string', 'max:100', '  regex:/^(?:[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,})(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}){0,5}$/u',],
+            'dni' => ['required', 'string', 'digits:8', 'unique:usuarios,dni'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:usuarios,email'],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);

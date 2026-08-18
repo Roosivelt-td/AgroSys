@@ -23,7 +23,7 @@ class TerrenosManager extends Component
     public $filterArea = '';
     public $selectedOrgId = null;
 
-    // Campos de la Base de Datos (Alineados a la imagen)
+    // Campos de la Base de Datos
     public $landId = null;
     public $landName = '';
     public $landLocation = '';
@@ -47,9 +47,11 @@ class TerrenosManager extends Component
 
     public function mount()
     {
+        // Detectar si el usuario pertenece a una organización activa
         $membresia = MiembroOrganizacion::where('usuario_id', Auth::id())
             ->where('estado', 1)
             ->first();
+
         if ($membresia) {
             $this->selectedOrgId = $membresia->organizacion_id;
         }
@@ -82,7 +84,7 @@ class TerrenosManager extends Component
         $photoPath = $this->currentPhotoPath;
 
         if ($this->landPhoto) {
-            $fileData = AgroStorageService::storeUserFile($this->landPhoto, $user, 'terreno');
+            $fileData = AgroStorageService::storeUserFile($this->landPhoto, $user, 'terreno', $this->selectedOrgId);
             $photoPath = $fileData['ruta_completa'];
             ArchivoMultimedia::create($fileData);
         }
@@ -105,7 +107,7 @@ class TerrenosManager extends Component
             'estado_terreno' => $this->landStatus,
             'foto_path' => $photoPath,
             'usuario_id' => $user->id,
-            'organizacion_id' => $this->selectedOrgId,
+            'organizacion_id' => $this->selectedOrgId, // Ahora puede ser NULL
             'estado' => 1
         ];
 
@@ -142,6 +144,7 @@ class TerrenosManager extends Component
         $this->landWater = $t->fuente_agua;
         $this->landStatus = $t->estado_terreno;
         $this->currentPhotoPath = $t->foto_path;
+        $this->selectedOrgId = $t->organizacion_id;
 
         $this->dispatch('open-modal', 'modal-add-terrain');
     }
@@ -154,10 +157,39 @@ class TerrenosManager extends Component
 
     public function render()
     {
-        $baseQuery = Terreno::where('usuario_id', Auth::id())
-            ->with(['cultivos' => function($q) {
-                $q->where('estado', 'En crecimiento')->with('detalleCatalogo');
-            }]);
+        $user = Auth::user();
+        $allowedUserIds = [$user->id];
+
+        // Lógica de visibilidad por Rol y Organización
+        if ($this->selectedOrgId) {
+            $miembro = $user->membresias()->where('organizacion_id', $this->selectedOrgId)->where('estado', 1)->first();
+
+            if ($user->rol_id === 1) {
+                // Super Admin ve todo de la organización seleccionada
+                $baseQuery = Terreno::where('organizacion_id', $this->selectedOrgId);
+            } elseif ($miembro) {
+                $esAdmin = $miembro->roles()->whereHas('rolDetalle', fn($q) => $q->where('nombre', 'Administrador'))->where('estado', 1)->exists();
+                $esSupervisor = $miembro->roles()->whereHas('rolDetalle', fn($q) => $q->where('nombre', 'Supervisor'))->where('estado', 1)->exists();
+
+                if ($esAdmin) {
+                    $baseQuery = Terreno::where('organizacion_id', $this->selectedOrgId);
+                } elseif ($esSupervisor) {
+                    $assignedIds = $user->getIdsAgricultoresAsignados($this->selectedOrgId);
+                    $allowedUserIds = array_merge($allowedUserIds, $assignedIds);
+                    $baseQuery = Terreno::whereIn('usuario_id', $allowedUserIds)->where('organizacion_id', $this->selectedOrgId);
+                } else {
+                    $baseQuery = Terreno::where('usuario_id', $user->id)->where('organizacion_id', $this->selectedOrgId);
+                }
+            } else {
+                $baseQuery = Terreno::where('usuario_id', $user->id);
+            }
+        } else {
+            $baseQuery = Terreno::where('usuario_id', $user->id);
+        }
+
+        $baseQuery->with(['cultivos' => function($q) {
+            $q->where('estado', 'En crecimiento')->with('detalleCatalogo');
+        }]);
 
         if ($this->search) {
             $baseQuery->where('nombre', 'like', '%' . $this->search . '%');
@@ -178,28 +210,29 @@ class TerrenosManager extends Component
             elseif ($this->filterArea === '10+') $baseQuery->where('hectareas', '>', 10);
         }
 
+        // Clonamos para los totales y mapa antes de paginar
+        $allResultsQuery = clone $baseQuery;
         $terrenos = $baseQuery->paginate(12);
 
-        $mapData = Terreno::where('usuario_id', Auth::id())
-            ->with(['cultivos.detalleCatalogo'])
-            ->get()
-            ->map(function($t) {
-                return [
-                    'id' => $t->id,
-                    'nombre' => $t->nombre,
-                    'lat' => (float)$t->latitud,
-                    'lng' => (float)$t->longitud,
-                    'area' => $t->hectareas,
-                    'suelo' => $t->calidad_suelo,
-                    'cultivo' => $t->cultivos->where('estado', 'En crecimiento')->first()?->detalleCatalogo->nombre ?? 'Sin cultivo'
-                ];
-            });
+        $allResults = $allResultsQuery->with(['cultivos.detalleCatalogo'])->get();
+
+        $mapData = $allResults->map(function($t) {
+            return [
+                'id' => $t->id,
+                'nombre' => $t->nombre,
+                'lat' => (float)$t->latitud,
+                'lng' => (float)$t->longitud,
+                'area' => $t->hectareas,
+                'suelo' => $t->calidad_suelo,
+                'cultivo' => $t->cultivos->where('estado', 'En crecimiento')->first()?->detalleCatalogo->nombre ?? 'Sin cultivo'
+            ];
+        });
 
         return view('livewire.admin.terrenos-manager', [
             'terrenos' => $terrenos,
             'mapData' => $mapData,
-            'totalArea' => Terreno::where('usuario_id', Auth::id())->sum('hectareas'),
-            'totalCount' => Terreno::where('usuario_id', Auth::id())->count()
+            'totalArea' => $allResults->sum('hectareas'),
+            'totalCount' => $allResults->count()
         ]);
     }
 
