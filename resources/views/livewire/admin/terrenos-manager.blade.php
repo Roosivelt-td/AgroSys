@@ -60,15 +60,41 @@
 
     <!-- Estadísticas y Mapa -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="bg-gradient-to-br from-agri-green to-emerald-800 p-6 rounded-3xl shadow-2xl relative overflow-hidden group">
-            <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-700"><i class="fa-solid fa-chart-area text-9xl text-white"></i></div>
-            <p class="text-[10px] font-black text-white/60 uppercase tracking-[0.3em] mb-1">Superficie Total</p>
-            <h4 class="text-4xl font-black text-white italic tracking-tighter">{{ number_format($totalArea, 1) }} <span class="text-lg font-bold opacity-50">ha</span></h4>
-            <div class="mt-4 flex items-center text-white/80 text-[10px] font-bold"><i class="fa-solid fa-leaf mr-2"></i> {{ $totalCount }} parcelas registradas</div>
+        <div class="bg-gradient-to-br from-agri-green to-emerald-800 p-6 rounded-[2.5rem] shadow-2xl relative overflow-hidden group flex flex-col">
+            <div class="absolute -right-4 -top-4 opacity-10 group-hover:rotate-12 transition-transform duration-700"><i class="fa-solid fa-chart-area text-9xl text-white"></i></div>
+
+            <div class="flex justify-between items-start mb-4 relative z-10">
+                <div>
+                    <p class="text-[9px] font-black text-white/60 uppercase tracking-[0.3em] mb-1">Superficie Total</p>
+                    <h4 class="text-4xl font-black text-white italic tracking-tighter">{{ number_format($totalArea, 1) }} <span class="text-lg font-bold opacity-50 uppercase">ha</span></h4>
+                </div>
+
+                <!-- Selector de Periodo (Radio Buttons Diseño Moderno) -->
+                <div class="flex bg-black/20 backdrop-blur-md p-1 rounded-xl border border-white/10">
+                    <label class="cursor-pointer group">
+                        <input type="radio" wire:model.live="chartPeriod" value="mes" class="hidden peer">
+                        <div class="px-3 py-1 rounded-lg text-[8px] font-black uppercase transition-all peer-checked:bg-white peer-checked:text-agri-green text-white/60 hover:text-white">Mes</div>
+                    </label>
+                    <label class="cursor-pointer group ml-1">
+                        <input type="radio" wire:model.live="chartPeriod" value="anio" class="hidden peer">
+                        <div class="px-3 py-1 rounded-lg text-[8px] font-black uppercase transition-all peer-checked:bg-white peer-checked:text-agri-green text-white/60 hover:text-white">Año</div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="mt-2 flex items-center text-white/80 text-[10px] font-bold relative z-10"><i class="fa-solid fa-leaf mr-2 text-white/40"></i> {{ $totalCount }} parcelas registradas</div>
+
+            <!-- Chart de Registro de Terrenos (Punto 1) -->
+            <div class="flex-1 mt-6 min-h-[160px] relative" wire:ignore.self>
+                <div data-react-component="agro-land-line-chart"
+                     data-props="{{ json_encode(['data' => $lineChartData]) }}"
+                     wire:key="land-trend-{{ $chartPeriod }}-{{ count($lineChartData['values']) }}"
+                     class="w-full h-full"></div>
+            </div>
         </div>
 
-        <div class="lg:col-span-2 bg-white dark:bg-agri-d_bg p-2 rounded-3xl border border-slate-100 dark:border-white/5 shadow-2xl min-h-[350px]" wire:ignore>
-            <div data-react-component="agro-map-terrenos" data-props="{{ json_encode(['terrenos' => $mapData]) }}" class="w-full h-full rounded-2xl overflow-hidden"></div>
+        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-2 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl min-h-[350px]" wire:ignore>
+            <div data-react-component="agro-map-terrenos" data-props="{{ json_encode(['terrenos' => $mapData]) }}" class="w-full h-full rounded-[2rem] overflow-hidden"></div>
         </div>
     </div>
 
@@ -112,12 +138,40 @@
 
                     <div class="absolute bottom-4 left-6 right-6 flex justify-between items-end text-white pointer-events-none">
                         <div class="min-w-0 flex-1 pr-4">
+                            @php
+                                $planCount = $terreno->cultivos->where('estado', 'Planificado')->count();
+                                $sembrCount = $terreno->cultivos->where('estado', 'En crecimiento')->count();
+                                $histCount = $terreno->cultivos->whereIn('estado', ['Cosechado', 'Perdido'])->count();
+                            @endphp
+
+                            <!-- Indicadores de Cultivos (Activos e Históricos) -->
+                            <div class="flex flex-col space-y-1 mb-2">
+                                <div class="flex items-center space-x-1">
+                                    <span class="bg-agri-green/90 backdrop-blur-md px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-tighter text-white border border-white/20 shadow-sm">
+                                        Sembrados: {{ $sembrCount }}
+                                    </span>
+                                    <span class="bg-blue-600/90 backdrop-blur-md px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-tighter text-white border border-white/20 shadow-sm">
+                                        Planificados: {{ $planCount }}
+                                    </span>
+                                </div>
+                                @if($histCount > 0)
+                                    <div class="flex">
+                                        <span class="bg-slate-700/80 backdrop-blur-md px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-tighter text-white/70 border border-white/10 italic">
+                                            Inactivos: {{ $histCount }} (C/P)
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
+
                             <h3 class="text-[20px] font-black italic truncate tracking-tight uppercase leading-none text-white drop-shadow-lg">{{ $terreno->nombre }}</h3>
                             <p class="text-[11px] font-bold uppercase italic opacity-90 truncate mt-1 text-white/80"><i class="fa-solid fa-location-dot mr-1"></i> {{ $terreno->ubicacion }}</p>
                         </div>
                         <div class="flex flex-col items-end shrink-0">
-                            <div class="px-3 py-1 bg-agri-green rounded-md text-[11px] font-black italic shadow-lg border border-white/20 uppercase">Disp: {{ number_format($terreno->area_disponible, 2) }} ha</div>
-                            <div class="text-[9px] font-black text-white/70 uppercase italic mt-1 drop-shadow-md">Uso: {{ number_format($terreno->area_ocupada, 2) }} ha</div>
+                            <div class="px-3 py-1 bg-agri-green rounded-md text-[11px] font-black italic shadow-lg border border-white/20 uppercase">TOTAL: {{ number_format($terreno->hectareas, 2) }} ha</div>
+                            <div class="text-[9px] font-black text-white/70 uppercase italic mt-1 drop-shadow-md text-right">
+                                USO: {{ number_format($terreno->area_ocupada, 2) }} HA<br>
+                                DISP: {{ number_format($terreno->area_disponible, 2) }} HA
+                            </div>
                         </div>
                     </div>
                 </div>

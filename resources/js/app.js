@@ -2,10 +2,12 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import MapTerrenos from './react/MapTerrenos';
 import BarChart from './react/BarChart';
+import LandLineChart from './react/LandLineChart';
 
 const components = {
     'agro-map-terrenos': MapTerrenos,
     'agro-bar-chart': BarChart,
+    'agro-land-line-chart': LandLineChart,
 };
 
 const mountedRoots = new WeakMap();

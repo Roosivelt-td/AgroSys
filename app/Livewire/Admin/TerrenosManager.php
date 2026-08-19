@@ -8,6 +8,7 @@ use App\Models\ArchivoMultimedia;
 use App\Services\AgroStorageService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -22,6 +23,7 @@ class TerrenosManager extends Component
     public $filterCrop = '';
     public $filterArea = '';
     public $selectedOrgId = null;
+    public $chartPeriod = 'mes'; // mes o año
 
     // Campos de la Base de Datos
     public $landId = null;
@@ -216,6 +218,45 @@ class TerrenosManager extends Component
 
         $allResults = $allResultsQuery->with(['cultivos.detalleCatalogo'])->get();
 
+        // --- Lógica del Line Chart de Terrenos ALQUILADOS (agrosys_terrenos_trend_v1) ---
+        $lineChartData = [
+            'labels' => [],
+            'values' => [],
+            'unit' => 'ha'
+        ];
+
+        // Filtramos solo los terrenos alquilados para la tendencia
+        $rentedTerrains = $allResults->where('tipo_tenencia', 'alquilado')->whereNotNull('fecha_alquiler');
+
+        if ($this->chartPeriod === 'mes') {
+            // Generar labels para los últimos 12 meses
+            for ($i = 11; $i >= 0; $i--) {
+                $date = Carbon::now()->subMonths($i);
+                $label = $date->format('M Y');
+                $lineChartData['labels'][] = $label;
+
+                // Sumamos hectáreas cuya fecha_alquiler caiga en este mes/año
+                $sum = $rentedTerrains->filter(function($t) use ($date) {
+                    $d = Carbon::createFromTimestamp($t->fecha_alquiler);
+                    return $d->format('M Y') === $date->format('M Y');
+                })->sum('hectareas');
+
+                $lineChartData['values'][] = (float)$sum;
+            }
+        } else {
+            // Generar labels para los últimos 6 años
+            for ($i = 5; $i >= 0; $i--) {
+                $year = Carbon::now()->subYears($i)->format('Y');
+                $lineChartData['labels'][] = $year;
+
+                $sum = $rentedTerrains->filter(function($t) use ($year) {
+                    return Carbon::createFromTimestamp($t->fecha_alquiler)->format('Y') === $year;
+                })->sum('hectareas');
+
+                $lineChartData['values'][] = (float)$sum;
+            }
+        }
+
         $mapData = $allResults->map(function($t) {
             return [
                 'id' => $t->id,
@@ -231,6 +272,7 @@ class TerrenosManager extends Component
         return view('livewire.admin.terrenos-manager', [
             'terrenos' => $terrenos,
             'mapData' => $mapData,
+            'lineChartData' => $lineChartData,
             'totalArea' => $allResults->sum('hectareas'),
             'totalCount' => $allResults->count()
         ]);
