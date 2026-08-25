@@ -6,24 +6,30 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * MODULO 3: Producción Agrícola
+     * El nucleo operativo del campo.
+     */
     public function up(): void
     {
+        // 33. terrenos: Registro de parcelas físicas y su geolocalización
         Schema::create('terrenos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('organizacion_id')->constrained('organizaciones');
+            $table->foreignId('organizacion_id')->nullable()->constrained('organizaciones')->onDelete('set null');
             $table->foreignId('usuario_id')->constrained('usuarios');
             $table->string('nombre', 150);
             $table->text('ubicacion')->nullable();
             $table->text('direccion_referencia')->nullable();
             $table->decimal('latitud', 10, 8)->nullable();
             $table->decimal('longitud', 11, 8)->nullable();
-            $table->decimal('hectareas', 10, 2)->default(0.00);
+            $table->json('poligono')->nullable();
+            $table->decimal('hectareas', 10, 2)->default(0);
             $table->enum('tipo_tenencia', ['propio', 'alquilado'])->default('propio');
-            $table->decimal('costo_alquiler_anual', 12, 2)->default(0.00);
+            $table->decimal('costo_alquiler_anual', 12, 2)->default(0);
             $table->enum('alquiler_modalidad', ['global', 'por_campana'])->default('global');
             $table->enum('alquiler_periodo', ['fecha', 'anual'])->default('fecha');
-            $table->integer('fecha_alquiler')->nullable();
-            $table->integer('fecha_vencimiento_alquiler')->nullable();
+            $table->date('fecha_alquiler')->nullable();
+            $table->date('fecha_vencimiento_alquiler')->nullable();
             $table->enum('calidad_suelo', ['arcilloso', 'franco', 'arenoso', 'limoso'])->default('franco');
             $table->string('fuente_agua', 50)->nullable();
             $table->enum('estado_terreno', ['activo', 'inactivo'])->default('activo');
@@ -33,6 +39,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
+        // 04. catalogo_cultivos: Diccionario maestro de plantas y parámetros técnicos
         Schema::create('catalogo_cultivos', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 100)->unique();
@@ -43,11 +50,12 @@ return new class extends Migration
             $table->text('instrucciones_base_riego')->nullable();
             $table->text('instrucciones_base_plagas')->nullable();
             $table->string('foto_path', 255)->nullable();
-            $table->boolean('es_personalizado')->default(false);
-            $table->foreignId('usuario_creador_id')->nullable()->constrained('usuarios')->nullOnDelete();
+            $table->tinyInteger('es_personalizado')->default(0);
+            $table->foreignId('usuario_creador_id')->nullable()->constrained('usuarios')->onDelete('set null');
             $table->timestamps();
         });
 
+        // 13. cultivos: Campañas de siembra específicas en un terreno
         Schema::create('cultivos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('terreno_id')->constrained('terrenos');
@@ -66,34 +74,10 @@ return new class extends Migration
             $table->string('foto_path', 255)->nullable();
             $table->timestamps();
         });
-
-        Schema::create('catalogo_labores', function (Blueprint $table) {
-            $table->id();
-            $table->string('nombre', 100)->unique();
-            $table->enum('categoria', ['preparacion', 'siembra', 'mantenimiento', 'cosecha'])->default('mantenimiento');
-            $table->text('descripcion')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('labores', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('cultivo_id')->constrained('cultivos')->onDelete('cascade');
-            $table->foreignId('catalogo_labor_id')->constrained('catalogo_labores');
-            $table->integer('fecha_realizacion');
-            $table->decimal('costo_mano_obra_total', 12, 2)->default(0.00);
-            $table->decimal('costo_maquinaria_total', 12, 2)->default(0.00);
-            $table->decimal('costo_total', 12, 2)->default(0.00);
-            $table->enum('estado', ['Completada', 'Pendiente', 'En progreso'])->default('Pendiente');
-            $table->text('observaciones')->nullable();
-            $table->string('foto_path', 255)->nullable();
-            $table->timestamps();
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('labores');
-        Schema::dropIfExists('catalogo_labores');
         Schema::dropIfExists('cultivos');
         Schema::dropIfExists('catalogo_cultivos');
         Schema::dropIfExists('terrenos');

@@ -6,8 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * MODULO 2: Configuración Global y Soporte
+     * Maneja la identidad visual y alertas tecnicas de la plataforma.
+     */
     public function up(): void
     {
+        // 09. configuracion_sistema: Parámetros de identidad visual y versión de la plataforma
         Schema::create('configuracion_sistema', function (Blueprint $table) {
             $table->id();
             $table->string('nombre_sistema', 100);
@@ -22,6 +27,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // 28. redes_sociales_sistema: Enlaces a redes sociales institucionales
         Schema::create('redes_sociales_sistema', function (Blueprint $table) {
             $table->id();
             $table->foreignId('usuario_id')->constrained('usuarios');
@@ -33,6 +39,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // 01. alertas_sistema: Mensajes globales para todos los usuarios del sistema
         Schema::create('alertas_sistema', function (Blueprint $table) {
             $table->id();
             $table->string('titulo', 100);
@@ -45,6 +52,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // 02. archivos_multimedia: Repositorio central de archivos con seguridad por empresa
         Schema::create('archivos_multimedia', function (Blueprint $table) {
             $table->id();
             $table->foreignId('usuario_id')->constrained('usuarios');

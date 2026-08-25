@@ -38,6 +38,11 @@ class Terreno extends Model
         'estado',
     ];
 
+    protected $casts = [
+        'fecha_alquiler' => 'date',
+        'fecha_vencimiento_alquiler' => 'date',
+    ];
+
     /**
      * Relación: Un terreno pertenece a una organización.
      */

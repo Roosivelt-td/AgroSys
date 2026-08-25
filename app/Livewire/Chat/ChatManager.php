@@ -172,10 +172,10 @@ class ChatManager extends Component
 
         $this->validate([
             'message' => 'required_without:file|string|max:1000',
-            'file' => 'nullable|file|max:102400', // 100MB
+            'file' => 'nullable|file|max:20480', // Límite de 20MB consistente con el resto del sistema
         ], [
-            'file.max' => 'El archivo es demasiado pesado. El límite máximo permitido es de 100MB.',
-            'file.file' => 'El archivo no es válido.',
+            'file.max' => 'El archivo supera el límite de 20MB permitido.',
+            'file.file' => 'El formato del archivo no es válido.',
         ]);
 
         if (!$this->selectedConversacionId) return;

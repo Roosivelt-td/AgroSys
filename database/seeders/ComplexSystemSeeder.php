@@ -3,236 +3,112 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\Organizacion;
-use App\Models\MiembroOrganizacion;
-use App\Models\MiembroRol;
-use App\Models\RolesOrganizacion;
-use App\Models\Solicitud;
-use App\Models\Notificacion;
-use App\Models\HistorialProceso;
-use App\Models\AsignacionSupervisor;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use App\Models\CatalogoCultivo;
 use Carbon\Carbon;
 
 class ComplexSystemSeeder extends Seeder
 {
+    /**
+     * Seed inicial del sistema AgroSys.
+     * Registra roles globales, roles de organizacion, catalogos base y Super Admin.
+     */
     public function run(): void
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('miembro_roles')->truncate();
-        DB::table('miembros_organizacion')->truncate();
-        DB::table('organizaciones')->truncate();
-        DB::table('solicitudes')->truncate();
-        DB::table('notificaciones')->truncate();
-        DB::table('historial_procesos')->truncate();
-        DB::table('asignaciones_supervisor')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        // 1. Registro de Roles Globales
+        $rolesGlobales = [
+            ['id' => 1, 'nombre' => 'Super Admin', 'descripcion' => 'Administrador global del sistema', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 2, 'nombre' => 'Agricultor', 'descripcion' => 'Usuario estándar (Agricultor)', 'created_at' => now(), 'updated_at' => now()],
+        ];
+        DB::table('rol')->insert($rolesGlobales);
 
-        $faker = \Faker\Factory::create('es_PE');
-        $ahora = Carbon::now();
-        $haceUnMes = Carbon::now()->subMonth();
+        // 2. Registro de Roles de Organización (Cargos Internos)
+        $rolesOrg = [
+            ['id' => 1, 'nombre' => 'Administrador', 'descripcion' => 'Responsable total de la gestión de la organización, miembros y terrenos.', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 2, 'nombre' => 'Supervisor', 'descripcion' => 'Encargado de monitorear y asignar tareas a los agricultores bajo su cargo.', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 3, 'nombre' => 'Agricultor', 'descripcion' => 'Personal operativo encargado de los cultivos y labores en campo.', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 4, 'nombre' => 'Agricultor_Grado_1', 'descripcion' => 'Agricultor con experiencia básica o en entrenamiento.', 'created_at' => now(), 'updated_at' => now()],
+        ];
+        DB::table('roles_organizacion')->insert($rolesOrg);
 
-        // 1. Crear Organizaciones Base (15 orgs)
-        $organizaciones = [];
-        for ($i = 0; $i < 15; $i++) {
-            $fechaOrg = $haceUnMes->copy()->addDays(rand(1, 5));
-            $organizaciones[] = Organizacion::create([
-                'nombre' => 'Agrícola ' . $faker->company,
-                'ruc' => '20' . $faker->randomNumber(9, true),
-                'descripcion' => $faker->sentence,
-                'email' => $faker->companyEmail,
-                'estado' => 1,
-                'created_at' => $fechaOrg
-            ]);
+        // 3. Registro del Usuario Super Admin inicial
+        DB::table('usuarios')->insert([
+            'rol_id' => 1,
+            'nombres' => 'Super',
+            'apellidos' => 'Administrador',
+            'email' => 'admin@agrosys.com',
+            'password' => Hash::make('password'),
+            'dni' => '00000000',
+            'estado' => 1,
+            'is_activo' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // 4. Catálogo de Labores Base
+        $labores = [
+            ['nombre' => 'Preparar', 'categoria' => 'preparacion', 'descripcion' => 'Preparación física del suelo para la siembra.'],
+            ['nombre' => 'Siembra', 'categoria' => 'siembra', 'descripcion' => 'Colocación de semillas o plantones en el terreno.'],
+            ['nombre' => 'Riego', 'categoria' => 'mantenimiento', 'descripcion' => 'Suministro de agua a los cultivos.'],
+            ['nombre' => 'Fumigar', 'categoria' => 'mantenimiento', 'descripcion' => 'Aplicación de productos fitosanitarios para control de plagas.'],
+            ['nombre' => 'Aporque', 'categoria' => 'mantenimiento', 'descripcion' => 'Acumulación de tierra en la base de las plantas.'],
+            ['nombre' => 'Deshierbe', 'categoria' => 'mantenimiento', 'descripcion' => 'Eliminación manual o química de malezas.'],
+            ['nombre' => 'Abonar', 'categoria' => 'mantenimiento', 'descripcion' => 'Aplicación de fertilizantes para nutrición vegetal.'],
+            ['nombre' => 'Cosechar', 'categoria' => 'cosecha', 'descripcion' => 'Recolección de los productos agrícolas.'],
+            ['nombre' => 'Otros', 'categoria' => 'mantenimiento', 'descripcion' => 'Actividades diversas no clasificadas.'],
+        ];
+
+        foreach ($labores as $labor) {
+            DB::table('catalogo_labores')->insert(array_merge($labor, [
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]));
         }
+        // 5. Insertar Catálogo de Cultivos
+                $catalogos = [
+                    ['nombre' => 'Maiz', 'nombre_cientifico' => 'Zea mays', 'tipo_ciclo' => 'ciclo_corto', 'vida_util_estimada_meses' => 6, 'dias_a_cosecha_promedio' => 120, 'instrucciones_base_riego' => 'Riego regular manteniendo humedad adecuada del suelo.', 'instrucciones_base_plagas' => 'Monitorear gusano cogollero, gusano de tierra y pulgones.'],
+                    ['nombre' => 'Papa', 'nombre_cientifico' => 'Solanum tuberosum', 'tipo_ciclo' => 'ciclo_corto', 'vida_util_estimada_meses' => 5, 'dias_a_cosecha_promedio' => 120, 'instrucciones_base_riego' => 'Mantener humedad constante durante el crecimiento de los tuberculos.', 'instrucciones_base_plagas' => 'Vigilar polilla de la papa, pulgones y gusano de tierra.'],
+                    ['nombre' => 'Palta', 'nombre_cientifico' => 'Persea americana', 'tipo_ciclo' => 'perenne', 'vida_util_estimada_meses' => 240, 'dias_a_cosecha_promedio' => 1095, 'instrucciones_base_riego' => 'Realizar riegos frecuentes y controlados evitando encharcamientos.', 'instrucciones_base_plagas' => 'Monitorear trips, arañita roja, mosca blanca y barrenadores.'],
+                    ['nombre' => 'Mango', 'nombre_cientifico' => 'Mangifera indica', 'tipo_ciclo' => 'perenne', 'vida_util_estimada_meses' => 300, 'dias_a_cosecha_promedio' => 1460, 'instrucciones_base_riego' => 'Regar regularmente durante el crecimiento y desarrollo del fruto.', 'instrucciones_base_plagas' => 'Vigilar mosca de la fruta, trips, cochinillas y acaros.'],
+                    ['nombre' => 'Arroz', 'nombre_cientifico' => 'Oryza sativa', 'tipo_ciclo' => 'ciclo_corto', 'vida_util_estimada_meses' => 5, 'dias_a_cosecha_promedio' => 130, 'instrucciones_base_riego' => 'Mantener una lamina de agua controlada durante las etapas necesarias.', 'instrucciones_base_plagas' => 'Monitorear sogata, chinches y gusanos defoliadores.'],
+                    ['nombre' => 'Cebolla', 'nombre_cientifico' => 'Allium cepa', 'tipo_ciclo' => 'ciclo_corto', 'vida_util_estimada_meses' => 6, 'dias_a_cosecha_promedio' => 150, 'instrucciones_base_riego' => 'Aplicar riegos ligeros y frecuentes durante el crecimiento del bulbo.', 'instrucciones_base_plagas' => 'Vigilar trips, mosca de la cebolla y enfermedades foliares.'],
+                    ['nombre' => 'Tomate', 'nombre_cientifico' => 'Solanum lycopersicum', 'tipo_ciclo' => 'ciclo_corto', 'vida_util_estimada_meses' => 6, 'dias_a_cosecha_promedio' => 90, 'instrucciones_base_riego' => 'Mantener humedad uniforme mediante riegos regulares.', 'instrucciones_base_plagas' => 'Monitorear mosca blanca, trips, pulgones y minadores.'],
+                    ['nombre' => 'Aji', 'nombre_cientifico' => 'Capsicum annuum', 'tipo_ciclo' => 'ciclo_corto', 'vida_util_estimada_meses' => 8, 'dias_a_cosecha_promedio' => 120, 'instrucciones_base_riego' => 'Realizar riegos frecuentes y moderados durante floracion y formacion de frutos.', 'instrucciones_base_plagas' => 'Controlar pulgones, trips, mosca blanca y acaros.'],
+                    ['nombre' => 'Uva', 'nombre_cientifico' => 'Vitis vinifera', 'tipo_ciclo' => 'perenne', 'vida_util_estimada_meses' => 240, 'dias_a_cosecha_promedio' => 730, 'instrucciones_base_riego' => 'Aplicar riego controlado durante el crecimiento y desarrollo de frutos.', 'instrucciones_base_plagas' => 'Monitorear cochinillas, trips, acaros y mosca de la fruta.'],
+                    ['nombre' => 'Arandano', 'nombre_cientifico' => 'Vaccinium corymbosum', 'tipo_ciclo' => 'perenne', 'vida_util_estimada_meses' => 120, 'dias_a_cosecha_promedio' => 730, 'instrucciones_base_riego' => 'Mantener humedad constante sin saturar el suelo. Preferentemente usar riego por goteo.', 'instrucciones_base_plagas' => 'Vigilar trips, pulgones, acaros y mosca de la fruta.'],
+                ];
 
-        // 2. Crear Usuarios (65 en total)
-        // 10 Dueños / Admins complejos
-        // 50 Agricultores base
-        // 5 Agricultores comunes (sin org)
-        $usuarios = [];
-        for ($i = 1; $i <= 65; $i++) {
-            $fechaReg = $haceUnMes->copy()->addDays(rand(0, 10));
-            $u = User::create([
-                'rol_id' => 2, // Agricultor global
-                'nombres' => $faker->firstName,
-                'apellidos' => $faker->lastName . ' ' . $faker->lastName,
-                'email' => "user{$i}@agrosys.com",
-                'dni' => $faker->randomNumber(8, true),
-                'password' => Hash::make('password'),
-                'ubicacion' => 'Ayacucho, ' . $faker->city,
-                'experiencia_anios' => rand(1, 20),
-                'created_at' => $fechaReg
-            ]);
-
-            // Historial de Registro
-            HistorialProceso::create([
-                'usuario_id' => $u->id,
-                'tabla_afectada' => 'usuarios',
-                'registro_id' => $u->id,
-                'accion' => 'REGISTRO',
-                'descripcion' => 'TE UNISTE AL SISTEMA',
-                'created_at' => $fechaReg
-            ]);
-            $usuarios[] = $u;
-        }
-
-        // 3. Lógica de Dueños (Primeros 10 usuarios)
-        // Pertenecen a 1-3 orgs, son Admins y algunos Supervisores
-        for ($i = 0; $i < 10; $i++) {
-            $u = $usuarios[$i];
-            $numOrgs = rand(1, 3);
-            $misOrgs = collect($organizaciones)->random($numOrgs);
-
-            foreach ($misOrgs as $org) {
-                $fechaJoin = $u->created_at->addDays(2);
-
-                // Membresía
-                $m = MiembroOrganizacion::create([
-                    'usuario_id' => $u->id,
-                    'organizacion_id' => $org->id,
-                    'es_propietario' => 1,
-                    'estado' => 1,
-                    'fecha_ingreso' => $fechaJoin,
-                    'created_at' => $fechaJoin
-                ]);
-
-                // Roles (Admin y Agricultor obligatorio)
-                MiembroRol::create(['miembro_id' => $m->id, 'rol_id' => 1, 'estado' => 1]);
-                MiembroRol::create(['miembro_id' => $m->id, 'rol_id' => 3, 'estado' => 1]);
-
-                // ¿Es Supervisor también? (50% probabilidad)
-                if (rand(0, 1)) {
-                    MiembroRol::create(['miembro_id' => $m->id, 'rol_id' => 2, 'estado' => 1]);
+                foreach ($catalogos as $cat) {
+                    CatalogoCultivo::updateOrCreate(
+                        ['nombre' => $cat['nombre']],
+                        array_merge($cat, [
+                            'foto_path' => null,
+                            'es_personalizado' => 0,
+                            'usuario_creador_id' => 1,
+                        ])
+                    );
                 }
 
-                HistorialProceso::create([
-                    'usuario_id' => $u->id,
-                    'organizacion_id' => $org->id,
-                    'tabla_afectada' => 'organizaciones',
-                    'registro_id' => $org->id,
-                    'accion' => 'APROBACIÓN',
-                    'descripcion' => 'Se aprobó la creación y asignación de cargos para ' . $org->nombre,
-                    'created_at' => $fechaJoin
-                ]);
-            }
-        }
+                $catalogosDb = CatalogoCultivo::all();
 
-        // 4. Lógica de Agricultores (Siguientes 50 usuarios)
-        // Asignarlos a organizaciones y algunos hacerlos Supervisores (2-3 por org)
-        $agris = array_slice($usuarios, 10, 50);
-        foreach ($agris as $u) {
-            $org = collect($organizaciones)->random();
-            $fechaSolicitud = $u->created_at->addDays(1);
+        // 6. Configuración inicial del sistema
+        DB::table('configuracion_sistema')->insert([
+            'nombre_sistema' => 'AgroSys',
+            'lema_sistema' => 'Gestión Agrícola Digital Inteligente',
+            'version_sistema' => '1.0.0',
+            'color_primario' => '#2D6A4F',
+            'color_secundario' => '#40916C',
+            'updated_by_usuario_id' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-            // Crear proceso de solicitud
-            $s = Solicitud::create([
-                'tipo' => 'unirse_organizacion',
-                'estado' => 1, // Aceptada
-                'solicitante_usuario_id' => $u->id,
-                'organizacion_id' => $org->id,
-                'fecha_solicitud' => $fechaSolicitud,
-                'fecha_respuesta' => $fechaSolicitud->copy()->addHours(5),
-                'created_at' => $fechaSolicitud
-            ]);
-
-            $m = MiembroOrganizacion::create([
-                'usuario_id' => $u->id,
-                'organizacion_id' => $org->id,
-                'estado' => 1,
-                'fecha_ingreso' => $s->fecha_respuesta,
-                'created_at' => $s->fecha_respuesta
-            ]);
-
-            MiembroRol::create(['miembro_id' => $m->id, 'rol_id' => 3, 'estado' => 1]);
-
-            HistorialProceso::create([
-                'usuario_id' => $u->id,
-                'organizacion_id' => $org->id,
-                'tabla_afectada' => 'solicitudes',
-                'registro_id' => $s->id,
-                'accion' => 'SOLICITUD',
-                'descripcion' => 'ENVIÓ UNA PETICIÓN DE INGRESO',
-                'created_at' => $fechaSolicitud
-            ]);
-        }
-
-        // 5. Asignar Supervisores (2-3 por org) y sus agricultores (5-10 cada uno)
-        foreach ($organizaciones as $org) {
-            $miembrosOrg = MiembroOrganizacion::where('organizacion_id', $org->id)->get();
-            $posiblesSupervisores = $miembrosOrg->take(3); // Tomamos 3 para ser supervisores
-
-            foreach ($posiblesSupervisores as $supM) {
-                // Darle rol de supervisor si no lo tiene
-                MiembroRol::firstOrCreate(['miembro_id' => $supM->id, 'rol_id' => 2], ['estado' => 1]);
-
-                // Asignarle entre 5 y 10 agricultores de la misma org
-                $otrosAgris = $miembrosOrg->where('id', '!=', $supM->id)->random(min($miembrosOrg->count() - 1, rand(5, 10)));
-
-                foreach ($otrosAgris as $agriM) {
-                    AsignacionSupervisor::create([
-                        'organizacion_id' => $org->id,
-                        'supervisor_miembro_id' => $supM->id,
-                        'agricultor_usuario_id' => $agriM->usuario_id,
-                        'created_at' => $supM->created_at->addDays(1)
-                    ]);
-                }
-            }
-        }
-
-        // 6. Generar Solicitudes Rechazadas y Notificaciones (Interacción)
-        for ($i = 0; $i < 20; $i++) {
-            $u = collect($usuarios)->random();
-            $org = collect($organizaciones)->random();
-
-            $s = Solicitud::create([
-                'tipo' => 'unirse_organizacion',
-                'estado' => 2, // Rechazada
-                'solicitante_usuario_id' => $u->id,
-                'organizacion_id' => $org->id,
-                'fecha_solicitud' => $ahora->copy()->subDays(rand(1, 15)),
-                'fecha_respuesta' => $ahora->copy()->subDays(rand(0, 1))
-            ]);
-
-            Notificacion::create([
-                'usuario_id' => $u->id,
-                'solicitud_id' => $s->id,
-                'titulo' => 'Solicitud Rechazada',
-                'mensaje' => 'Tu petición para unirte a ' . $org->nombre . ' fue denegada.',
-                'tipo' => 'error',
-                'created_at' => $s->fecha_respuesta
-            ]);
-        }
-
-        // 7. Generar Invitaciones de Supervisor para probar el Modal de Perfil
-        $admins = MiembroOrganizacion::whereHas('roles.rolDetalle', fn($q) => $q->where('nombre', 'Administrador'))->get()->take(5);
-        foreach ($admins as $admin) {
-            $agriLibre = User::where('rol_id', 2)
-                ->whereNotIn('id', MiembroOrganizacion::where('organizacion_id', $admin->organizacion_id)->pluck('usuario_id'))
-                ->first();
-
-            if ($agriLibre) {
-                $s = Solicitud::create([
-                    'tipo' => 'invitacion_organizacion',
-                    'estado' => 0,
-                    'solicitante_usuario_id' => $admin->usuario_id,
-                    'destinatario_usuario_id' => $agriLibre->id,
-                    'organizacion_id' => $admin->organizacion_id,
-                    'datos_extra' => ['rol_propuesto_id' => 2, 'rol_nombre' => 'Supervisor'],
-                    'fecha_solicitud' => $ahora->copy()->subDays(1)
-                ]);
-
-                Notificacion::create([
-                    'usuario_id' => $agriLibre->id,
-                    'solicitud_id' => $s->id,
-                    'titulo' => 'Invitación de Cargo',
-                    'mensaje' => 'Has sido invitado a ser Supervisor en ' . $admin->organizacion->nombre,
-                    'tipo' => 'solicitud_pendiente',
-                    'created_at' => $s->fecha_solicitud
-                ]);
-            }
-        }
+        // 7. Tipos de Mano de Obra base
+        DB::table('mano_obra_tipo')->insert([
+            ['nombre' => 'Jornalero', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Operador de Maquinaria', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Especialista Técnico', 'created_at' => now(), 'updated_at' => now()],
+        ]);
     }
 }

@@ -95,8 +95,8 @@
                 <x-sidebar-link :href="route('admin.cultivos')" :active="request()->routeIs('admin.cultivos*')" icon="fa-solid fa-seedling">
                     {{ __('Mis Cultivos') }}
                 </x-sidebar-link>
-                <x-sidebar-link href="#" icon="fa-solid fa-screwdriver-wrench">
-                    {{ __('Labores') }}
+                <x-sidebar-link :href="route('admin.labores')" :active="request()->routeIs('admin.labores*')" icon="fa-solid fa-screwdriver-wrench">
+                    {{ __('Mis Labores') }}
                 </x-sidebar-link>
                 <x-sidebar-link href="#" icon="fa-solid fa-boxes-stacked">
                     {{ __('Insumos') }}

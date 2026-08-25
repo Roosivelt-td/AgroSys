@@ -27,6 +27,10 @@ class Venta extends Model
         'foto_path',
     ];
 
+    protected $casts = [
+        'fecha_venta' => 'date',
+    ];
+
     public function cosecha()
     {
         return $this->belongsTo(Cosecha::class, 'cosecha_id');

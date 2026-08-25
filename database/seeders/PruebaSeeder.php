@@ -45,6 +45,25 @@ class PruebaSeeder extends Seeder
 
         $catalogosDb = CatalogoCultivo::all();
 
+        // 1.1 Insertar Catálogo de Labores Real (agrosys_labores_v2)
+        $laboresCat = [
+            ['nombre' => 'Preparar', 'categoria' => 'preparacion', 'descripcion' => 'Preparación del terreno para la siembra.'],
+            ['nombre' => 'Siembra', 'categoria' => 'siembra', 'descripcion' => 'Colocación de semillas o plantones.'],
+            ['nombre' => 'Riego', 'categoria' => 'mantenimiento', 'descripcion' => 'Aplicación de agua al cultivo.'],
+            ['nombre' => 'Fumigar', 'categoria' => 'mantenimiento', 'descripcion' => 'Control de plagas mediante agroquímicos.'],
+            ['nombre' => 'Aporque', 'categoria' => 'mantenimiento', 'descripcion' => 'Acumulación de tierra alrededor de la planta.'],
+            ['nombre' => 'Deshierbe', 'categoria' => 'mantenimiento', 'descripcion' => 'Limpieza de malezas.'],
+            ['nombre' => 'Abonar', 'categoria' => 'mantenimiento', 'descripcion' => 'Abonado del suelo o planta.'],
+            ['nombre' => 'Cosechar', 'categoria' => 'cosecha', 'descripcion' => 'Recolección de la producción.'],
+            ['nombre' => 'Otros', 'categoria' => 'mantenimiento', 'descripcion' => 'Actividades diversas no catalogadas.'],
+        ];
+
+        foreach ($laboresCat as $lc) {
+            \App\Models\CatalogoLabor::updateOrCreate(['nombre' => $lc['nombre']], $lc);
+        }
+
+        $laboresCatDb = \App\Models\CatalogoLabor::all();
+
         // 2. Crear 5 Agricultores
         $nombres = ['Juan', 'Pedro', 'Maria', 'Luisa', 'Carlos'];
         $apellidos = ['Quispe', 'Gomez', 'Sosa', 'Rojas', 'Mendoza'];
@@ -83,7 +102,7 @@ class PruebaSeeder extends Seeder
                 $estado = ['Planificado', 'En crecimiento', 'Cosechado', 'Perdido'][rand(0, 3)];
                 $fechaSiembra = Carbon::now()->subDays(rand(0, 150));
 
-                Cultivo::create([
+                $cultivo = Cultivo::create([
                     'terreno_id' => $terreno->id,
                     'catalogo_cultivo_id' => $cat->id,
                     'nombre_lote' => "LOTE-" . $j . "-" . strtoupper($cat->nombre),
@@ -97,6 +116,24 @@ class PruebaSeeder extends Seeder
                     'plantas_estimadas' => rand(500, 5000),
                     'rendimiento_esperado_tn_ha' => rand(5, 40),
                 ]);
+
+                // 5. Crear algunas Labores para cada cultivo
+                for ($k = 0; $k < rand(2, 5); $k++) {
+                    $lCat = $laboresCatDb->random();
+                    $costoMano = rand(50, 300);
+                    $costoMaq = rand(0, 200);
+
+                    \App\Models\Labor::create([
+                        'cultivo_id' => $cultivo->id,
+                        'catalogo_labor_id' => $lCat->id,
+                        'fecha_realizacion' => Carbon::now()->subDays(rand(1, 30))->timestamp,
+                        'costo_mano_obra_total' => $costoMano,
+                        'costo_maquinaria_total' => $costoMaq,
+                        'costo_total' => $costoMano + $costoMaq,
+                        'estado' => ['Pendiente', 'En progreso', 'Completada'][rand(0, 2)],
+                        'observaciones' => 'Labor de mantenimiento rutinario.',
+                    ]);
+                }
             }
         }
     }

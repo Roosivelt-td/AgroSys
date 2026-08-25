@@ -27,6 +27,10 @@ class Labor extends Model
         'foto_path',
     ];
 
+    protected $casts = [
+        'fecha_realizacion' => 'date',
+    ];
+
     /**
      * Relación: Cultivo al que se le aplicó la labor.
      */
@@ -57,6 +61,14 @@ class Labor extends Model
     public function manoDeObra()
     {
         return $this->hasMany(ManoObra::class, 'labor_id');
+    }
+
+    /**
+     * Relación: Maquinaria usada en esta labor.
+     */
+    public function maquinaria()
+    {
+        return $this->hasMany(MaquinariaUsada::class, 'labor_id');
     }
 
     /**

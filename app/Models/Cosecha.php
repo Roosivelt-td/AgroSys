@@ -26,6 +26,10 @@ class Cosecha extends Model
         'foto_path',
     ];
 
+    protected $casts = [
+        'fecha_cosecha' => 'date',
+    ];
+
     /**
      * Relación: La labor de tipo 'cosecha' que generó este registro.
      */
