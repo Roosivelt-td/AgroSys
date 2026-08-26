@@ -24,7 +24,7 @@ const BarChart = ({ data }) => {
                 datasets: [{
                     label: data.unit || 'Valor',
                     data: data.values,
-                    backgroundColor: '#00ba2e',
+                    backgroundColor: data.colors || '#00ba2e',
                     borderRadius: 12,
                     borderSkipped: false,
                 }]

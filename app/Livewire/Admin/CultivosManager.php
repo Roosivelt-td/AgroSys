@@ -102,13 +102,24 @@ class CultivosManager extends Component
         $this->generarNombreLote();
     }
 
+    public function updatedVariedad()
+    {
+        $this->generarNombreLote();
+    }
+
+    public function updatedFechaSiembra()
+    {
+        $this->generarNombreLote();
+    }
+
     protected function generarNombreLote()
     {
         if ($this->catalogo_cultivo_id && $this->terreno_id) {
             $cultivoNombre = CatalogoCultivo::find($this->catalogo_cultivo_id)?->nombre;
-            $num = Cultivo::where('terreno_id', $this->terreno_id)->count() + 1;
+            // Usamos el ID actual si existe (edición), o calculamos el próximo ID disponible (creación)
+            $idLabel = $this->cropId ?: (Cultivo::max('id') + 1);
             $fecha = $this->fecha_siembra ? date('d-m-Y', strtotime($this->fecha_siembra)) : date('d-m-Y');
-            $this->nombre_lote = "{$num}-" . strtoupper($cultivoNombre) . "-" . strtoupper($this->variedad ?: 'GENERICA') . "-{$fecha}";
+            $this->nombre_lote = "{$idLabel}-" . strtoupper($cultivoNombre) . "-" . strtoupper($this->variedad ?: 'GENERICA') . "-{$fecha}";
         }
     }
 

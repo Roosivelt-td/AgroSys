@@ -146,21 +146,23 @@
                 @endif
                 <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent"></div>
 
+                <!-- Overlay de Gestionar Labores (Hover Premium) -->
+                <a href="{{ route('admin.labores', ['filterCropId' => $cultivo->id, 'strict' => 1]) }}"
+                   class="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 bg-[#003a38]/40 backdrop-blur-[2px]">
+                    <div class="px-8 py-3 bg-agri-green text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl transform translate-y-4 group-hover:translate-y-0 scale-90 group-hover:scale-100 transition-all duration-500 italic flex items-center gap-3 border border-white/20">
+                        <i class="fa-solid fa-gears text-sm animate-spin-slow"></i>
+                        Gestionar Labores
+                    </div>
+                </a>
+
                 <!-- 1. Clima (Fondo Blanco) -->
-                <div class="absolute top-5 left-5 flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-2xl border border-white/20">
+                <div class="absolute top-5 left-5 z-30 flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-2xl border border-white/20">
                     <i class="fa-solid fa-cloud-sun text-amber-500 text-xs"></i>
                     <span class="text-[10px] font-black text-slate-800 dark:text-white italic uppercase leading-none">{{ $temp }}°C | {{ $hmd }}% HR</span>
                 </div>
 
-                <!-- 2. Gastos + Ver Labores (Top Right) -->
-                <div class="absolute top-5 right-14 flex items-center">
-                    <a href="#" class="px-3 py-1.5 bg-emerald-500/20 backdrop-blur-md border border-white/30 rounded-xl text-white text-[9px] font-black uppercase tracking-widest hover:bg-agri-green transition-all shadow-lg">
-                        Ver Labores <i class="fa-solid fa-arrow-right-long ml-1 animate-pulse"></i>
-                    </a>
-                </div>
-
                 <!-- Menú "..." -->
-                <div class="absolute top-5 right-5">
+                <div class="absolute top-5 right-5 z-30">
                     <button @click="menuOpen = !menuOpen" @click.away="menuOpen = false" class="w-8 h-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white flex items-center justify-center shadow-lg hover:bg-white/30 transition-all">
                         <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
                     </button>

@@ -32,6 +32,13 @@ class Cultivo extends Model
         'foto_path',
     ];
 
+    protected $casts = [
+        'fecha_planificada' => 'date',
+        'fecha_siembra' => 'date',
+        'fecha_cosecha_estimada' => 'date',
+        'fecha_cosecha_finalizada' => 'date',
+    ];
+
     /**
      * Relación: En qué terreno se encuentra sembrado.
      */
