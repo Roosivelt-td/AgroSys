@@ -7,58 +7,83 @@ const BarChart = ({ data }) => {
     const chartInstance = useRef(null);
 
     useEffect(() => {
-        if (!data || !data.labels || data.labels.length === 0) {
-            if (chartInstance.current) chartInstance.current.destroy();
-            return;
-        }
+        const chartElement = chartRef.current;
+        if (!chartElement) return;
 
+        // Limpieza absoluta inicial
         if (chartInstance.current) {
             chartInstance.current.destroy();
+            chartInstance.current = null;
         }
 
-        const ctx = chartRef.current.getContext('2d');
-        chartInstance.current = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    label: data.unit || 'Valor',
-                    data: data.values,
-                    backgroundColor: data.colors || '#00ba2e',
-                    borderRadius: 12,
-                    borderSkipped: false,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#003a38',
-                        titleFont: { size: 12, weight: 'bold' },
-                        bodyFont: { size: 10 },
-                        padding: 12,
-                        cornerRadius: 12,
-                        displayColors: false
-                    }
+        if (!data || !data.labels || data.labels.length === 0) return;
+
+        const ctx = chartElement.getContext('2d');
+
+        const createChart = () => {
+            // Destruir instancia previa si existe antes de crear la nueva
+            if (chartInstance.current) {
+                chartInstance.current.destroy();
+            }
+
+            chartInstance.current = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: data.unit || 'S/',
+                        data: data.values,
+                        backgroundColor: data.colors || '#00ba2e',
+                        borderRadius: 10,
+                        borderSkipped: false,
+                        barThickness: 35
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
-                        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 500 },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#003a38',
+                            titleFont: { size: 11, weight: 'bold' },
+                            bodyFont: { size: 10 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
                     },
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.03)', drawBorder: false },
+                            ticks: { font: { size: 9, weight: '700' }, color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 9, weight: '700' }, color: '#94a3b8' }
+                        }
                     }
                 }
+            });
+        };
+
+        // Usamos un observador de redimensionamiento para detectar cuándo el canvas es visible y tiene tamaño real
+        const resizeObserver = new ResizeObserver((entries) => {
+            if (entries[0].contentRect.width > 0 && entries[0].contentRect.height > 0) {
+                createChart();
             }
         });
 
+        resizeObserver.observe(chartElement.parentElement);
+
         return () => {
-            if (chartInstance.current) chartInstance.current.destroy();
+            resizeObserver.disconnect();
+            if (chartInstance.current) {
+                chartInstance.current.destroy();
+                chartInstance.current = null;
+            }
         };
     }, [data]);
 

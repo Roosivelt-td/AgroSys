@@ -33,6 +33,10 @@ Route::middleware('auth')->group(function () {
     Route::get('mis-labores', \App\Livewire\Admin\LaboresManager::class)
         ->name('admin.labores');
 
+    // Inteligencia y Clima
+    Route::get('clima-ia', \App\Livewire\Admin\ClimaIA::class)
+        ->name('admin.clima-ia');
+
     // Chat y Mensajería Técnica
     Route::get('mensajeria', \App\Livewire\Chat\ChatManager::class)
         ->name('chat.index');

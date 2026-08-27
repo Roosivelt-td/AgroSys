@@ -125,9 +125,10 @@
         @foreach($labores as $l)
         @php
             $isAtrasada = $l->estado === 'Pendiente' && \Carbon\Carbon::parse($l->fecha_realizacion)->isPast();
+            // Lógica de fecha solicitada: siembra si existe, si no, fecha de la labor (preparación)
             $fRefRaw = $l->cultivo->fecha_siembra ?: $l->fecha_realizacion;
             $fechaRef = \Carbon\Carbon::parse($fRefRaw)->format('d/m/Y');
-            $identificador = strtoupper($l->cultivo->detalleCatalogo->nombre) . " " . strtoupper($l->cultivo->variedad ?: 'VAR. GENERICA') . " " . $fechaRef;
+            $identificador = strtoupper($l->cultivo->detalleCatalogo->nombre) . " " . strtoupper($l->cultivo->variedad ?: 'GENERICA') . " - " . $fechaRef;
         @endphp
         <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-xl border border-slate-100 dark:border-white/5 group relative transition-all duration-500 hover:-translate-y-1.5 h-64 cursor-pointer"
              x-data="{ menuOpen: false }"
@@ -311,10 +312,10 @@
                                 </select>
                             </div>
                             <div class="md:col-span-8 space-y-1">
-                                <label class="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2"><i class="fa-solid fa-leaf text-agri-green text-[7px]"></i> 5. CULTIVO EXACTO (LOTE)</label>
+                                <label class="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2"><i class="fa-solid fa-leaf text-agri-green text-[7px]"></i> 5. CULTIVO</label>
                                 <select wire:model.live="cultivo_id" @if($selVarName === '') disabled @endif class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl p-2.5 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-agri-green shadow-sm border-2 border-agri-green/30">
                                     <option value="">Elegir campaña específica...</option>
-                                    @foreach($resultsCrops as $r) <option value="{{ $r->id }}">{{ $r->nombre_lote }}</option> @endforeach
+                                    @foreach($resultsCrops as $r) <option value="{{ $r->id }}">{{ $r->label_display }}</option> @endforeach
                                 </select>
                             </div>
                         </div>
@@ -538,55 +539,75 @@
                             <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest italic">Recursos y Logística</h4>
                         </div>
 
-                        <!-- Visualización de Gastos (Gráfico y Totales) -->
-                        <div class="bg-slate-50 dark:bg-white/5 p-8 rounded-[2.5rem] border border-black/5 shadow-inner">
-                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-                                @php
-                                    $cInsumos = $viewingLabor->insumos->sum(fn($i) => ($i->cantidad * $i->costo_unitario) + $i->costo_flete);
-                                    $cPersonal = $viewingLabor->manoDeObra->sum('subtotal');
-                                    $cMaq = $viewingLabor->maquinaria->sum('costo_total');
-                                    $totalRecursos = $cInsumos + $cPersonal + $cMaq;
+                        <!-- Visualización de Gastos (Gráfico y Totales Verticales Estilo Img 2) -->
+                        @php
+                            $cInsumos = (float)$viewingLabor->insumos->sum(fn($i) => ($i->cantidad * $i->costo_unitario) + $i->costo_flete);
+                            $cPersonal = (float)$viewingLabor->manoDeObra->sum('subtotal');
+                            $cMaq = (float)$viewingLabor->maquinaria->sum('costo_total');
 
-                                    $chartData = [
-                                        'labels' => ['Insumos', 'Personal', 'Maquinaria'],
-                                        'values' => [$cInsumos, $cPersonal, $cMaq],
-                                        'colors' => ['#3b82f6', '#f59e0b', '#8b5cf6'],
-                                        'title' => 'Distribución de Inversión',
-                                        'unit' => 'S/'
-                                    ];
-                                @endphp
-                                <div class="lg:col-span-4 h-56 relative">
+                            $chartLabels = [];
+                            $chartValues = [];
+                            $chartColors = [];
+
+                            if($cInsumos > 0) { $chartLabels[] = 'Insumos'; $chartValues[] = $cInsumos; $chartColors[] = '#3b82f6'; }
+                            if($cPersonal > 0) { $chartLabels[] = 'Personal'; $chartValues[] = $cPersonal; $chartColors[] = '#f59e0b'; }
+                            if($cMaq > 0) { $chartLabels[] = 'Maquinaria'; $chartValues[] = $cMaq; $chartColors[] = '#8b5cf6'; }
+
+                            $chartData = [
+                                'labels' => $chartLabels,
+                                'values' => $chartValues,
+                                'colors' => $chartColors,
+                                'title' => 'Inversión por Categoría',
+                                'unit' => 'S/'
+                            ];
+                        @endphp
+
+                        @if(count($chartLabels) > 0)
+                        <div class="bg-white dark:bg-slate-900/50 p-8 rounded-[2.5rem] border border-black/5 dark:border-white/5 shadow-inner">
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                                <!-- Gráfico -->
+                                <div class="lg:col-span-6 h-56 relative bg-white/50 dark:bg-slate-900/50 rounded-3xl p-4">
                                     <div data-react-component="agro-bar-chart"
                                          data-props="{{ json_encode(['data' => $chartData]) }}"
-                                         class="w-full h-full"></div>
+                                         class="w-full h-full"
+                                         wire:key="view-chart-final-{{ $viewingLabor->id }}-{{ $viewTimestamp }}"></div>
                                 </div>
-                                <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                    <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border-l-4 border-blue-500">
-                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Insumos</p>
-                                        <h5 class="text-xl font-black text-blue-600 italic">S/ {{ number_format($cInsumos, 2) }}</h5>
+                                <!-- Totales Verticales -->
+                                <div class="lg:col-span-6 flex flex-col gap-4">
+                                    @if($cInsumos > 0)
+                                    <div class="bg-white dark:bg-slate-800 p-6 rounded-[1.8rem] shadow-xl border-l-[6px] border-blue-500 transform hover:scale-[1.02] transition-all">
+                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Total Insumos / Productos</p>
+                                        <h5 class="text-2xl font-black text-blue-600 italic tracking-tighter">S/ {{ number_format($cInsumos, 2) }}</h5>
                                     </div>
-                                    <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border-l-4 border-amber-500">
-                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Personal</p>
-                                        <h5 class="text-xl font-black text-amber-600 italic">S/ {{ number_format($cPersonal, 2) }}</h5>
+                                    @endif
+                                    @if($cPersonal > 0)
+                                    <div class="bg-white dark:bg-slate-800 p-6 rounded-[1.8rem] shadow-xl border-l-[6px] border-amber-500 transform hover:scale-[1.02] transition-all">
+                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Total Mano de Obra</p>
+                                        <h5 class="text-2xl font-black text-amber-600 italic tracking-tighter">S/ {{ number_format($cPersonal, 2) }}</h5>
                                     </div>
-                                    <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border-l-4 border-violet-500">
-                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Maquinaria</p>
-                                        <h5 class="text-xl font-black text-violet-600 italic">S/ {{ number_format($cMaq, 2) }}</h5>
+                                    @endif
+                                    @if($cMaq > 0)
+                                    <div class="bg-white dark:bg-slate-800 p-6 rounded-[1.8rem] shadow-xl border-l-[6px] border-violet-500 transform hover:scale-[1.02] transition-all">
+                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Total Maquinaria / Equipos</p>
+                                        <h5 class="text-2xl font-black text-violet-600 italic tracking-tighter">S/ {{ number_format($cMaq, 2) }}</h5>
                                     </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
+                        @endif
 
-                        <!-- Tablas Detalladas -->
-                        <div class="space-y-6">
+                        <!-- Tablas Detalladas (Solo si existen datos) -->
+                        <div class="space-y-8">
                             <!-- Insumos -->
-                            <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden shadow-sm">
+                            @if($viewingLabor->insumos->count() > 0)
+                            <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden shadow-2xl">
                                 <div class="bg-blue-600 px-8 py-4 flex justify-between items-center text-white">
                                     <div class="flex items-center gap-3">
                                         <i class="fa-solid fa-boxes-stacked text-lg"></i>
                                         <h5 class="text-[11px] font-black uppercase tracking-[0.2em] italic">Detalle de Insumos / Productos</h5>
                                     </div>
-                                    <span class="bg-white/20 px-4 py-1 rounded-full text-[10px] font-black">Total Insumos: S/ {{ number_format($cInsumos, 2) }}</span>
+                                    <span class="bg-white/20 px-4 py-1 rounded-full text-[10px] font-black">S/ {{ number_format($cInsumos, 2) }}</span>
                                 </div>
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-left">
@@ -600,30 +621,30 @@
                                             </tr>
                                         </thead>
                                         <tbody class="text-[11px] font-bold italic text-slate-600 dark:text-slate-300">
-                                            @forelse($viewingLabor->insumos as $ins)
-                                                <tr class="border-t border-slate-50 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-                                                    <td class="px-8 py-4 uppercase">{{ $ins->detalleCatalogo->nombre }}</td>
+                                            @foreach($viewingLabor->insumos as $ins)
+                                                <tr class="border-t border-slate-50 dark:border-white/5 hover:bg-slate-50/50 transition-colors">
+                                                    <td class="px-8 py-4 uppercase">{{ $ins->detalleCatalogo->nombre ?? 'Insumo' }}</td>
                                                     <td class="px-6 py-4 uppercase text-slate-400">{{ $ins->proveedor?->nombre_empresa ?? 'SIN PROVEEDOR' }}</td>
                                                     <td class="px-4 py-4 text-center font-black">{{ $ins->cantidad }} ud.</td>
                                                     <td class="px-6 py-4 text-right">S/ {{ number_format($ins->costo_unitario, 2) }}</td>
                                                     <td class="px-8 py-4 text-right text-slate-900 dark:text-white font-black">S/ {{ number_format(($ins->cantidad * $ins->costo_unitario) + $ins->costo_flete, 2) }}</td>
                                                 </tr>
-                                            @empty
-                                                <tr><td colspan="5" class="px-8 py-10 text-center text-slate-400 uppercase font-black italic tracking-widest opacity-50">Sin registros de insumos para esta labor</td></tr>
-                                            @endforelse
+                                            @endforeach
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
+                            @endif
 
                             <!-- Personal -->
+                            @if($viewingLabor->manoDeObra->count() > 0)
                             <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden shadow-sm">
                                 <div class="bg-amber-500 px-8 py-4 flex justify-between items-center text-white">
                                     <div class="flex items-center gap-3">
                                         <i class="fa-solid fa-people-group text-lg"></i>
                                         <h5 class="text-[11px] font-black uppercase tracking-[0.2em] italic">Detalle de Personal / Jornales</h5>
                                     </div>
-                                    <span class="bg-white/20 px-4 py-1 rounded-full text-[10px] font-black">Total Mano de Obra: S/ {{ number_format($cPersonal, 2) }}</span>
+                                    <span class="bg-white/20 px-4 py-1 rounded-full text-[10px] font-black">S/ {{ number_format($cPersonal, 2) }}</span>
                                 </div>
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-left">
@@ -637,30 +658,30 @@
                                             </tr>
                                         </thead>
                                         <tbody class="text-[11px] font-bold italic text-slate-600 dark:text-slate-300">
-                                            @forelse($viewingLabor->manoDeObra as $mo)
-                                                <tr class="border-t border-slate-50 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                            @foreach($viewingLabor->manoDeObra as $mo)
+                                                <tr class="border-t border-slate-50 dark:border-white/5 hover:bg-slate-50/50 transition-colors">
                                                     <td class="px-8 py-4 uppercase">{{ $mo->tipoPersona->nombre }}</td>
                                                     <td class="px-6 py-4 text-center font-black">{{ $mo->cantidad_trabajadores }}</td>
                                                     <td class="px-6 py-4 text-center">{{ $mo->dias_trabajados }} días</td>
                                                     <td class="px-6 py-4 text-right">S/ {{ number_format($mo->costo_por_dia, 2) }}</td>
                                                     <td class="px-8 py-4 text-right text-slate-900 dark:text-white font-black">S/ {{ number_format($mo->subtotal, 2) }}</td>
                                                 </tr>
-                                            @empty
-                                                <tr><td colspan="5" class="px-8 py-10 text-center text-slate-400 uppercase font-black italic tracking-widest opacity-50">Sin registros de personal para esta labor</td></tr>
-                                            @endforelse
+                                            @endforeach
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
+                            @endif
 
                             <!-- Maquinaria -->
+                            @if($viewingLabor->maquinaria->count() > 0)
                             <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden shadow-sm">
                                 <div class="bg-violet-600 px-8 py-4 flex justify-between items-center text-white">
                                     <div class="flex items-center gap-3">
                                         <i class="fa-solid fa-truck-tractor text-lg"></i>
                                         <h5 class="text-[11px] font-black uppercase tracking-[0.2em] italic">Detalle de Maquinaria / Equipos</h5>
                                     </div>
-                                    <span class="bg-white/20 px-4 py-1 rounded-full text-[10px] font-black">Total Maquinaria: S/ {{ number_format($cMaq, 2) }}</span>
+                                    <span class="bg-white/20 px-4 py-1 rounded-full text-[10px] font-black">S/ {{ number_format($cMaq, 2) }}</span>
                                 </div>
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-left">
@@ -673,20 +694,19 @@
                                             </tr>
                                         </thead>
                                         <tbody class="text-[11px] font-bold italic text-slate-600 dark:text-slate-300">
-                                            @forelse($viewingLabor->maquinaria as $maq)
-                                                <tr class="border-t border-slate-50 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                            @foreach($viewingLabor->maquinaria as $maq)
+                                                <tr class="border-t border-slate-50 dark:border-white/5 hover:bg-slate-50/50 transition-colors">
                                                     <td class="px-8 py-4 uppercase font-black text-slate-800 dark:text-slate-100">{{ $maq->nombre_maquinaria }}</td>
                                                     <td class="px-6 py-4 uppercase text-slate-400">{{ $maq->labor_realizada }}</td>
                                                     <td class="px-6 py-4 text-center font-black">{{ $maq->horas_trabajadas }} h</td>
                                                     <td class="px-8 py-4 text-right text-slate-900 dark:text-white font-black">S/ {{ number_format($maq->costo_total, 2) }}</td>
                                                 </tr>
-                                            @empty
-                                                <tr><td colspan="4" class="px-8 py-10 text-center text-slate-400 uppercase font-black italic tracking-widest opacity-50">Sin registros de maquinaria para esta labor</td></tr>
-                                            @endforelse
+                                            @endforeach
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
+                            @endif
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">

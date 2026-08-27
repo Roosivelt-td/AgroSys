@@ -74,6 +74,7 @@ class LaboresManager extends Component
     public $laborStatusMap = [];
     public $strictMode = false;
     public $viewingLabor = null;
+    public $viewTimestamp = '';
 
     protected $queryString = ['fStatus', 'fLand', 'fCat', 'fVariety', 'fExactCrop', 'fLaborId', 'filterDateStart', 'filterDateEnd'];
 
@@ -145,9 +146,21 @@ class LaboresManager extends Component
     }
 
     public function calculateTotals() {
-        $this->costo_mano_obra_total = 0; foreach($this->itemsManoObra as $item) $this->costo_mano_obra_total += ($item['cantidad'] * $item['dias'] * $item['costo_dia']);
-        $this->costo_maquinaria_total = 0; foreach($this->itemsMaquinaria as $item) $this->costo_maquinaria_total += $item['costo_total'];
-        $insTotal = 0; foreach($this->itemsInsumos as $item) $insTotal += ($item['cantidad'] * $item['costo_unitario']) + $item['costo_flete'];
+        $this->costo_mano_obra_total = 0;
+        foreach($this->itemsManoObra as $item) {
+            $this->costo_mano_obra_total += ((float)$item['cantidad'] * (float)$item['dias'] * (float)$item['costo_dia']);
+        }
+
+        $this->costo_maquinaria_total = 0;
+        foreach($this->itemsMaquinaria as $item) {
+            $this->costo_maquinaria_total += (float)$item['costo_total'];
+        }
+
+        $insTotal = 0;
+        foreach($this->itemsInsumos as $item) {
+            $insTotal += ((float)$item['cantidad'] * (float)$item['costo_unitario']) + (float)$item['costo_flete'];
+        }
+
         $this->costo_total = $this->costo_mano_obra_total + $this->costo_maquinaria_total + $insTotal;
     }
 
@@ -215,7 +228,17 @@ class LaboresManager extends Component
         $resultsLands = $this->selStatus ? Terreno::whereIn('usuario_id', $allowedIds)->when($this->selStatus !== 'TODOS', fn($q) => $q->whereHas('cultivos', fn($sq) => $sq->where('estado', $dbStatusModal)))->get() : [];
         $resultsCats = $this->selLandId ? CatalogoCultivo::whereIn('id', Cultivo::where('terreno_id', $this->selLandId)->when($this->selStatus !== 'TODOS', fn($q) => $q->where('estado', $dbStatusModal))->pluck('catalogo_cultivo_id'))->get() : [];
         $resultsVars = ($this->selLandId && $this->selCatId) ? Cultivo::where('terreno_id', $this->selLandId)->where('catalogo_cultivo_id', $this->selCatId)->when($this->selStatus !== 'TODOS', fn($q) => $q->where('estado', $dbStatusModal))->pluck('variedad')->unique() : [];
-        $resultsCrops = ($this->selLandId && $this->selCatId && $this->selVarName) ? Cultivo::where('terreno_id', $this->selLandId)->where('catalogo_cultivo_id', $this->selCatId)->where('variedad', $this->selVarName)->when($this->selStatus !== 'TODOS', fn($q) => $q->where('estado', $dbStatusModal))->get() : [];
+        $resultsCrops = ($this->selLandId && $this->selCatId && $this->selVarName)
+            ? Cultivo::with('detalleCatalogo')->where('terreno_id', $this->selLandId)
+                ->where('catalogo_cultivo_id', $this->selCatId)
+                ->where('variedad', $this->selVarName)
+                ->when($this->selStatus !== 'TODOS', fn($q) => $q->where('estado', $dbStatusModal))
+                ->get()->map(function($c) {
+                    $fecha = $c->fecha_siembra ? $c->fecha_siembra->format('d/m/Y') : ($c->fecha_planificada ? $c->fecha_planificada->format('d/m/Y') : '---');
+                    $c->label_display = rtrim(rtrim(number_format($c->area_destinada, 2, '.', ''), '0'), '.') . " Ha. de " . strtoupper($c->detalleCatalogo->nombre) . " " . strtoupper($c->variedad ?: 'GENERICA') . " - {$fecha}";
+                    return $c;
+                })
+            : [];
         $resultsIns = $this->showIns ? \App\Models\CatalogoInsumo::where('nombre','like','%'.$this->queryIns.'%')->take(5)->get() : [];
 
         return view('livewire.admin.labores-manager', [
@@ -226,9 +249,23 @@ class LaboresManager extends Component
         ]);
     }
 
-    public function resetForm() { $this->reset(['laborId', 'cultivo_id', 'catalogo_labor_id', 'costo_mano_obra_total', 'costo_maquinaria_total', 'costo_total', 'estado', 'observaciones', 'laborPhoto', 'currentPhotoPath', 'selStatus', 'selLandId', 'selCatId', 'selVarName', 'landNombreSelected', 'catNombreSelected', 'cropNombreSelected', 'cropFechaPlanificada', 'cropHectareas', 'cropEstado', 'step', 'strictMode', 'viewingLabor']); $this->fecha_realizacion = date('Y-m-d'); $this->estado = 'Pendiente'; $this->step = 1; $this->checkLaborAvailability(null); }
+    public function resetForm() {
+        $this->reset([
+            'laborId', 'cultivo_id', 'catalogo_labor_id', 'costo_mano_obra_total',
+            'costo_maquinaria_total', 'costo_total', 'estado', 'observaciones',
+            'laborPhoto', 'currentPhotoPath', 'selStatus', 'selLandId', 'selCatId',
+            'selVarName', 'landNombreSelected', 'catNombreSelected', 'cropNombreSelected',
+            'cropFechaPlanificada', 'cropHectareas', 'cropEstado', 'step', 'strictMode',
+            'viewingLabor', 'itemsInsumos', 'itemsManoObra', 'itemsMaquinaria'
+        ]);
+        $this->fecha_realizacion = date('Y-m-d');
+        $this->estado = 'Pendiente';
+        $this->step = 1;
+        $this->checkLaborAvailability(null);
+    }
     public function backToGrid() { $this->step = 1; }
     public function showDetails($id) {
+        $this->viewTimestamp = now()->getPreciseTimestamp(3);
         $this->viewingLabor = Labor::with([
             'cultivo.terreno',
             'detalleCatalogo',
@@ -240,7 +277,7 @@ class LaboresManager extends Component
         $this->dispatch('open-modal', 'modal-view-labor');
     }
     public function edit($id) {
-        $l = Labor::with(['cultivo.terreno', 'insumos', 'manoDeObra', 'maquinaria'])->find($id);
+        $l = Labor::with(['cultivo.terreno', 'insumos.detalleCatalogo', 'insumos.proveedor', 'manoDeObra.tipoPersona', 'maquinaria'])->find($id);
         $this->laborId = $l->id;
         $this->cultivo_id = $l->cultivo_id;
         $this->catalogo_labor_id = $l->catalogo_labor_id;
@@ -252,18 +289,21 @@ class LaboresManager extends Component
         $this->costo_total = $l->costo_total;
         $this->currentPhotoPath = $l->foto_path;
 
-        // Cargar ítems dinámicos
+        // Cargar ítems dinámicos con nombres explícitos
         $this->itemsInsumos = $l->insumos->map(fn($i) => [
+            'id' => $i->id,
             'insumo_id' => $i->catalogo_insumo_id,
-            'insumo_nombre' => $i->detalleCatalogo->nombre,
+            'insumo_nombre' => $i->detalleCatalogo->nombre ?? 'DESCONOCIDO',
             'proveedor_id' => $i->proveedor_id,
             'proveedor_nombre' => $i->proveedor?->nombre_empresa ?? '',
             'cantidad' => $i->cantidad,
             'costo_unitario' => $i->costo_unitario,
-            'costo_flete' => $i->costo_flete
+            'costo_flete' => $i->costo_flete,
+            'habilitar_proveedor' => $i->proveedor_id ? true : false
         ])->toArray();
 
         $this->itemsManoObra = $l->manoDeObra->map(fn($m) => [
+            'id' => $m->id,
             'tipo_id' => $m->tipo_id,
             'cantidad' => $m->cantidad_trabajadores,
             'dias' => $m->dias_trabajados,
@@ -271,6 +311,7 @@ class LaboresManager extends Component
         ])->toArray();
 
         $this->itemsMaquinaria = $l->maquinaria->map(fn($mq) => [
+            'id' => $mq->id,
             'nombre' => $mq->nombre_maquinaria,
             'labor' => $mq->labor_realizada,
             'horas' => $mq->horas_trabajadas,

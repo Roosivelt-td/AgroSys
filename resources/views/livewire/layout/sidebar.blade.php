@@ -104,6 +104,24 @@
             </div>
         </div>
 
+        <!-- Section: ANÁLISIS E INTELIGENCIA -->
+        <div>
+            <div class="px-3 mb-2" x-show="!sidebarCollapsed || mobileOpen" x-transition>
+                <span class="text-[10px] font-black text-agri-green dark:text-emerald-400 uppercase tracking-[0.2em]">Inteligencia AgroSys</span>
+            </div>
+            <div class="space-y-0.5">
+                <x-sidebar-link :href="route('admin.clima-ia')" :active="request()->routeIs('admin.clima-ia')" icon="fa-solid fa-cloud-showers-water">
+                    {{ __('Clima IA') }}
+                </x-sidebar-link>
+                <x-sidebar-link href="#" icon="fa-solid fa-robot">
+                    {{ __('Alertas IA') }}
+                </x-sidebar-link>
+                <x-sidebar-link href="#" icon="fa-solid fa-chart-pie">
+                    {{ __('Reportes') }}
+                </x-sidebar-link>
+            </div>
+        </div>
+
         <!-- Section: COMUNICACIÓN -->
         <div>
             <div class="px-3 mb-2" x-show="!sidebarCollapsed || mobileOpen" x-transition>

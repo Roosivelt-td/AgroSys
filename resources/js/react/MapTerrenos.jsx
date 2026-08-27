@@ -83,6 +83,11 @@ const MapTerrenos = ({ terrenos = [], fullView = false, selectionMode = false })
         terrenos.forEach(t => {
             if (t.lat && t.lng) {
                 const m = L.marker([t.lat, t.lng]).addTo(markersLayerGroup.current);
+                m.on('click', () => {
+                    window.dispatchEvent(new CustomEvent('map-marker-clicked', {
+                        detail: { id: t.id }
+                    }));
+                });
                 m.bindPopup(`
                     <div class="p-1">
                         <b class="uppercase text-[10px] block mb-1">${t.nombre}</b>

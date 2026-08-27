@@ -3,11 +3,13 @@ import { createRoot } from 'react-dom/client';
 import MapTerrenos from './react/MapTerrenos';
 import BarChart from './react/BarChart';
 import LandLineChart from './react/LandLineChart';
+import ClimateTrendChart from './react/ClimateTrendChart';
 
 const components = {
     'agro-map-terrenos': MapTerrenos,
     'agro-bar-chart': BarChart,
     'agro-land-line-chart': LandLineChart,
+    'agro-climate-trend-chart': ClimateTrendChart,
 };
 
 const mountedRoots = new WeakMap();

@@ -34,6 +34,11 @@ class InsumoUsado extends Model
         return $this->belongsTo(CatalogoInsumo::class, 'catalogo_insumo_id');
     }
 
+    public function detalleCatalogo()
+    {
+        return $this->belongsTo(CatalogoInsumo::class, 'catalogo_insumo_id');
+    }
+
     public function proveedor()
     {
         return $this->belongsTo(Proveedor::class, 'proveedor_id');

@@ -20,8 +20,8 @@ class AgroBotService
         //$this->model = env('OLLAMA_MODEL', 'mistral:latest'); // 4.4GB
         //$this->model = env('OLLAMA_MODEL', 'qwen3:4b');   // 2.5GB
         //$this->model = env('OLLAMA_MODEL', 'phi:latest'); // 1.6GB
-        $this->model = env('OLLAMA_MODEL', 'qwen3:1.7b'); // 1.4GB
-        //$this->model = env('OLLAMA_MODEL', 'tinyllama:latest'); // 637MB
+        //$this->model = env('OLLAMA_MODEL', 'qwen3:1.7b'); // 1.4GB
+        $this->model = env('OLLAMA_MODEL', 'tinyllama:latest'); // 637MB
     }
 
     public function getResponse($mensajeUsuario)
