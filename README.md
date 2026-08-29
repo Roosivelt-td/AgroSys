@@ -1,4 +1,4 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="./public/AgroSys_logo.png" width="400" alt="AgroSys Logo"></a></p>
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="public/AgroSys_logo.png" width="400" alt="AgroSys Logo"></a></p>
 <p align="center">
 <a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Estado de la Compilación"></a>
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Descargas Totales"></a>
@@ -24,7 +24,7 @@ AgroSys está diseñado bajo una arquitectura de **Sistemas de Apoyo a las Decis
 
 ```mermaid
 graph TD
-    A[Usuario Final] --> B[Blade / Tailwind CSS / Alpine.js]
+    A[Usuario Final] --> B["Blade / Tailwind CSS / Alpine.js"]
     B --> C[Livewire Components]
     C --> D[Laravel Logic]
     D --> E[MySQL Database]
