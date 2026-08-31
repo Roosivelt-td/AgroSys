@@ -13,8 +13,10 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 
 #[Layout('layouts.app')]
+#[Title('Mis Terrenos')]
 class TerrenosManager extends Component
 {
     use WithPagination, WithFileUploads;
@@ -23,6 +25,7 @@ class TerrenosManager extends Component
     public $filterCrop = '';
     public $filterArea = '';
     public $selectedOrgId = null;
+    public $activeLandId = null; // Terreno seleccionado para vista detallada
     public $chartPeriod = 'mes'; // mes o año
 
     // Campos de la Base de Datos
@@ -33,6 +36,7 @@ class TerrenosManager extends Component
     public $landLat = '';
     public $landLng = '';
     public $landArea = '';
+    public $landPolygon = null; // Almacena el JSON de puntos
     public $landTenure = 'propio';
     public $landRentCost = 0;
     public $landRentMod = 'global';
@@ -62,7 +66,7 @@ class TerrenosManager extends Component
     public function resetForm()
     {
         $this->reset([
-            'landId', 'landName', 'landLocation', 'landDirRef', 'landLat', 'landLng',
+            'landId', 'landName', 'landLocation', 'landDirRef', 'landLat', 'landLng', 'landPolygon',
             'landArea', 'landRentStart', 'landRentEnd', 'landPhoto', 'currentPhotoPath'
         ]);
         $this->landRentCost = 0;
@@ -79,7 +83,13 @@ class TerrenosManager extends Component
         $this->validate([
             'landName' => 'required|string|max:150',
             'landArea' => 'required|numeric|min:0.1',
+            'landLat' => 'required',
+            'landLng' => 'required',
+            'landPolygon' => 'required',
             'landPhoto' => 'nullable|image|max:5120',
+            'landRentCost' => 'required_if:landTenure,alquilado|numeric|min:0',
+            'landRentStart' => 'required_if:landTenure,alquilado',
+            'landRentEnd' => 'required_if:landTenure,alquilado',
         ]);
 
         $user = Auth::user();
@@ -97,24 +107,26 @@ class TerrenosManager extends Component
             'direccion_referencia' => $this->landDirRef,
             'latitud' => $this->landLat,
             'longitud' => $this->landLng,
+            'poligono' => is_string($this->landPolygon) ? json_decode($this->landPolygon, true) : $this->landPolygon,
             'hectareas' => $this->landArea,
             'tipo_tenencia' => $this->landTenure,
             'costo_alquiler_anual' => ($this->landTenure === 'alquilado') ? $this->landRentCost : 0,
             'alquiler_modalidad' => ($this->landTenure === 'alquilado') ? $this->landRentMod : 'global',
             'alquiler_periodo' => ($this->landTenure === 'alquilado') ? $this->landRentPeriod : 'fecha',
-            'fecha_alquiler' => ($this->landTenure === 'alquilado' && $this->landRentStart) ? strtotime($this->landRentStart) : null,
-            'fecha_vencimiento_alquiler' => ($this->landTenure === 'alquilado' && $this->landRentEnd) ? strtotime($this->landRentEnd) : null,
+            'fecha_alquiler' => ($this->landTenure === 'alquilado' && $this->landRentStart) ? Carbon::parse($this->landRentStart) : null,
+            'fecha_vencimiento_alquiler' => ($this->landTenure === 'alquilado' && $this->landRentEnd) ? Carbon::parse($this->landRentEnd) : null,
             'calidad_suelo' => $this->landSoil,
             'fuente_agua' => $this->landWater,
             'estado_terreno' => $this->landStatus,
             'foto_path' => $photoPath,
             'usuario_id' => $user->id,
-            'organizacion_id' => $this->selectedOrgId, // Ahora puede ser NULL
+            'organizacion_id' => $this->selectedOrgId,
             'estado' => 1
         ];
 
         if ($this->landId) {
-            Terreno::find($this->landId)->update($data);
+            $terreno = Terreno::where('usuario_id', $user->id)->orWhere('organizacion_id', $this->selectedOrgId)->findOrFail($this->landId);
+            $terreno->update($data);
             $msg = "Terreno actualizado.";
         } else {
             Terreno::create($data);
@@ -135,13 +147,14 @@ class TerrenosManager extends Component
         $this->landDirRef = $t->direccion_referencia;
         $this->landLat = $t->latitud;
         $this->landLng = $t->longitud;
+        $this->landPolygon = is_array($t->poligono) ? json_encode($t->poligono) : $t->poligono;
         $this->landArea = $t->hectareas;
         $this->landTenure = $t->tipo_tenencia;
         $this->landRentCost = $t->costo_alquiler_anual;
         $this->landRentMod = $t->alquiler_modalidad ?? 'global';
         $this->landRentPeriod = $t->alquiler_periodo ?? 'fecha';
-        $this->landRentStart = $t->fecha_alquiler ? date('Y-m-d', $t->fecha_alquiler) : '';
-        $this->landRentEnd = $t->fecha_vencimiento_alquiler ? date('Y-m-d', $t->fecha_vencimiento_alquiler) : '';
+        $this->landRentStart = $t->fecha_alquiler ? $t->fecha_alquiler->format('Y-m-d') : '';
+        $this->landRentEnd = $t->fecha_vencimiento_alquiler ? $t->fecha_vencimiento_alquiler->format('Y-m-d') : '';
         $this->landSoil = $t->calidad_suelo;
         $this->landWater = $t->fuente_agua;
         $this->landStatus = $t->estado_terreno;
@@ -162,25 +175,41 @@ class TerrenosManager extends Component
         $user = Auth::user();
         $allowedUserIds = [$user->id];
 
+        // Obtener organizaciones activas del usuario para el formulario
+        $misOrganizaciones = $user->membresias()->where('estado', 1)->with('organizacion')->get()->pluck('organizacion');
+
         // Lógica de visibilidad por Rol y Organización
         if ($this->selectedOrgId) {
             $miembro = $user->membresias()->where('organizacion_id', $this->selectedOrgId)->where('estado', 1)->first();
 
             if ($user->rol_id === 1) {
-                // Super Admin ve todo de la organización seleccionada
-                $baseQuery = Terreno::where('organizacion_id', $this->selectedOrgId);
+                // Super Admin ve todo de la organización seleccionada + sus personales
+                $baseQuery = Terreno::where(function($q) use ($user) {
+                    $q->where('organizacion_id', $this->selectedOrgId)
+                      ->orWhere('usuario_id', $user->id);
+                });
             } elseif ($miembro) {
                 $esAdmin = $miembro->roles()->whereHas('rolDetalle', fn($q) => $q->where('nombre', 'Administrador'))->where('estado', 1)->exists();
                 $esSupervisor = $miembro->roles()->whereHas('rolDetalle', fn($q) => $q->where('nombre', 'Supervisor'))->where('estado', 1)->exists();
 
                 if ($esAdmin) {
-                    $baseQuery = Terreno::where('organizacion_id', $this->selectedOrgId);
+                    // Admin de Org ve todo de su org + sus personales
+                    $baseQuery = Terreno::where(function($q) use ($user) {
+                        $q->where('organizacion_id', $this->selectedOrgId)
+                          ->orWhere('usuario_id', $user->id);
+                    });
                 } elseif ($esSupervisor) {
                     $assignedIds = $user->getIdsAgricultoresAsignados($this->selectedOrgId);
                     $allowedUserIds = array_merge($allowedUserIds, $assignedIds);
-                    $baseQuery = Terreno::whereIn('usuario_id', $allowedUserIds)->where('organizacion_id', $this->selectedOrgId);
+                    // Supervisor ve lo asignado + lo suyo
+                    $baseQuery = Terreno::where(function($q) use ($allowedUserIds, $user) {
+                        $q->whereIn('usuario_id', $allowedUserIds)
+                          ->where('organizacion_id', $this->selectedOrgId)
+                          ->orWhere('usuario_id', $user->id);
+                    });
                 } else {
-                    $baseQuery = Terreno::where('usuario_id', $user->id)->where('organizacion_id', $this->selectedOrgId);
+                    // Agricultor ve lo suyo (de la org o personal)
+                    $baseQuery = Terreno::where('usuario_id', $user->id);
                 }
             } else {
                 $baseQuery = Terreno::where('usuario_id', $user->id);
@@ -189,9 +218,11 @@ class TerrenosManager extends Component
             $baseQuery = Terreno::where('usuario_id', $user->id);
         }
 
-        $baseQuery->with(['cultivos' => function($q) {
-            $q->where('estado', 'En crecimiento')->with('detalleCatalogo');
-        }]);
+        $baseQuery->withCount([
+            'cultivos as plan_count' => fn($q) => $q->where('estado', 'Planificado'),
+            'cultivos as sembr_count' => fn($q) => $q->where('estado', 'En crecimiento'),
+            'cultivos as hist_count' => fn($q) => $q->whereIn('estado', ['Cosechado', 'Perdido']),
+        ]);
 
         if ($this->search) {
             $baseQuery->where('nombre', 'like', '%' . $this->search . '%');
@@ -218,68 +249,122 @@ class TerrenosManager extends Component
 
         $allResults = $allResultsQuery->with(['cultivos.detalleCatalogo'])->get();
 
-        // --- Lógica del Line Chart de Terrenos ALQUILADOS (agrosys_terrenos_trend_v1) ---
+        // --- Lógica del Line Chart de Terrenos ALQUILADOS ---
         $lineChartData = [
             'labels' => [],
             'values' => [],
             'unit' => 'ha'
         ];
 
-        // Filtramos solo los terrenos alquilados para la tendencia
+        // Filtramos solo los terrenos alquilados del conjunto de resultados actual
         $rentedTerrains = $allResults->where('tipo_tenencia', 'alquilado')->whereNotNull('fecha_alquiler');
 
         if ($this->chartPeriod === 'mes') {
-            // Generar labels para los últimos 12 meses
-            for ($i = 11; $i >= 0; $i--) {
-                $date = Carbon::now()->subMonths($i);
-                $label = $date->format('M Y');
+            // Para que coincida con la vista del usuario, generamos un rango de 12 meses
+            // que incluya meses pasados y futuros si hay datos.
+            $startMonth = Carbon::now()->subMonths(4);
+
+            for ($i = 0; $i < 12; $i++) {
+                $currentIterationDate = (clone $startMonth)->addMonths($i);
+                $label = $currentIterationDate->translatedFormat('M Y');
                 $lineChartData['labels'][] = $label;
 
-                // Sumamos hectáreas cuya fecha_alquiler caiga en este mes/año
-                $sum = $rentedTerrains->filter(function($t) use ($date) {
-                    $d = Carbon::createFromTimestamp($t->fecha_alquiler);
-                    return $d->format('M Y') === $date->format('M Y');
+                // Sumamos hectáreas cuya fecha_alquiler coincida con el mes y año
+                $sum = $rentedTerrains->filter(function($t) use ($currentIterationDate) {
+                    $f = Carbon::parse($t->fecha_alquiler);
+                    return $f->format('Y-m') === $currentIterationDate->format('Y-m');
                 })->sum('hectareas');
 
                 $lineChartData['values'][] = (float)$sum;
             }
         } else {
-            // Generar labels para los últimos 6 años
-            for ($i = 5; $i >= 0; $i--) {
-                $year = Carbon::now()->subYears($i)->format('Y');
-                $lineChartData['labels'][] = $year;
+            // Agrupación por Año (últimos 6 años)
+            $startYear = Carbon::now()->subYears(3);
+            for ($i = 0; $i < 6; $i++) {
+                $currentIterationYear = (clone $startYear)->addYears($i);
+                $yearStr = $currentIterationYear->format('Y');
+                $lineChartData['labels'][] = $yearStr;
 
-                $sum = $rentedTerrains->filter(function($t) use ($year) {
-                    return Carbon::createFromTimestamp($t->fecha_alquiler)->format('Y') === $year;
+                $sum = $rentedTerrains->filter(function($t) use ($yearStr) {
+                    return Carbon::parse($t->fecha_alquiler)->format('Y') === $yearStr;
                 })->sum('hectareas');
 
                 $lineChartData['values'][] = (float)$sum;
             }
         }
 
-        $mapData = $allResults->map(function($t) {
-            return [
-                'id' => $t->id,
-                'nombre' => $t->nombre,
-                'lat' => (float)$t->latitud,
-                'lng' => (float)$t->longitud,
-                'area' => $t->hectareas,
-                'suelo' => $t->calidad_suelo,
-                'cultivo' => $t->cultivos->where('estado', 'En crecimiento')->first()?->detalleCatalogo->nombre ?? 'Sin cultivo'
-            ];
-        });
+        $mapData = \App\Models\Terreno::where('estado', 1)
+            ->get()
+            ->map(function($t) use ($user) {
+                $esMio = $t->usuario_id === $user->id;
+                $isExpired = $t->fecha_vencimiento_alquiler && $t->fecha_vencimiento_alquiler->isPast();
+
+                // Si es un terreno alquilado y venció
+                if ($t->tipo_tenencia === 'alquilado' && $isExpired) {
+                    if ($esMio) {
+                        return [
+                            'id' => $t->id,
+                            'nombre' => $t->nombre,
+                            'lat' => (float)$t->latitud,
+                            'lng' => (float)$t->longitud,
+                            'area' => $t->hectareas,
+                            'color' => 'purple',
+                            'type' => 'marker',
+                            'label' => "Alquiler Vencido: {$t->nombre} (" . number_format($t->hectareas, 2) . " Ha)",
+                            'poligono' => null,
+                            'es_mio' => true
+                        ];
+                    }
+                    return null;
+                }
+
+                $color = 'red';
+                $label = number_format($t->hectareas, 2) . ' Ha';
+
+                if ($esMio) {
+                    if ($t->tipo_tenencia === 'propio') {
+                        $color = 'green';
+                        $label = "Terreno Propio: {$t->nombre} (" . number_format($t->hectareas, 2) . " Ha)";
+                    } else {
+                        $color = 'blue';
+                        $label = "Terreno Alquilado: {$t->nombre} (" . number_format($t->hectareas, 2) . " Ha)";
+                    }
+                }
+
+                return [
+                    'id' => $t->id,
+                    'nombre' => $t->nombre,
+                    'lat' => (float)$t->latitud,
+                    'lng' => (float)$t->longitud,
+                    'area' => $t->hectareas,
+                    'color' => $color,
+                    'type' => 'polygon',
+                    'label' => $label,
+                    'poligono' => is_string($t->poligono) ? json_decode($t->poligono, true) : $t->poligono,
+                    'es_mio' => $esMio
+                ];
+            })->filter()->values();
 
         return view('livewire.admin.terrenos-manager', [
             'terrenos' => $terrenos,
             'mapData' => $mapData,
             'lineChartData' => $lineChartData,
             'totalArea' => $allResults->sum('hectareas'),
-            'totalCount' => $allResults->count()
+            'totalCount' => $allResults->count(),
+            'misOrganizaciones' => $misOrganizaciones
         ]);
     }
 
     public function resetFilters()
     {
-        $this->reset(['search', 'filterCrop', 'filterArea']);
+        $this->reset(['search', 'filterCrop', 'filterArea', 'activeLandId']);
+    }
+
+    public $selectedLandForDetail = null;
+
+    public function selectActiveLand($id)
+    {
+        $this->selectedLandForDetail = Terreno::with(['organizacion', 'responsable', 'cultivos.detalleCatalogo'])->findOrFail($id);
+        $this->dispatch('open-modal', 'modal-land-details');
     }
 }

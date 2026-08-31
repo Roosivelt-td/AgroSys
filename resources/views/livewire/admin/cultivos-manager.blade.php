@@ -105,22 +105,6 @@
         </div>
     </div>
 
-    <!-- Mapa Específico del Terreno (Si hay filtro) -->
-    @if($filteredTerreno)
-    <div class="animate-in slide-in-from-top-4 duration-700">
-        <div class="bg-white dark:bg-slate-900 p-2 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl overflow-hidden min-h-[300px]" wire:ignore>
-             <div data-react-component="agro-map-terrenos" data-props="{{ json_encode(['terrenos' => [[
-                'id' => $filteredTerreno->id,
-                'nombre' => $filteredTerreno->nombre,
-                'lat' => (float)$filteredTerreno->latitud,
-                'lng' => (float)$filteredTerreno->longitud,
-                'area' => $filteredTerreno->hectareas,
-                'suelo' => $filteredTerreno->calidad_suelo,
-                'cultivo' => 'Visualizando Terreno'
-             ]]]) }}" class="w-full h-72 rounded-[2rem] overflow-hidden"></div>
-        </div>
-    </div>
-    @endif
 
     <!-- Grid de Cultivos Premium -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">

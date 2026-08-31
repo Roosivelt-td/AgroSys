@@ -24,6 +24,7 @@ class Terreno extends Model
         'direccion_referencia',
         'latitud',
         'longitud',
+        'poligono',
         'hectareas',
         'tipo_tenencia',
         'costo_alquiler_anual',
@@ -41,6 +42,7 @@ class Terreno extends Model
     protected $casts = [
         'fecha_alquiler' => 'date',
         'fecha_vencimiento_alquiler' => 'date',
+        'poligono' => 'array',
     ];
 
     /**

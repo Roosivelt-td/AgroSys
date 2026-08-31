@@ -75,18 +75,16 @@ Para el despliegue óptimo, el servidor debe cumplir las siguientes especificaci
 
 ## 🚀 Protocolo de Despliegue
 
-### 🌑 1. Génesis del Proyecto
+### 🌑 1. Descarga del proyecto
+Descarga los datos con que trabajar
+```bash
+git clone https://github.com/Roosivelt-td/AgroSys.git
+cd AgroSys
+```
+### 🌑 2. Génesis del Proyecto
 Inicialización del entorno bajo los estándares de Laravel 11.
 ```bash
-composer create-project laravel/laravel agrosys
-cd agrosys
-```
-
-### 🔐 2. Blindaje y Reactividad (Breeze & Volt)
-Instalación del andamiaje de seguridad con soporte para componentes de archivo único (**Volt**).
-```bash
-composer require laravel/breeze --dev
-php artisan breeze:install livewire --volt
+composer install
 ```
 
 ### 🎨 3. Compilación de la Interfaz

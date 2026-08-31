@@ -14,8 +14,10 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 
 #[Layout('layouts.app')]
+#[Title('Mis Cultivos')]
 class CultivosManager extends Component
 {
     use WithPagination, WithFileUploads;
@@ -234,27 +236,32 @@ class CultivosManager extends Component
             $miembro = $user->membresias()->where('organizacion_id', $this->selectedOrgId)->where('estado', 1)->first();
 
             if ($user->rol_id === 1) {
-                // Super Admin ve todo de la organización
-                $query = Cultivo::whereHas('terreno', function($q) {
-                    $q->where('organizacion_id', $this->selectedOrgId);
+                // Super Admin ve todo de la organización + sus personales
+                $query = Cultivo::whereHas('terreno', function($q) use ($user) {
+                    $q->where('organizacion_id', $this->selectedOrgId)
+                      ->orWhere('usuario_id', $user->id);
                 });
             } elseif ($miembro) {
                 $esAdmin = $miembro->roles()->whereHas('rolDetalle', fn($q) => $q->where('nombre', 'Administrador'))->where('estado', 1)->exists();
                 $esSupervisor = $miembro->roles()->whereHas('rolDetalle', fn($q) => $q->where('nombre', 'Supervisor'))->where('estado', 1)->exists();
 
                 if ($esAdmin) {
-                    $query = Cultivo::whereHas('terreno', function($q) {
-                        $q->where('organizacion_id', $this->selectedOrgId);
+                    $query = Cultivo::whereHas('terreno', function($q) use ($user) {
+                        $q->where('organizacion_id', $this->selectedOrgId)
+                          ->orWhere('usuario_id', $user->id);
                     });
                 } elseif ($esSupervisor) {
                     $assignedIds = $user->getIdsAgricultoresAsignados($this->selectedOrgId);
                     $allowedUserIds = array_merge($allowedUserIds, $assignedIds);
-                    $query = Cultivo::whereHas('terreno', function($q) use ($allowedUserIds) {
-                        $q->whereIn('usuario_id', $allowedUserIds)->where('organizacion_id', $this->selectedOrgId);
+                    $query = Cultivo::whereHas('terreno', function($q) use ($allowedUserIds, $user) {
+                        $q->where(function($sq) use ($allowedUserIds) {
+                            $sq->whereIn('usuario_id', $allowedUserIds)
+                               ->where('organizacion_id', $this->selectedOrgId);
+                        })->orWhere('usuario_id', $user->id);
                     });
                 } else {
                     $query = Cultivo::whereHas('terreno', function($q) use ($user) {
-                        $q->where('usuario_id', $user->id)->where('organizacion_id', $this->selectedOrgId);
+                        $q->where('usuario_id', $user->id);
                     });
                 }
             } else {

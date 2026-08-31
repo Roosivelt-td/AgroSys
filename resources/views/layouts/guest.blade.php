@@ -41,9 +41,13 @@
 
             <!-- Logo AgroSys -->
             <div class="flex items-center">
+                <!--
                 <a href="/" class="text-2xl md:text-3xl font-black italic tracking-tighter select-none flex items-center group">
                     <span class="bg-gradient-to-b from-[#55cd44] to-[#1b5e0f] bg-clip-text text-transparent px-1">Agro</span><span class="bg-gradient-to-b from-[#ff8a00] to-[#b71c1c] bg-clip-text text-transparent">Sys</span>
-                </a>
+                </a> -->
+                <div class=" h-32  flex items-center justify-center shadow-lg shrink-0">
+                    <img src="{{ asset('AgroSys_completo.png') }}" alt="Logo" class=" h-32 object-contain">
+                </div>
             </div>
 
             <!-- Menú de Navegación (Inspirado en Versat) -->

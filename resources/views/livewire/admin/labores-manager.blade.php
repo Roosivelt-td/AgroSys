@@ -1,4 +1,27 @@
 <div class="space-y-6 p-2 md:p-1 transition-colors duration-500">
+    <!-- ALERTAS DE SISTEMA -->
+    @if(session()->has('status') || session()->has('warning') || session()->has('error'))
+        <div class="fixed top-24 right-6 z-[100] space-y-3 animate-in slide-in-from-right-10 duration-500">
+            @if(session('status'))
+                <div class="bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 backdrop-blur-md">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span class="text-[11px] font-black uppercase italic">{{ session('status') }}</span>
+                </div>
+            @endif
+            @if(session('warning'))
+                <div class="bg-amber-500 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 backdrop-blur-md">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span class="text-[11px] font-black uppercase italic">{{ session('warning') }}</span>
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="bg-rose-500 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 backdrop-blur-md">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <span class="text-[11px] font-black uppercase italic">{{ session('error') }}</span>
+                </div>
+            @endif
+        </div>
+    @endif
 
     <!-- CABECERA Y FILTROS PREMIUM -->
     <div class="space-y-4">
@@ -260,14 +283,19 @@
                             $icons = ['Preparar'=>'fa-trowel-bricks','Siembra'=>'fa-seedling','Riego'=>'fa-droplet','Fumigar'=>'fa-spray-can-sparkles','Aporque'=>'fa-mountain','Desierbe'=>'fa-scissors','Deshierbe'=>'fa-scissors','Abonar'=>'fa-flask-vial','Cosechar'=>'fa-basket-shopping','Otros'=>'fa-ellipsis'];
                         @endphp
                         @foreach($catalogoLabores as $l)
-                            @php $isDisabled = !($laborStatusMap[$l->nombre] ?? true); @endphp
+                            @php
+                                $isDisabled = !($laborStatusMap[$l->categoria] ?? ($laborStatusMap[$l->nombre] ?? true));
+                            @endphp
                             <button wire:click="selectLaborType({{ $l->id }})" @if($isDisabled) disabled @endif
-                                    class="group flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 transition-all duration-500
+                                    class="group flex flex-col items-center justify-center p-8 rounded-[2.5rem] border-2 transition-all duration-500
                                     {{ $isDisabled ? 'bg-slate-100/50 dark:bg-white/5 border-transparent opacity-20 cursor-not-allowed scale-95' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-white/5 hover:border-agri-green hover:shadow-xl hover:-translate-y-2' }}">
                                 <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all {{ $isDisabled ? 'bg-slate-300 text-slate-500' : 'bg-agri-green/10 text-agri-green group-hover:bg-agri-green group-hover:text-white shadow-inner' }}">
                                     <i class="fa-solid {{ $icons[$l->nombre] ?? 'fa-gears' }} text-2xl"></i>
                                 </div>
                                 <span class="text-[12px] font-black uppercase tracking-[0.1em] {{ $isDisabled ? 'text-slate-500' : 'text-slate-800 dark:text-slate-100' }}">{{ $l->nombre }}</span>
+                                @if($isDisabled)
+                                    <p class="text-[7px] font-black text-rose-500 uppercase mt-2 tracking-widest italic">FASE PREVIA REQUERIDA</p>
+                                @endif
                             </button>
                         @endforeach
                     </div>

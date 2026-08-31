@@ -4,12 +4,14 @@ import MapTerrenos from './react/MapTerrenos';
 import BarChart from './react/BarChart';
 import LandLineChart from './react/LandLineChart';
 import ClimateTrendChart from './react/ClimateTrendChart';
+import AgroLogoPremium from './react/AgroLogoPremium';
 
 const components = {
     'agro-map-terrenos': MapTerrenos,
     'agro-bar-chart': BarChart,
     'agro-land-line-chart': LandLineChart,
     'agro-climate-trend-chart': ClimateTrendChart,
+    'agro-logo-premium': AgroLogoPremium,
 };
 
 const mountedRoots = new WeakMap();

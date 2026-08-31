@@ -22,7 +22,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'AgroSys') }}</title>
+        <title>{{ $title ?? 'Dashboard' }} | {{ config('app.name', 'AgroSys') }}</title>
+
+        <link rel="icon" type="image/png" href="{{ asset('AgroSys_logo.png') }}">
 
         <script>
             if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
@@ -50,6 +52,11 @@
                 50% { border-color: #00ba2e; background-color: rgba(0, 186, 46, 0.05); }
             }
             .animate-focus { animation: focus-pulse 2s infinite; border: 2px solid #00ba2e !important; border-radius: 1rem !important; }
+
+            /* Asegurar que el mapa no tape el sidebar o modales */
+            .leaflet-container { z-index: 10 !important; }
+            .leaflet-pane { z-index: 10 !important; }
+            .leaflet-top, .leaflet-bottom { z-index: 11 !important; }
         </style>
     </head>
     <body class="antialiased bg-agri-l_bg dark:bg-agri-d_bg text-slate-800 transition-colors duration-300">

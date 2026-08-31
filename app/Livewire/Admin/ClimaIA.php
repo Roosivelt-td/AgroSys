@@ -8,8 +8,10 @@ use App\Models\MiembroOrganizacion;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 
 #[Layout('layouts.app')]
+#[Title('Clima IA')]
 class ClimaIA extends Component
 {
     public $selectedTerrenoId = null;
@@ -20,7 +22,7 @@ class ClimaIA extends Component
     public function selectTerreno($id)
     {
         $this->selectedTerrenoId = $id;
-        $this->updatedSelectedTerrenoId();
+        $this->updatedSelectedTerrenoId($id);
     }
 
     public function mount()
@@ -31,10 +33,21 @@ class ClimaIA extends Component
         $this->viewTimestamp = now()->getPreciseTimestamp(3);
     }
 
-    public function updatedSelectedTerrenoId()
+    public function updatedSelectedTerrenoId($value = null)
     {
+        $value = $value ?? $this->selectedTerrenoId;
         $this->selectedCropId = null;
         $this->viewTimestamp = now()->getPreciseTimestamp(3);
+
+        if ($value) {
+            $terreno = Terreno::find($value);
+            if ($terreno && $terreno->latitud && $terreno->longitud) {
+                $this->dispatch('map-center-to', [
+                    'lat' => (float)$terreno->latitud,
+                    'lng' => (float)$terreno->longitud
+                ]);
+            }
+        }
     }
 
     public function render()
@@ -46,6 +59,38 @@ class ClimaIA extends Component
             ->when($this->selectedOrgId, fn($q) => $q->orWhere('organizacion_id', $this->selectedOrgId))
             ->get();
 
+        // Fetch Real Weather Data
+        $latestWeather = $this->selectedTerrenoId
+            ? \App\Models\ClimaRegistro::where('terreno_id', $this->selectedTerrenoId)
+                ->orderBy('fecha_hora', 'desc')
+                ->first()
+            : null;
+
+        $currentWeather = [
+            'temp' => $latestWeather->temperatura ?? 24,
+            'humedad' => $latestWeather->humedad ?? 65,
+            'viento' => $latestWeather->viento_kmh ?? 12,
+            'presion' => $latestWeather->presion_hpa ?? 1012,
+            'condicion' => strtoupper($latestWeather->condicion ?? 'SOLEADO'),
+            'icon' => $this->getWeatherIcon($latestWeather->condicion ?? 'soleado')
+        ];
+
+        // Fetch Trend Data (Last 7 records)
+        $history = $this->selectedTerrenoId
+            ? \App\Models\ClimaRegistro::where('terreno_id', $this->selectedTerrenoId)
+                ->orderBy('fecha_hora', 'desc')
+                ->take(7)
+                ->get()
+            : collect();
+
+        $trendData = [
+            'labels' => $history->reverse()->map(fn($h) => \Carbon\Carbon::parse($h->fecha_hora)->format('d/m'))->toArray(),
+            'tempValues' => $history->reverse()->pluck('temperatura')->toArray(),
+            'humValues' => $history->reverse()->pluck('humedad')->toArray(),
+            'title' => 'Tendencias climáticas',
+            'unit' => '°C / %'
+        ];
+
         // Solo cultivos activos o planificados
         $cultivosActivos = $this->selectedTerrenoId
             ? Cultivo::where('terreno_id', $this->selectedTerrenoId)
@@ -54,21 +99,35 @@ class ClimaIA extends Component
             : [];
 
         // Recomendaciones IA Generales para el Terreno
-        $generalRecs = [
-            ['type' => 'Riego General', 'msg' => 'Suspender riego el Miércoles por pronóstico de lluvia en toda la zona.', 'priority' => 'Alta', 'color' => 'blue'],
-            ['type' => 'Vientos', 'msg' => 'Vientos > 15km/h detectados para el Jueves. Asegurar estructuras ligeras.', 'priority' => 'Media', 'color' => 'amber']
-        ];
+        $generalRecs = [];
+        if ($latestWeather) {
+            if ($latestWeather->prob_lluvia > 70) {
+                $generalRecs[] = ['type' => 'Alerta Lluvia', 'msg' => 'Alta probabilidad de precipitación. Asegurar drenajes y suspender aplicaciones foliares.', 'priority' => 'Alta', 'color' => 'blue'];
+            }
+            if ($latestWeather->viento_kmh > 25) {
+                $generalRecs[] = ['type' => 'Vientos Fuertes', 'msg' => 'Vientos detectados sobre 25km/h. Evitar fumigación por deriva.', 'priority' => 'Media', 'color' => 'amber'];
+            }
+        }
 
-        // Recomendaciones Específicas por Cultivo (Lógica Simulada por Estado)
+        if (empty($generalRecs)) {
+            $generalRecs = [
+                ['type' => 'Estado Óptimo', 'msg' => 'Condiciones estables para labores generales.', 'priority' => 'Baja', 'color' => 'emerald']
+            ];
+        }
+
+        // Recomendaciones Específicas por Cultivo (IA basada en Catálogo)
         $cropRecs = [];
         if ($this->selectedCropId) {
-            $c = Cultivo::find($this->selectedCropId);
-            if ($c) {
-                if ($c->estado === 'Planificado') {
-                    $cropRecs[] = ['type' => 'Preparación', 'msg' => "Condiciones de humedad de suelo ideales para iniciar arado en el lote de {$c->detalleCatalogo->nombre}.", 'priority' => 'Alta', 'color' => 'emerald'];
-                } else {
-                    $cropRecs[] = ['type' => 'Fumigación', 'msg' => "Ventana de aplicación fitosanitaria para {$c->detalleCatalogo->nombre} el Martes (Humedad < 70%).", 'priority' => 'Media', 'color' => 'amber'];
-                    $cropRecs[] = ['type' => 'Nutrición', 'msg' => "Fase de crecimiento detectada. IA sugiere refuerzo de nitrógeno antes de la lluvia del Miércoles.", 'priority' => 'Alta', 'color' => 'blue'];
+            $c = Cultivo::with('detalleCatalogo')->find($this->selectedCropId);
+            if ($c && $c->detalleCatalogo) {
+                // Riego IA
+                if ($currentWeather['humedad'] > 80) {
+                    $cropRecs[] = ['type' => 'IA Riego', 'msg' => "Humedad alta (" . $currentWeather['humedad'] . "%). " . ($c->detalleCatalogo->instrucciones_base_riego ?: 'Reducir frecuencia de riego.'), 'priority' => 'Media', 'color' => 'blue'];
+                }
+
+                // Plagas IA
+                if ($currentWeather['temp'] > 25 && $currentWeather['humedad'] > 70) {
+                    $cropRecs[] = ['type' => 'IA Fitopatología', 'msg' => "Riesgo de plagas por calor/humedad. " . ($c->detalleCatalogo->instrucciones_base_plagas ?: 'Monitorear presencia de hongos.'), 'priority' => 'Alta', 'color' => 'rose'];
                 }
             }
         }
@@ -81,27 +140,11 @@ class ClimaIA extends Component
             'lng' => (float)$t->longitud,
             'area' => $t->hectareas,
             'suelo' => $t->calidad_suelo,
+            'poligono' => $t->poligono, // Incluir el polígono para que React lo dibuje
+            'color' => ($t->usuario_id === $user->id) ? (($t->tipo_tenencia === 'propio') ? 'green' : 'cyan') : 'red',
+            'es_mio' => $t->usuario_id === $user->id,
             'cultivo' => 'Zona Activa'
         ])->toArray();
-
-        // Datos Clima para la Cabecera (Punto 2)
-        $currentWeather = [
-            'temp' => 24,
-            'humedad' => 65,
-            'viento' => 12,
-            'presion' => 1012,
-            'condicion' => 'SOLEADO',
-            'icon' => 'fa-sun'
-        ];
-
-        // Datos del Gráfico (Punto 3)
-        $trendData = [
-            'labels' => ['2026-08-21', '2026-08-22', '2026-08-23', '2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27'],
-            'tempValues' => [22, 21, 22, 21.5, 20, 23, 20],
-            'humValues' => [63, 67, 56, 67, 58, 56, 56],
-            'title' => 'Tendencias climáticas (últimos 7 días)',
-            'unit' => '°C / %'
-        ];
 
         return view('livewire.admin.clima-i-a', [
             'terrenos' => $terrenos,
@@ -110,7 +153,16 @@ class ClimaIA extends Component
             'current' => $currentWeather,
             'generalRecs' => $generalRecs,
             'cropRecs' => $cropRecs,
-            'trendData' => $trendData
+            'trendData' => $trendData,
+            'history' => $history
         ]);
+    }
+
+    private function getWeatherIcon($condition)
+    {
+        $condition = strtolower($condition);
+        if (str_contains($condition, 'lluvia')) return 'fa-cloud-showers-heavy';
+        if (str_contains($condition, 'nublado')) return 'fa-cloud';
+        return 'fa-sun';
     }
 }

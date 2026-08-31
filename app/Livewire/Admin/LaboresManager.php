@@ -17,8 +17,10 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 
 #[Layout('layouts.app')]
+#[Title('Mis Labores')]
 class LaboresManager extends Component
 {
     use WithPagination, WithFileUploads;
@@ -99,50 +101,89 @@ class LaboresManager extends Component
 
     public function checkLaborAvailability($cropId)
     {
-        if (!$this->strictMode) { $this->laborStatusMap = array_fill_keys(['Preparar', 'Siembra', 'Riego', 'Fumigar', 'Aporque', 'Desierbe', 'Deshierbe', 'Abonar', 'Cosechar', 'Otros'], true); return; }
-        if (!$cropId) { $this->laborStatusMap = ['Preparar' => true, 'Otros' => true, 'Siembra' => false, 'Riego' => false, 'Fumigar' => false, 'Aporque' => false, 'Desierbe' => false, 'Deshierbe' => false, 'Abonar' => false, 'Cosechar' => false]; return; }
-        $tienePre = Labor::where('cultivo_id', $cropId)->whereHas('detalleCatalogo', fn($q) => $q->where('nombre', 'Preparar'))->where('estado', 'Completada')->exists();
-        $tieneSie = Labor::where('cultivo_id', $cropId)->whereHas('detalleCatalogo', fn($q) => $q->where('nombre', 'Siembra'))->where('estado', 'Completada')->exists();
-        $this->laborStatusMap = ['Preparar' => true, 'Otros' => true, 'Siembra' => $tienePre, 'Riego' => $tieneSie, 'Fumigar' => $tieneSie, 'Aporque' => $tieneSie, 'Abonar' => $tieneSie, 'Cosechar' => $tieneSie, 'Desierbe' => ($tienePre && $tieneSie), 'Deshierbe' => ($tienePre && $tieneSie)];
+        // Forzamos modo estricto para cumplir requerimientos técnicos
+        $this->strictMode = true;
+
+        if (!$cropId) {
+            $this->laborStatusMap = [
+                'preparacion' => true,
+                'siembra' => false,
+                'mantenimiento' => false,
+                'cosecha' => false,
+                'Otros' => true
+            ];
+            return;
+        }
+
+        $tienePre = Labor::where('cultivo_id', $cropId)
+            ->whereHas('detalleCatalogo', fn($q) => $q->where('categoria', 'preparacion'))
+            ->where('estado', 'Completada')->exists();
+
+        $tieneSie = Labor::where('cultivo_id', $cropId)
+            ->whereHas('detalleCatalogo', fn($q) => $q->where('categoria', 'siembra'))
+            ->where('estado', 'Completada')->exists();
+
+        $this->laborStatusMap = [
+            'preparacion' => true, // Siempre se puede preparar (o volver a preparar)
+            'siembra' => $tienePre,
+            'mantenimiento' => $tieneSie,
+            'cosecha' => $tieneSie,
+            'Otros' => true
+        ];
     }
 
     public function selectLaborType($catId)
     {
         $cat = CatalogoLabor::find($catId);
-        if ($this->cultivo_id && $this->strictMode) {
+        if ($this->cultivo_id) {
             $this->checkLaborAvailability($this->cultivo_id);
-            if (isset($this->laborStatusMap[$cat->nombre]) && !$this->laborStatusMap[$cat->nombre]) { session()->flash('error', "Fase previa pendiente."); return; }
+            $catKey = $cat->categoria;
+            if (isset($this->laborStatusMap[$catKey]) && !$this->laborStatusMap[$catKey]) {
+                $msg = $catKey === 'siembra' ? "Debe completar la Preparación de Terreno primero." : "Debe completar la Siembra primero.";
+                session()->flash('error', $msg);
+                return;
+            }
         }
-        $this->catalogo_labor_id = $catId; $this->step = 2;
-    }
-
-    public function updatedSelStatus($val)
-    {
-        $this->reset(['selLandId', 'landNombreSelected', 'selCatId', 'catNombreSelected', 'selVarName', 'cultivo_id', 'cropNombreSelected', 'cropFechaPlanificada', 'cropHectareas', 'cropEstado']);
-        $this->checkLaborAvailability(null);
-    }
-
-    public function updatedSelLandId($val)
-    {
-        $land = Terreno::find($val);
-        $this->landNombreSelected = $land ? strtoupper($land->nombre) : '';
-        $this->reset(['selCatId', 'catNombreSelected', 'selVarName', 'cultivo_id', 'cropNombreSelected', 'cropHectareas', 'cropFechaPlanificada', 'cropEstado']);
-        $this->checkLaborAvailability(null);
-    }
-
-    public function updatedSelCatId($val)
-    {
-        $cat = CatalogoCultivo::find($val);
-        $this->catNombreSelected = $cat ? strtoupper($cat->nombre) : '';
-        $this->reset(['selVarName', 'cultivo_id', 'cropNombreSelected', 'cropHectareas', 'cropFechaPlanificada', 'cropEstado']);
-        $this->checkLaborAvailability(null);
+        $this->catalogo_labor_id = $catId;
+        $this->step = 2;
     }
 
     public function updatedCultivoId($val)
     {
         $c = Cultivo::find($val);
-        if ($c) { $this->cropNombreSelected = strtoupper($c->nombre_lote); $this->cropFechaPlanificada = $c->fecha_siembra; $this->cropHectareas = $c->area_destinada; $this->cropEstado = $c->estado; $this->checkLaborAvailability($val); }
-        else { $this->reset(['cropNombreSelected', 'cropHectareas', 'cropFechaPlanificada', 'cropEstado']); $this->checkLaborAvailability(null); }
+        if ($c) {
+            $this->cropNombreSelected = strtoupper($c->nombre_lote);
+            $this->cropFechaPlanificada = $c->fecha_siembra;
+            $this->cropHectareas = $c->area_destinada;
+            $this->cropEstado = $c->estado;
+
+            $this->checkLaborAvailability($val);
+
+            // Validar si la labor seleccionada en el paso 1 es válida para este nuevo cultivo
+            $cat = CatalogoLabor::find($this->catalogo_labor_id);
+            if ($cat && isset($this->laborStatusMap[$cat->categoria]) && !$this->laborStatusMap[$cat->categoria]) {
+                $this->enforceValidLabor($val, $cat);
+            }
+        } else {
+            $this->reset(['cropNombreSelected', 'cropHectareas', 'cropFechaPlanificada', 'cropEstado']);
+            $this->checkLaborAvailability(null);
+        }
+    }
+
+    private function enforceValidLabor($cropId, $currentCat)
+    {
+        $tienePre = Labor::where('cultivo_id', $cropId)->whereHas('detalleCatalogo', fn($q) => $q->where('categoria', 'preparacion'))->where('estado', 'Completada')->exists();
+        $tieneSie = Labor::where('cultivo_id', $cropId)->whereHas('detalleCatalogo', fn($q) => $q->where('categoria', 'siembra'))->where('estado', 'Completada')->exists();
+
+        if (!$tienePre) {
+            $newCat = CatalogoLabor::where('categoria', 'preparacion')->first();
+            $this->catalogo_labor_id = $newCat->id;
+            session()->flash('warning', "Este cultivo no tiene Preparación. Se cambió la labor a " . strtoupper($newCat->nombre));
+        } elseif (!$tieneSie) {
+            $newCat = CatalogoLabor::where('categoria', 'siembra')->first();
+            $this->catalogo_labor_id = $newCat->id;
+            session()->flash('warning', "Este cultivo no tiene Siembra. Se cambió la labor a " . strtoupper($newCat->nombre));
+        }
     }
 
     public function calculateTotals() {
@@ -185,9 +226,17 @@ class LaboresManager extends Component
         $user = Auth::user(); $allowedIds = [$user->id];
         if ($this->selectedOrgId) {
             $m = $user->membresias()->where('organizacion_id', $this->selectedOrgId)->where('estado', 1)->first();
-            if ($user->rol_id === 1 || ($m && $m->roles()->whereHas('rolDetalle', fn($q)=>$q->where('nombre','Administrador'))->exists())) $baseQuery = Labor::whereHas('cultivo.terreno', fn($q)=>$q->where('organizacion_id', $this->selectedOrgId));
-            else $baseQuery = Labor::whereHas('cultivo.terreno', fn($q)=>$q->where('usuario_id', $user->id)->where('organizacion_id', $this->selectedOrgId));
-        } else $baseQuery = Labor::whereHas('cultivo.terreno', fn($q)=>$q->whereIn('usuario_id', $allowedIds));
+            if ($user->rol_id === 1 || ($m && $m->roles()->whereHas('rolDetalle', fn($q)=>$q->where('nombre','Administrador'))->exists())) {
+                $baseQuery = Labor::whereHas('cultivo.terreno', function($q) use ($user) {
+                    $q->where('organizacion_id', $this->selectedOrgId)
+                      ->orWhere('usuario_id', $user->id);
+                });
+            } else {
+                $baseQuery = Labor::whereHas('cultivo.terreno', fn($q)=>$q->where('usuario_id', $user->id));
+            }
+        } else {
+            $baseQuery = Labor::whereHas('cultivo.terreno', fn($q)=>$q->whereIn('usuario_id', $allowedIds));
+        }
 
         // Filtros de Barra %...%
         if ($this->fStatus) $baseQuery->where('estado', $this->fStatus);

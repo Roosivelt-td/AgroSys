@@ -9,11 +9,13 @@ use App\Models\Labor;
 use App\Models\HistorialProceso;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\Attributes\Title;
 
 /**
  * LÓGICA (BACKEND) - Dashboard Principal.
  * Gestiona el estado del agricultor y sus métricas.
  */
+#[Title('Dashboard')]
 class Main extends Component
 {
     /**
