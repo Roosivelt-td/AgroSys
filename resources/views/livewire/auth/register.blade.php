@@ -8,21 +8,33 @@
         <!-- Nombres -->
         <div>
             <x-input-label for="nombres" :value="__('Nombres')" />
-            <x-text-input wire:model="nombres" id="nombres" class="block mt-1 w-full" type="text" name="nombres" required autofocus autocomplete="given-name" />
+            <x-text-input wire:model.live="nombres" id="nombres" class="block mt-1 w-full" type="text" name="nombres" required autofocus
+                autocomplete="given-name"
+                pattern="^[a-zA-ZÁÉÍÓÚáéíóúÑñ ]+$"
+                title="Solo letras del abecedario y espacios."
+                oninput="this.value = this.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ ]/g, '').replace(/(\s{2,})/g, ' ')" />
             <x-input-error :messages="$errors->get('nombres')" class="mt-2" />
         </div>
 
         <!-- Apellidos -->
         <div class="mt-4">
             <x-input-label for="apellidos" :value="__('Apellidos')" />
-            <x-text-input wire:model="apellidos" id="apellidos" class="block mt-1 w-full" type="text" name="apellidos" required autocomplete="family-name" />
+            <x-text-input wire:model.live="apellidos" id="apellidos" class="block mt-1 w-full" type="text" name="apellidos" required
+                autocomplete="family-name"
+                pattern="^[a-zA-ZÁÉÍÓÚáéíóúÑñ ]+$"
+                title="Solo letras del abecedario y espacios."
+                oninput="this.value = this.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ ]/g, '').replace(/(\s{2,})/g, ' ')" />
             <x-input-error :messages="$errors->get('apellidos')" class="mt-2" />
         </div>
 
         <!-- DNI -->
         <div class="mt-4">
             <x-input-label for="dni" :value="__('DNI / Documento')" />
-            <x-text-input wire:model="dni" id="dni" class="block mt-1 w-full" type="text" name="dni" required />
+            <x-text-input wire:model="dni" id="dni" class="block mt-1 w-full" type="text" name="dni" required
+                maxlength="8"
+                pattern="\d{8}"
+                title="Debe tener exactamente 8 dígitos numéricos."
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 8)" />
             <x-input-error :messages="$errors->get('dni')" class="mt-2" />
         </div>
 

@@ -25,7 +25,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'rol_id' => 1, // Default to a role ID
+            'rol_id' => \App\Models\Rol::first() ? \App\Models\Rol::first()->id : \App\Models\Rol::factory(),
             'nombres' => fake()->firstName(),
             'apellidos' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),

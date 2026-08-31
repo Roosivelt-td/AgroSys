@@ -99,37 +99,61 @@ class LaboresManager extends Component
 
     public function resetFilters() { $this->reset(['fStatus', 'fLand', 'fCat', 'fVariety', 'fExactCrop', 'fLaborId', 'filterDateStart', 'filterDateEnd']); }
 
-    public function checkLaborAvailability($cropId)
+    public function checkLaborAvailability($cropId = null)
     {
-        // Forzamos modo estricto para cumplir requerimientos técnicos
         $this->strictMode = true;
+        $user = Auth::user();
 
-        if (!$cropId) {
-            $this->laborStatusMap = [
-                'preparacion' => true,
-                'siembra' => false,
-                'mantenimiento' => false,
-                'cosecha' => false,
-                'Otros' => true
-            ];
-            return;
+        // 1. Definir el ámbito de cultivos (Personal u Organización)
+        $cropQuery = Cultivo::query();
+        if ($this->selectedOrgId) {
+            $cropQuery->whereHas('terreno', function($q) {
+                $q->where('organizacion_id', $this->selectedOrgId)
+                  ->orWhere('usuario_id', Auth::id());
+            });
+        } else {
+            $cropQuery->whereHas('terreno', fn($q) => $q->where('usuario_id', $user->id));
         }
 
-        $tienePre = Labor::where('cultivo_id', $cropId)
-            ->whereHas('detalleCatalogo', fn($q) => $q->where('categoria', 'preparacion'))
-            ->where('estado', 'Completada')->exists();
+        if ($cropId) {
+            // Validación específica para un CULTIVO SELECCIONADO (Paso 2)
+            $tienePre = Labor::where('cultivo_id', $cropId)
+                ->whereHas('detalleCatalogo', fn($q) => $q->where('categoria', 'preparacion'))
+                ->exists();
 
-        $tieneSie = Labor::where('cultivo_id', $cropId)
-            ->whereHas('detalleCatalogo', fn($q) => $q->where('categoria', 'siembra'))
-            ->where('estado', 'Completada')->exists();
+            $tieneSie = Labor::where('cultivo_id', $cropId)
+                ->whereHas('detalleCatalogo', fn($q) => $q->where('categoria', 'siembra'))
+                ->exists();
 
-        $this->laborStatusMap = [
-            'preparacion' => true, // Siempre se puede preparar (o volver a preparar)
-            'siembra' => $tienePre,
-            'mantenimiento' => $tieneSie,
-            'cosecha' => $tieneSie,
-            'Otros' => true
-        ];
+            $this->laborStatusMap = [
+                'preparacion' => true,
+                'siembra' => $tienePre,
+                'mantenimiento' => $tieneSie,
+                'cosecha' => $tieneSie,
+                'Otros' => true,
+                'OTROS' => true
+            ];
+        } else {
+            // Validación GLOBAL para los Iconos (Paso 1)
+            // Se activa SIEMBRA si el usuario tiene al menos un cultivo con preparación registrada
+            $anyPrepared = (clone $cropQuery)
+                ->whereHas('labores', fn($q) => $q->whereHas('detalleCatalogo', fn($sq) => $sq->where('categoria', 'preparacion')))
+                ->exists();
+
+            // Se activa MANTENIMIENTO/COSECHA si el usuario tiene al menos un cultivo con siembra registrada
+            $anySown = (clone $cropQuery)
+                ->whereHas('labores', fn($q) => $q->whereHas('detalleCatalogo', fn($sq) => $sq->where('categoria', 'siembra')))
+                ->exists();
+
+            $this->laborStatusMap = [
+                'preparacion' => true,
+                'siembra' => $anyPrepared,
+                'mantenimiento' => $anySown,
+                'cosecha' => $anySown,
+                'Otros' => true,
+                'OTROS' => true
+            ];
+        }
     }
 
     public function selectLaborType($catId)
@@ -274,14 +298,29 @@ class LaboresManager extends Component
 
         // --- LÓGICA DE CASCADA PARA MODAL ---
         $dbStatusModal = $this->selStatus === 'En proceso' ? 'En crecimiento' : ($this->selStatus === 'Completada' ? 'Cosechado' : $this->selStatus);
+
+        // Obtener categoría de la labor seleccionada en el Paso 1
+        $selectedLabor = CatalogoLabor::find($this->catalogo_labor_id);
+        $laborCat = $selectedLabor ? $selectedLabor->categoria : null;
+
         $resultsLands = $this->selStatus ? Terreno::whereIn('usuario_id', $allowedIds)->when($this->selStatus !== 'TODOS', fn($q) => $q->whereHas('cultivos', fn($sq) => $sq->where('estado', $dbStatusModal)))->get() : [];
         $resultsCats = $this->selLandId ? CatalogoCultivo::whereIn('id', Cultivo::where('terreno_id', $this->selLandId)->when($this->selStatus !== 'TODOS', fn($q) => $q->where('estado', $dbStatusModal))->pluck('catalogo_cultivo_id'))->get() : [];
         $resultsVars = ($this->selLandId && $this->selCatId) ? Cultivo::where('terreno_id', $this->selLandId)->where('catalogo_cultivo_id', $this->selCatId)->when($this->selStatus !== 'TODOS', fn($q) => $q->where('estado', $dbStatusModal))->pluck('variedad')->unique() : [];
+
         $resultsCrops = ($this->selLandId && $this->selCatId && $this->selVarName)
             ? Cultivo::with('detalleCatalogo')->where('terreno_id', $this->selLandId)
                 ->where('catalogo_cultivo_id', $this->selCatId)
                 ->where('variedad', $this->selVarName)
                 ->when($this->selStatus !== 'TODOS', fn($q) => $q->where('estado', $dbStatusModal))
+                // FILTRADO DINÁMICO SEGÚN LA LABOR SELECCIONADA
+                ->when($laborCat === 'siembra', function($q) {
+                    // Para sembrar, el terreno debe estar PREPARADO (al menos una labor de preparación registrada)
+                    $q->whereHas('labores', fn($l) => $l->whereHas('detalleCatalogo', fn($dc) => $dc->where('categoria', 'preparacion')));
+                })
+                ->when(in_array($laborCat, ['mantenimiento', 'cosecha']), function($q) {
+                    // Para mantenimiento o cosecha, el cultivo debe estar SEMBRADO (al menos una labor de siembra registrada)
+                    $q->whereHas('labores', fn($l) => $l->whereHas('detalleCatalogo', fn($dc) => $dc->where('categoria', 'siembra')));
+                })
                 ->get()->map(function($c) {
                     $fecha = $c->fecha_siembra ? $c->fecha_siembra->format('d/m/Y') : ($c->fecha_planificada ? $c->fecha_planificada->format('d/m/Y') : '---');
                     $c->label_display = rtrim(rtrim(number_format($c->area_destinada, 2, '.', ''), '0'), '.') . " Ha. de " . strtoupper($c->detalleCatalogo->nombre) . " " . strtoupper($c->variedad ?: 'GENERICA') . " - {$fecha}";

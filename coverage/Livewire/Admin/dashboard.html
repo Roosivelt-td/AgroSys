@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Dashboard for /home/roosivelt/JetBrains/AgroSys/AgroSys/app/Livewire/Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../../_css/bootstrap.min.css?v=12.5.7" rel="stylesheet" type="text/css">
+  <link href="../../_css/billboard.min.css?v=12.5.7" rel="stylesheet" type="text/css">
+  <link href="../../_css/style.css?v=12.5.7" rel="stylesheet" type="text/css">
+  <link href="../../_css/custom.css" rel="stylesheet" type="text/css">
+ </head>
+ <body>
+  <header>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+       <ol class="breadcrumb">
+         <li class="breadcrumb-item"><a href="../../index.html">/home/roosivelt/JetBrains/AgroSys/AgroSys/app</a></li>
+         <li class="breadcrumb-item"><a href="../index.html">Livewire</a></li>
+         <li class="breadcrumb-item"><a href="index.html">Admin</a></li>
+         <li class="breadcrumb-item active">(Dashboard)</li>
+
+       </ol>
+      </nav>
+     </div>
+    </div>
+   </div>
+  </header>
+  <div class="container-fluid">
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Classes</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="classesCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="classComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3 style="margin-top: 2rem;">Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="AgricultorSupervisionDetail.php.html#12">App\Livewire\Admin\AgricultorSupervisionDetail</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="AsignarSupervisores.php.html#15">App\Livewire\Admin\AsignarSupervisores</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CatalogoCultivosManager.php.html#15">App\Livewire\Admin\CatalogoCultivosManager</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ClimaIA.php.html#13">App\Livewire\Admin\ClimaIA</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#19">App\Livewire\Admin\CultivosManager</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#16">App\Livewire\Admin\GestionMiembros</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="HistorialManager.php.html#12">App\Livewire\Admin\HistorialManager</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#22">App\Livewire\Admin\LaboresManager</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="MisAgricultores.php.html#12">App\Livewire\Admin\MisAgricultores</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="OrganizacionesManager.php.html#10">App\Livewire\Admin\OrganizacionesManager</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesInternas.php.html#13">App\Livewire\Admin\SolicitudesInternas</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesManager.php.html#11">App\Livewire\Admin\SolicitudesManager</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SupervisorDetail.php.html#14">App\Livewire\Admin\SupervisorDetail</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#18">App\Livewire\Admin\TerrenosManager</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="UsersManager.php.html#11">App\Livewire\Admin\UsersManager</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CreateSuperAdmin.php.html#11">App\Livewire\Admin\CreateSuperAdmin</a></td><td class="text-right">3%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3 style="margin-top: 2rem;">Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right">Coverage</th>
+         <th class="text-right">Complexity</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="LaboresManager.php.html#22">App\Livewire\Admin\LaboresManager</a></td><td class="text-right">0,0%</td><td class="text-right">88</td><td class="text-right">7832</td></tr>
+       <tr><td><a href="CultivosManager.php.html#19">App\Livewire\Admin\CultivosManager</a></td><td class="text-right">0,0%</td><td class="text-right">56</td><td class="text-right">3192</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#18">App\Livewire\Admin\TerrenosManager</a></td><td class="text-right">0,0%</td><td class="text-right">43</td><td class="text-right">1892</td></tr>
+       <tr><td><a href="ClimaIA.php.html#13">App\Livewire\Admin\ClimaIA</a></td><td class="text-right">0,0%</td><td class="text-right">29</td><td class="text-right">870</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#16">App\Livewire\Admin\GestionMiembros</a></td><td class="text-right">0,0%</td><td class="text-right">27</td><td class="text-right">756</td></tr>
+       <tr><td><a href="SupervisorDetail.php.html#14">App\Livewire\Admin\SupervisorDetail</a></td><td class="text-right">0,0%</td><td class="text-right">11</td><td class="text-right">132</td></tr>
+       <tr><td><a href="HistorialManager.php.html#12">App\Livewire\Admin\HistorialManager</a></td><td class="text-right">0,0%</td><td class="text-right">10</td><td class="text-right">110</td></tr>
+       <tr><td><a href="AsignarSupervisores.php.html#15">App\Livewire\Admin\AsignarSupervisores</a></td><td class="text-right">0,0%</td><td class="text-right">9</td><td class="text-right">90</td></tr>
+       <tr><td><a href="CatalogoCultivosManager.php.html#15">App\Livewire\Admin\CatalogoCultivosManager</a></td><td class="text-right">0,0%</td><td class="text-right">9</td><td class="text-right">90</td></tr>
+       <tr><td><a href="SolicitudesInternas.php.html#13">App\Livewire\Admin\SolicitudesInternas</a></td><td class="text-right">0,0%</td><td class="text-right">9</td><td class="text-right">90</td></tr>
+       <tr><td><a href="SolicitudesManager.php.html#11">App\Livewire\Admin\SolicitudesManager</a></td><td class="text-right">0,0%</td><td class="text-right">9</td><td class="text-right">90</td></tr>
+       <tr><td><a href="MisAgricultores.php.html#12">App\Livewire\Admin\MisAgricultores</a></td><td class="text-right">0,0%</td><td class="text-right">7</td><td class="text-right">56</td></tr>
+       <tr><td><a href="AgricultorSupervisionDetail.php.html#12">App\Livewire\Admin\AgricultorSupervisionDetail</a></td><td class="text-right">0,0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="UsersManager.php.html#11">App\Livewire\Admin\UsersManager</a></td><td class="text-right">0,0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="CreateSuperAdmin.php.html#11">App\Livewire\Admin\CreateSuperAdmin</a></td><td class="text-right">3,8%</td><td class="text-right">3</td><td class="text-right">11</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-12">
+     <h2 style="margin-top: 3rem;">Methods</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="methodsCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="methodComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3 style="margin-top: 2rem;">Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="AgricultorSupervisionDetail.php.html#18"><abbr title="App\Livewire\Admin\AgricultorSupervisionDetail::mount">mount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="AgricultorSupervisionDetail.php.html#40"><abbr title="App\Livewire\Admin\AgricultorSupervisionDetail::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="AsignarSupervisores.php.html#23"><abbr title="App\Livewire\Admin\AsignarSupervisores::mount">mount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="AsignarSupervisores.php.html#35"><abbr title="App\Livewire\Admin\AsignarSupervisores::invitar">invitar</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="AsignarSupervisores.php.html#42"><abbr title="App\Livewire\Admin\AsignarSupervisores::cancelarInvitacion">cancelarInvitacion</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="AsignarSupervisores.php.html#51"><abbr title="App\Livewire\Admin\AsignarSupervisores::bajarGrado">bajarGrado</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="AsignarSupervisores.php.html#73"><abbr title="App\Livewire\Admin\AsignarSupervisores::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CatalogoCultivosManager.php.html#37"><abbr title="App\Livewire\Admin\CatalogoCultivosManager::resetForm">resetForm</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CatalogoCultivosManager.php.html#47"><abbr title="App\Livewire\Admin\CatalogoCultivosManager::save">save</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CatalogoCultivosManager.php.html#88"><abbr title="App\Livewire\Admin\CatalogoCultivosManager::edit">edit</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CatalogoCultivosManager.php.html#105"><abbr title="App\Livewire\Admin\CatalogoCultivosManager::delete">delete</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CatalogoCultivosManager.php.html#111"><abbr title="App\Livewire\Admin\CatalogoCultivosManager::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ClimaIA.php.html#22"><abbr title="App\Livewire\Admin\ClimaIA::selectTerreno">selectTerreno</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ClimaIA.php.html#28"><abbr title="App\Livewire\Admin\ClimaIA::mount">mount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ClimaIA.php.html#36"><abbr title="App\Livewire\Admin\ClimaIA::updatedSelectedTerrenoId">updatedSelectedTerrenoId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ClimaIA.php.html#53"><abbr title="App\Livewire\Admin\ClimaIA::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ClimaIA.php.html#161"><abbr title="App\Livewire\Admin\ClimaIA::getWeatherIcon">getWeatherIcon</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CreateSuperAdmin.php.html#29"><abbr title="App\Livewire\Admin\CreateSuperAdmin::save">save</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#67"><abbr title="App\Livewire\Admin\CultivosManager::mount">mount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#82"><abbr title="App\Livewire\Admin\CultivosManager::filterByTerreno">filterByTerreno</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#90"><abbr title="App\Livewire\Admin\CultivosManager::selectTerreno">selectTerreno</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#99"><abbr title="App\Livewire\Admin\CultivosManager::selectCultivo">selectCultivo</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#107"><abbr title="App\Livewire\Admin\CultivosManager::updatedVariedad">updatedVariedad</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#112"><abbr title="App\Livewire\Admin\CultivosManager::updatedFechaSiembra">updatedFechaSiembra</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#117"><abbr title="App\Livewire\Admin\CultivosManager::generarNombreLote">generarNombreLote</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#128"><abbr title="App\Livewire\Admin\CultivosManager::resetForm">resetForm</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#142"><abbr title="App\Livewire\Admin\CultivosManager::save">save</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#194"><abbr title="App\Livewire\Admin\CultivosManager::edit">edit</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#223"><abbr title="App\Livewire\Admin\CultivosManager::delete">delete</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#229"><abbr title="App\Livewire\Admin\CultivosManager::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="CultivosManager.php.html#395"><abbr title="App\Livewire\Admin\CultivosManager::resetFilters">resetFilters</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#34"><abbr title="App\Livewire\Admin\GestionMiembros::mount">mount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#58"><abbr title="App\Livewire\Admin\GestionMiembros::updatedSearchUserInvite">updatedSearchUserInvite</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#75"><abbr title="App\Livewire\Admin\GestionMiembros::seleccionarParaInvitar">seleccionarParaInvitar</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#82"><abbr title="App\Livewire\Admin\GestionMiembros::showProfile">showProfile</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#96"><abbr title="App\Livewire\Admin\GestionMiembros::closeProfile">closeProfile</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#101"><abbr title="App\Livewire\Admin\GestionMiembros::toggleBloqueo">toggleBloqueo</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#109"><abbr title="App\Livewire\Admin\GestionMiembros::eliminarMiembro">eliminarMiembro</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#116"><abbr title="App\Livewire\Admin\GestionMiembros::enviarInvitacion">enviarInvitacion</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#127"><abbr title="App\Livewire\Admin\GestionMiembros::solicitarCargo">solicitarCargo</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#134"><abbr title="App\Livewire\Admin\GestionMiembros::abandonarOrganizacion">abandonarOrganizacion</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#141"><abbr title="App\Livewire\Admin\GestionMiembros::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="HistorialManager.php.html#24"><abbr title="App\Livewire\Admin\HistorialManager::showDetails">showDetails</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="HistorialManager.php.html#29"><abbr title="App\Livewire\Admin\HistorialManager::closeDetails">closeDetails</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="HistorialManager.php.html#34"><abbr title="App\Livewire\Admin\HistorialManager::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#83"><abbr title="App\Livewire\Admin\LaboresManager::mount">mount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#100"><abbr title="App\Livewire\Admin\LaboresManager::resetFilters">resetFilters</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#102"><abbr title="App\Livewire\Admin\LaboresManager::checkLaborAvailability">checkLaborAvailability</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#159"><abbr title="App\Livewire\Admin\LaboresManager::selectLaborType">selectLaborType</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#175"><abbr title="App\Livewire\Admin\LaboresManager::updatedCultivoId">updatedCultivoId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#197"><abbr title="App\Livewire\Admin\LaboresManager::enforceValidLabor">enforceValidLabor</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#213"><abbr title="App\Livewire\Admin\LaboresManager::calculateTotals">calculateTotals</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#232"><abbr title="App\Livewire\Admin\LaboresManager::save">save</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#248"><abbr title="App\Livewire\Admin\LaboresManager::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#340"><abbr title="App\Livewire\Admin\LaboresManager::resetForm">resetForm</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#354"><abbr title="App\Livewire\Admin\LaboresManager::backToGrid">backToGrid</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#355"><abbr title="App\Livewire\Admin\LaboresManager::showDetails">showDetails</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#367"><abbr title="App\Livewire\Admin\LaboresManager::edit">edit</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#425"><abbr title="App\Livewire\Admin\LaboresManager::delete">delete</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#426"><abbr title="App\Livewire\Admin\LaboresManager::addItemInsumo">addItemInsumo</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#427"><abbr title="App\Livewire\Admin\LaboresManager::addItemManoObra">addItemManoObra</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#428"><abbr title="App\Livewire\Admin\LaboresManager::addItemMaquinaria">addItemMaquinaria</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#429"><abbr title="App\Livewire\Admin\LaboresManager::removeItem">removeItem</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#430"><abbr title="App\Livewire\Admin\LaboresManager::searchInsumo">searchInsumo</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#431"><abbr title="App\Livewire\Admin\LaboresManager::selectInsumoItem">selectInsumoItem</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#432"><abbr title="App\Livewire\Admin\LaboresManager::openAddProvider">openAddProvider</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LaboresManager.php.html#433"><abbr title="App\Livewire\Admin\LaboresManager::saveQuickProvider">saveQuickProvider</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="MisAgricultores.php.html#20"><abbr title="App\Livewire\Admin\MisAgricultores::mount">mount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="MisAgricultores.php.html#32"><abbr title="App\Livewire\Admin\MisAgricultores::selectOrg">selectOrg</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="MisAgricultores.php.html#38"><abbr title="App\Livewire\Admin\MisAgricultores::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="OrganizacionesManager.php.html#17"><abbr title="App\Livewire\Admin\OrganizacionesManager::toggleStatus">toggleStatus</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="OrganizacionesManager.php.html#26"><abbr title="App\Livewire\Admin\OrganizacionesManager::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesInternas.php.html#21"><abbr title="App\Livewire\Admin\SolicitudesInternas::mount">mount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesInternas.php.html#29"><abbr title="App\Livewire\Admin\SolicitudesInternas::clearHighlight">clearHighlight</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesInternas.php.html#36"><abbr title="App\Livewire\Admin\SolicitudesInternas::close">close</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesInternas.php.html#41"><abbr title="App\Livewire\Admin\SolicitudesInternas::aprobar">aprobar</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesInternas.php.html#48"><abbr title="App\Livewire\Admin\SolicitudesInternas::rechazar">rechazar</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesInternas.php.html#55"><abbr title="App\Livewire\Admin\SolicitudesInternas::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesManager.php.html#19"><abbr title="App\Livewire\Admin\SolicitudesManager::mount">mount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesManager.php.html#28"><abbr title="App\Livewire\Admin\SolicitudesManager::clearHighlight">clearHighlight</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesManager.php.html#35"><abbr title="App\Livewire\Admin\SolicitudesManager::close">close</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesManager.php.html#40"><abbr title="App\Livewire\Admin\SolicitudesManager::aprobar">aprobar</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesManager.php.html#47"><abbr title="App\Livewire\Admin\SolicitudesManager::rechazar">rechazar</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SolicitudesManager.php.html#54"><abbr title="App\Livewire\Admin\SolicitudesManager::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SupervisorDetail.php.html#25"><abbr title="App\Livewire\Admin\SupervisorDetail::mount">mount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SupervisorDetail.php.html#52"><abbr title="App\Livewire\Admin\SupervisorDetail::toggleAsignacion">toggleAsignacion</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SupervisorDetail.php.html#59"><abbr title="App\Livewire\Admin\SupervisorDetail::quitarAsignacion">quitarAsignacion</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SupervisorDetail.php.html#66"><abbr title="App\Livewire\Admin\SupervisorDetail::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#54"><abbr title="App\Livewire\Admin\TerrenosManager::mount">mount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#66"><abbr title="App\Livewire\Admin\TerrenosManager::resetForm">resetForm</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#81"><abbr title="App\Livewire\Admin\TerrenosManager::save">save</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#141"><abbr title="App\Livewire\Admin\TerrenosManager::edit">edit</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#167"><abbr title="App\Livewire\Admin\TerrenosManager::delete">delete</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#173"><abbr title="App\Livewire\Admin\TerrenosManager::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#358"><abbr title="App\Livewire\Admin\TerrenosManager::resetFilters">resetFilters</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#365"><abbr title="App\Livewire\Admin\TerrenosManager::selectActiveLand">selectActiveLand</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="UsersManager.php.html#22"><abbr title="App\Livewire\Admin\UsersManager::toggleStatus">toggleStatus</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="UsersManager.php.html#33"><abbr title="App\Livewire\Admin\UsersManager::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3 style="margin-top: 2rem;">Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right">Coverage</th>
+         <th class="text-right">Complexity</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="CultivosManager.php.html#229"><abbr title="App\Livewire\Admin\CultivosManager::render">render</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">32</td><td class="text-right">1056</td></tr>
+       <tr><td><a href="LaboresManager.php.html#248"><abbr title="App\Livewire\Admin\LaboresManager::render">render</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">31</td><td class="text-right">992</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#173"><abbr title="App\Livewire\Admin\TerrenosManager::render">render</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">22</td><td class="text-right">506</td></tr>
+       <tr><td><a href="ClimaIA.php.html#53"><abbr title="App\Livewire\Admin\ClimaIA::render">render</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">18</td><td class="text-right">342</td></tr>
+       <tr><td><a href="LaboresManager.php.html#232"><abbr title="App\Livewire\Admin\LaboresManager::save">save</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">11</td><td class="text-right">132</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#81"><abbr title="App\Livewire\Admin\TerrenosManager::save">save</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">11</td><td class="text-right">132</td></tr>
+       <tr><td><a href="HistorialManager.php.html#34"><abbr title="App\Livewire\Admin\HistorialManager::render">render</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">8</td><td class="text-right">72</td></tr>
+       <tr><td><a href="CultivosManager.php.html#142"><abbr title="App\Livewire\Admin\CultivosManager::save">save</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">7</td><td class="text-right">56</td></tr>
+       <tr><td><a href="CultivosManager.php.html#117"><abbr title="App\Livewire\Admin\CultivosManager::generarNombreLote">generarNombreLote</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">6</td><td class="text-right">42</td></tr>
+       <tr><td><a href="CatalogoCultivosManager.php.html#47"><abbr title="App\Livewire\Admin\CatalogoCultivosManager::save">save</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">5</td><td class="text-right">30</td></tr>
+       <tr><td><a href="ClimaIA.php.html#36"><abbr title="App\Livewire\Admin\ClimaIA::updatedSelectedTerrenoId">updatedSelectedTerrenoId</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">5</td><td class="text-right">30</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#82"><abbr title="App\Livewire\Admin\GestionMiembros::showProfile">showProfile</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">5</td><td class="text-right">30</td></tr>
+       <tr><td><a href="LaboresManager.php.html#83"><abbr title="App\Livewire\Admin\LaboresManager::mount">mount</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">5</td><td class="text-right">30</td></tr>
+       <tr><td><a href="LaboresManager.php.html#159"><abbr title="App\Livewire\Admin\LaboresManager::selectLaborType">selectLaborType</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">5</td><td class="text-right">30</td></tr>
+       <tr><td><a href="LaboresManager.php.html#175"><abbr title="App\Livewire\Admin\LaboresManager::updatedCultivoId">updatedCultivoId</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">5</td><td class="text-right">30</td></tr>
+       <tr><td><a href="LaboresManager.php.html#213"><abbr title="App\Livewire\Admin\LaboresManager::calculateTotals">calculateTotals</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">4</td><td class="text-right">20</td></tr>
+       <tr><td><a href="LaboresManager.php.html#367"><abbr title="App\Livewire\Admin\LaboresManager::edit">edit</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">4</td><td class="text-right">20</td></tr>
+       <tr><td><a href="LaboresManager.php.html#429"><abbr title="App\Livewire\Admin\LaboresManager::removeItem">removeItem</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">4</td><td class="text-right">20</td></tr>
+       <tr><td><a href="MisAgricultores.php.html#38"><abbr title="App\Livewire\Admin\MisAgricultores::render">render</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">4</td><td class="text-right">20</td></tr>
+       <tr><td><a href="SupervisorDetail.php.html#25"><abbr title="App\Livewire\Admin\SupervisorDetail::mount">mount</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">4</td><td class="text-right">20</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#141"><abbr title="App\Livewire\Admin\TerrenosManager::edit">edit</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">4</td><td class="text-right">20</td></tr>
+       <tr><td><a href="ClimaIA.php.html#161"><abbr title="App\Livewire\Admin\ClimaIA::getWeatherIcon">getWeatherIcon</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#34"><abbr title="App\Livewire\Admin\GestionMiembros::mount">mount</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#109"><abbr title="App\Livewire\Admin\GestionMiembros::eliminarMiembro">eliminarMiembro</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#116"><abbr title="App\Livewire\Admin\GestionMiembros::enviarInvitacion">enviarInvitacion</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#127"><abbr title="App\Livewire\Admin\GestionMiembros::solicitarCargo">solicitarCargo</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="LaboresManager.php.html#102"><abbr title="App\Livewire\Admin\LaboresManager::checkLaborAvailability">checkLaborAvailability</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="LaboresManager.php.html#197"><abbr title="App\Livewire\Admin\LaboresManager::enforceValidLabor">enforceValidLabor</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="SupervisorDetail.php.html#66"><abbr title="App\Livewire\Admin\SupervisorDetail::render">render</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="AgricultorSupervisionDetail.php.html#18"><abbr title="App\Livewire\Admin\AgricultorSupervisionDetail::mount">mount</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="AsignarSupervisores.php.html#23"><abbr title="App\Livewire\Admin\AsignarSupervisores::mount">mount</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="AsignarSupervisores.php.html#35"><abbr title="App\Livewire\Admin\AsignarSupervisores::invitar">invitar</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="AsignarSupervisores.php.html#42"><abbr title="App\Livewire\Admin\AsignarSupervisores::cancelarInvitacion">cancelarInvitacion</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="AsignarSupervisores.php.html#51"><abbr title="App\Livewire\Admin\AsignarSupervisores::bajarGrado">bajarGrado</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="ClimaIA.php.html#28"><abbr title="App\Livewire\Admin\ClimaIA::mount">mount</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="CreateSuperAdmin.php.html#29"><abbr title="App\Livewire\Admin\CreateSuperAdmin::save">save</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="CultivosManager.php.html#67"><abbr title="App\Livewire\Admin\CultivosManager::mount">mount</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#58"><abbr title="App\Livewire\Admin\GestionMiembros::updatedSearchUserInvite">updatedSearchUserInvite</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#101"><abbr title="App\Livewire\Admin\GestionMiembros::toggleBloqueo">toggleBloqueo</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#134"><abbr title="App\Livewire\Admin\GestionMiembros::abandonarOrganizacion">abandonarOrganizacion</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="GestionMiembros.php.html#141"><abbr title="App\Livewire\Admin\GestionMiembros::render">render</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="LaboresManager.php.html#433"><abbr title="App\Livewire\Admin\LaboresManager::saveQuickProvider">saveQuickProvider</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="MisAgricultores.php.html#20"><abbr title="App\Livewire\Admin\MisAgricultores::mount">mount</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="SolicitudesInternas.php.html#21"><abbr title="App\Livewire\Admin\SolicitudesInternas::mount">mount</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="SolicitudesInternas.php.html#41"><abbr title="App\Livewire\Admin\SolicitudesInternas::aprobar">aprobar</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="SolicitudesInternas.php.html#48"><abbr title="App\Livewire\Admin\SolicitudesInternas::rechazar">rechazar</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="SolicitudesManager.php.html#19"><abbr title="App\Livewire\Admin\SolicitudesManager::mount">mount</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="SolicitudesManager.php.html#40"><abbr title="App\Livewire\Admin\SolicitudesManager::aprobar">aprobar</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="SolicitudesManager.php.html#47"><abbr title="App\Livewire\Admin\SolicitudesManager::rechazar">rechazar</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="SupervisorDetail.php.html#52"><abbr title="App\Livewire\Admin\SupervisorDetail::toggleAsignacion">toggleAsignacion</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="SupervisorDetail.php.html#59"><abbr title="App\Livewire\Admin\SupervisorDetail::quitarAsignacion">quitarAsignacion</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="TerrenosManager.php.html#54"><abbr title="App\Livewire\Admin\TerrenosManager::mount">mount</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="UsersManager.php.html#22"><abbr title="App\Livewire\Admin\UsersManager::toggleStatus">toggleStatus</abbr></a></td><td class="text-right">0,0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <footer>
+    <hr/>
+    <p>
+     <small>Generated by <a href="https://github.com/sebastianbergmann/php-code-coverage" target="_top">php-code-coverage 12.5.7</a> using <a href="https://www.php.net/" target="_top">PHP 8.4.25</a> and <a href="https://phpunit.de/">PHPUnit 12.5.33</a> at Mon Aug 31 22:16:01 UTC 2026.</small>
+    </p>
+   </footer>
+  </div>
+  <script src="../../_js/billboard.pkgd.min.js?v=12.5.7" type="text/javascript"></script>
+  <script type="application/json" id="complexity_class">[[0,3,"AgricultorSupervisionDetail.php.html#12","App\\Livewire\\Admin\\AgricultorSupervisionDetail","12"],[0,9,"AsignarSupervisores.php.html#15","App\\Livewire\\Admin\\AsignarSupervisores","90"],[0,9,"CatalogoCultivosManager.php.html#15","App\\Livewire\\Admin\\CatalogoCultivosManager","90"],[0,29,"ClimaIA.php.html#13","App\\Livewire\\Admin\\ClimaIA","870"],[0,56,"CultivosManager.php.html#19","App\\Livewire\\Admin\\CultivosManager","3192"],[0,27,"GestionMiembros.php.html#16","App\\Livewire\\Admin\\GestionMiembros","756"],[0,10,"HistorialManager.php.html#12","App\\Livewire\\Admin\\HistorialManager","110"],[0,88,"LaboresManager.php.html#22","App\\Livewire\\Admin\\LaboresManager","7832"],[0,7,"MisAgricultores.php.html#12","App\\Livewire\\Admin\\MisAgricultores","56"],[0,2,"OrganizacionesManager.php.html#10","App\\Livewire\\Admin\\OrganizacionesManager","6"],[0,9,"SolicitudesInternas.php.html#13","App\\Livewire\\Admin\\SolicitudesInternas","90"],[0,9,"SolicitudesManager.php.html#11","App\\Livewire\\Admin\\SolicitudesManager","90"],[0,11,"SupervisorDetail.php.html#14","App\\Livewire\\Admin\\SupervisorDetail","132"],[0,43,"TerrenosManager.php.html#18","App\\Livewire\\Admin\\TerrenosManager","1892"],[0,3,"UsersManager.php.html#11","App\\Livewire\\Admin\\UsersManager","12"],[3.8461538461538463,3,"CreateSuperAdmin.php.html#11","App\\Livewire\\Admin\\CreateSuperAdmin","11.00"]]</script>
+  <script type="application/json" id="complexity_method">[[0,2,"AgricultorSupervisionDetail.php.html#18","App\\Livewire\\Admin\\AgricultorSupervisionDetail::mount","6"],[0,1,"AgricultorSupervisionDetail.php.html#40","App\\Livewire\\Admin\\AgricultorSupervisionDetail::render","2"],[0,2,"AsignarSupervisores.php.html#23","App\\Livewire\\Admin\\AsignarSupervisores::mount","6"],[0,2,"AsignarSupervisores.php.html#35","App\\Livewire\\Admin\\AsignarSupervisores::invitar","6"],[0,2,"AsignarSupervisores.php.html#42","App\\Livewire\\Admin\\AsignarSupervisores::cancelarInvitacion","6"],[0,2,"AsignarSupervisores.php.html#51","App\\Livewire\\Admin\\AsignarSupervisores::bajarGrado","6"],[0,1,"AsignarSupervisores.php.html#73","App\\Livewire\\Admin\\AsignarSupervisores::render","2"],[0,1,"CatalogoCultivosManager.php.html#37","App\\Livewire\\Admin\\CatalogoCultivosManager::resetForm","2"],[0,5,"CatalogoCultivosManager.php.html#47","App\\Livewire\\Admin\\CatalogoCultivosManager::save","30"],[0,1,"CatalogoCultivosManager.php.html#88","App\\Livewire\\Admin\\CatalogoCultivosManager::edit","2"],[0,1,"CatalogoCultivosManager.php.html#105","App\\Livewire\\Admin\\CatalogoCultivosManager::delete","2"],[0,1,"CatalogoCultivosManager.php.html#111","App\\Livewire\\Admin\\CatalogoCultivosManager::render","2"],[0,1,"ClimaIA.php.html#22","App\\Livewire\\Admin\\ClimaIA::selectTerreno","2"],[0,2,"ClimaIA.php.html#28","App\\Livewire\\Admin\\ClimaIA::mount","6"],[0,5,"ClimaIA.php.html#36","App\\Livewire\\Admin\\ClimaIA::updatedSelectedTerrenoId","30"],[0,18,"ClimaIA.php.html#53","App\\Livewire\\Admin\\ClimaIA::render","342"],[0,3,"ClimaIA.php.html#161","App\\Livewire\\Admin\\ClimaIA::getWeatherIcon","12"],[0,2,"CreateSuperAdmin.php.html#29","App\\Livewire\\Admin\\CreateSuperAdmin::save","6"],[0,2,"CultivosManager.php.html#67","App\\Livewire\\Admin\\CultivosManager::mount","6"],[0,1,"CultivosManager.php.html#82","App\\Livewire\\Admin\\CultivosManager::filterByTerreno","2"],[0,1,"CultivosManager.php.html#90","App\\Livewire\\Admin\\CultivosManager::selectTerreno","2"],[0,1,"CultivosManager.php.html#99","App\\Livewire\\Admin\\CultivosManager::selectCultivo","2"],[0,1,"CultivosManager.php.html#107","App\\Livewire\\Admin\\CultivosManager::updatedVariedad","2"],[0,1,"CultivosManager.php.html#112","App\\Livewire\\Admin\\CultivosManager::updatedFechaSiembra","2"],[0,6,"CultivosManager.php.html#117","App\\Livewire\\Admin\\CultivosManager::generarNombreLote","42"],[0,1,"CultivosManager.php.html#128","App\\Livewire\\Admin\\CultivosManager::resetForm","2"],[0,7,"CultivosManager.php.html#142","App\\Livewire\\Admin\\CultivosManager::save","56"],[0,1,"CultivosManager.php.html#194","App\\Livewire\\Admin\\CultivosManager::edit","2"],[0,1,"CultivosManager.php.html#223","App\\Livewire\\Admin\\CultivosManager::delete","2"],[0,32,"CultivosManager.php.html#229","App\\Livewire\\Admin\\CultivosManager::render","1056"],[0,1,"CultivosManager.php.html#395","App\\Livewire\\Admin\\CultivosManager::resetFilters","2"],[0,3,"GestionMiembros.php.html#34","App\\Livewire\\Admin\\GestionMiembros::mount","12"],[0,2,"GestionMiembros.php.html#58","App\\Livewire\\Admin\\GestionMiembros::updatedSearchUserInvite","6"],[0,1,"GestionMiembros.php.html#75","App\\Livewire\\Admin\\GestionMiembros::seleccionarParaInvitar","2"],[0,5,"GestionMiembros.php.html#82","App\\Livewire\\Admin\\GestionMiembros::showProfile","30"],[0,1,"GestionMiembros.php.html#96","App\\Livewire\\Admin\\GestionMiembros::closeProfile","2"],[0,2,"GestionMiembros.php.html#101","App\\Livewire\\Admin\\GestionMiembros::toggleBloqueo","6"],[0,3,"GestionMiembros.php.html#109","App\\Livewire\\Admin\\GestionMiembros::eliminarMiembro","12"],[0,3,"GestionMiembros.php.html#116","App\\Livewire\\Admin\\GestionMiembros::enviarInvitacion","12"],[0,3,"GestionMiembros.php.html#127","App\\Livewire\\Admin\\GestionMiembros::solicitarCargo","12"],[0,2,"GestionMiembros.php.html#134","App\\Livewire\\Admin\\GestionMiembros::abandonarOrganizacion","6"],[0,2,"GestionMiembros.php.html#141","App\\Livewire\\Admin\\GestionMiembros::render","6"],[0,1,"HistorialManager.php.html#24","App\\Livewire\\Admin\\HistorialManager::showDetails","2"],[0,1,"HistorialManager.php.html#29","App\\Livewire\\Admin\\HistorialManager::closeDetails","2"],[0,8,"HistorialManager.php.html#34","App\\Livewire\\Admin\\HistorialManager::render","72"],[0,5,"LaboresManager.php.html#83","App\\Livewire\\Admin\\LaboresManager::mount","30"],[0,1,"LaboresManager.php.html#100","App\\Livewire\\Admin\\LaboresManager::resetFilters","2"],[0,3,"LaboresManager.php.html#102","App\\Livewire\\Admin\\LaboresManager::checkLaborAvailability","12"],[0,5,"LaboresManager.php.html#159","App\\Livewire\\Admin\\LaboresManager::selectLaborType","30"],[0,5,"LaboresManager.php.html#175","App\\Livewire\\Admin\\LaboresManager::updatedCultivoId","30"],[0,3,"LaboresManager.php.html#197","App\\Livewire\\Admin\\LaboresManager::enforceValidLabor","12"],[0,4,"LaboresManager.php.html#213","App\\Livewire\\Admin\\LaboresManager::calculateTotals","20"],[0,11,"LaboresManager.php.html#232","App\\Livewire\\Admin\\LaboresManager::save","132"],[0,31,"LaboresManager.php.html#248","App\\Livewire\\Admin\\LaboresManager::render","992"],[0,1,"LaboresManager.php.html#340","App\\Livewire\\Admin\\LaboresManager::resetForm","2"],[0,1,"LaboresManager.php.html#354","App\\Livewire\\Admin\\LaboresManager::backToGrid","2"],[0,1,"LaboresManager.php.html#355","App\\Livewire\\Admin\\LaboresManager::showDetails","2"],[0,4,"LaboresManager.php.html#367","App\\Livewire\\Admin\\LaboresManager::edit","20"],[0,1,"LaboresManager.php.html#425","App\\Livewire\\Admin\\LaboresManager::delete","2"],[0,1,"LaboresManager.php.html#426","App\\Livewire\\Admin\\LaboresManager::addItemInsumo","2"],[0,1,"LaboresManager.php.html#427","App\\Livewire\\Admin\\LaboresManager::addItemManoObra","2"],[0,1,"LaboresManager.php.html#428","App\\Livewire\\Admin\\LaboresManager::addItemMaquinaria","2"],[0,4,"LaboresManager.php.html#429","App\\Livewire\\Admin\\LaboresManager::removeItem","20"],[0,1,"LaboresManager.php.html#430","App\\Livewire\\Admin\\LaboresManager::searchInsumo","2"],[0,1,"LaboresManager.php.html#431","App\\Livewire\\Admin\\LaboresManager::selectInsumoItem","2"],[0,1,"LaboresManager.php.html#432","App\\Livewire\\Admin\\LaboresManager::openAddProvider","2"],[0,2,"LaboresManager.php.html#433","App\\Livewire\\Admin\\LaboresManager::saveQuickProvider","6"],[0,2,"MisAgricultores.php.html#20","App\\Livewire\\Admin\\MisAgricultores::mount","6"],[0,1,"MisAgricultores.php.html#32","App\\Livewire\\Admin\\MisAgricultores::selectOrg","2"],[0,4,"MisAgricultores.php.html#38","App\\Livewire\\Admin\\MisAgricultores::render","20"],[0,1,"OrganizacionesManager.php.html#17","App\\Livewire\\Admin\\OrganizacionesManager::toggleStatus","2"],[0,1,"OrganizacionesManager.php.html#26","App\\Livewire\\Admin\\OrganizacionesManager::render","2"],[0,2,"SolicitudesInternas.php.html#21","App\\Livewire\\Admin\\SolicitudesInternas::mount","6"],[0,1,"SolicitudesInternas.php.html#29","App\\Livewire\\Admin\\SolicitudesInternas::clearHighlight","2"],[0,1,"SolicitudesInternas.php.html#36","App\\Livewire\\Admin\\SolicitudesInternas::close","2"],[0,2,"SolicitudesInternas.php.html#41","App\\Livewire\\Admin\\SolicitudesInternas::aprobar","6"],[0,2,"SolicitudesInternas.php.html#48","App\\Livewire\\Admin\\SolicitudesInternas::rechazar","6"],[0,1,"SolicitudesInternas.php.html#55","App\\Livewire\\Admin\\SolicitudesInternas::render","2"],[0,2,"SolicitudesManager.php.html#19","App\\Livewire\\Admin\\SolicitudesManager::mount","6"],[0,1,"SolicitudesManager.php.html#28","App\\Livewire\\Admin\\SolicitudesManager::clearHighlight","2"],[0,1,"SolicitudesManager.php.html#35","App\\Livewire\\Admin\\SolicitudesManager::close","2"],[0,2,"SolicitudesManager.php.html#40","App\\Livewire\\Admin\\SolicitudesManager::aprobar","6"],[0,2,"SolicitudesManager.php.html#47","App\\Livewire\\Admin\\SolicitudesManager::rechazar","6"],[0,1,"SolicitudesManager.php.html#54","App\\Livewire\\Admin\\SolicitudesManager::render","2"],[0,4,"SupervisorDetail.php.html#25","App\\Livewire\\Admin\\SupervisorDetail::mount","20"],[0,2,"SupervisorDetail.php.html#52","App\\Livewire\\Admin\\SupervisorDetail::toggleAsignacion","6"],[0,2,"SupervisorDetail.php.html#59","App\\Livewire\\Admin\\SupervisorDetail::quitarAsignacion","6"],[0,3,"SupervisorDetail.php.html#66","App\\Livewire\\Admin\\SupervisorDetail::render","12"],[0,2,"TerrenosManager.php.html#54","App\\Livewire\\Admin\\TerrenosManager::mount","6"],[0,1,"TerrenosManager.php.html#66","App\\Livewire\\Admin\\TerrenosManager::resetForm","2"],[0,11,"TerrenosManager.php.html#81","App\\Livewire\\Admin\\TerrenosManager::save","132"],[0,4,"TerrenosManager.php.html#141","App\\Livewire\\Admin\\TerrenosManager::edit","20"],[0,1,"TerrenosManager.php.html#167","App\\Livewire\\Admin\\TerrenosManager::delete","2"],[0,22,"TerrenosManager.php.html#173","App\\Livewire\\Admin\\TerrenosManager::render","506"],[0,1,"TerrenosManager.php.html#358","App\\Livewire\\Admin\\TerrenosManager::resetFilters","2"],[0,1,"TerrenosManager.php.html#365","App\\Livewire\\Admin\\TerrenosManager::selectActiveLand","2"],[0,2,"UsersManager.php.html#22","App\\Livewire\\Admin\\UsersManager::toggleStatus","6"],[0,1,"UsersManager.php.html#33","App\\Livewire\\Admin\\UsersManager::render","2"],[100,1,"CreateSuperAdmin.php.html#67","App\\Livewire\\Admin\\CreateSuperAdmin::render","1"]]</script>
+  <script type="text/javascript" defer>
+  const barLabels = [
+    '0%',
+    '0-10%',
+    '10-20%',
+    '20-30%',
+    '30-40%',
+    '40-50%',
+    '50-60%',
+    '60-70%',
+    '70-80%',
+    '80-90%',
+    '90-100%',
+    '100%'
+  ];
+  const barConfig = (name, fullName, values) => ({
+    axis: {
+      x: {
+        type: "category",
+        categories: barLabels,
+      },
+      y: {
+        label: {
+          text: `#${name}`,
+          position: 'outer-top',
+        },
+      },
+    },
+    bindto: `#${name}CoverageDistribution`,
+    data: {
+      columns: [
+        [fullName].concat(values),
+      ],
+      colors: {
+        [fullName]: "rgba(69, 114, 167, 0.75)",
+      },
+      type: "bar",
+    },
+    bar: {
+      width: {
+        ratio: 0.9,
+      },
+    },
+    grid: {
+      focus: {
+        show: false,
+      },
+      x: {
+        show: true,
+      },
+      y: {
+        show: true,
+      },
+    },
+    legend: {
+      show: false,
+    },
+    tooltip: {
+      contents: function (data) {
+        return `<table class="bb-tooltip"><tbody>
+            <tr><th colspan="2">Coverage ${barLabels[data[0].x]}</th></tr>
+            <tr><td class="value">${data[0].value} ${name}</td></tr>
+          </tbody></table>`;
+      },
+      grouped: false,
+    },
+  });
+  bb.generate(
+    barConfig('classes', "Class Coverage", [15,1,0,0,0,0,0,0,0,0,0,0])
+  );
+  bb.generate(
+    barConfig('methods', "Method Coverage", [98,0,0,0,0,0,0,0,0,0,0,1])
+  );
+
+  const scatterConfig = (name, complexityData) => ({
+    axis: {
+      x: {
+        label: {
+          text: 'Code Coverage (in percent)',
+          position: 'outer-right',
+        },
+        tick: {
+          values: [0, 20, 40, 60, 80, 100],
+        },
+      },
+      y: {
+        label: {
+          text: 'Cyclomatic Complexity',
+          position: 'outer-top',
+        },
+        min: 0,
+        padding: {
+          bottom: 0,
+          top: 5,
+        },
+      },
+    },
+    bindto: `#${name}Complexity`,
+    data: {
+      columns: [
+        ["complexity_x"].concat(complexityData.map(d => d[0])),
+        ["complexity"].concat(complexityData.map(d => d[1])),
+      ],
+      onclick: function(data, element) {
+        window.location = complexityData[data.index][2];
+      },
+      type: "scatter",
+      xs: {
+        "complexity": "complexity_x",
+      },
+    },
+    grid: {
+      focus: {
+        show: true,
+        y: true,
+      },
+      x: {
+        show: true,
+      },
+      y: {
+        show: true,
+      },
+    },
+    legend: {
+      show: false,
+    },
+    tooltip: {
+      contents: function (data) {
+        const coverage = Math.round(data[0].x);
+        const complexity = data[0].value;
+        const targetName = complexityData[data[0].index][3];
+        const crap = complexityData[data[0].index][4];
+        return `<table class="bb-tooltip"><tbody>
+            <tr><th colspan="2">${targetName}</th></tr>
+            <tr class="bb-tooltip-name-complexity"><td>Coverage</td><td class="name">${coverage}%</td></tr>
+            <tr class="bb-tooltip-name-complexity"><td>Complexity</td><td class="value">${complexity}</td></tr>
+            <tr class="bb-tooltip-name-complexity"><td>Crap</td><td class="value">${crap}</td></tr>
+          </tbody></table>`;
+      },
+      grouped: false,
+    },
+  });
+  const classComplexityData = JSON.parse(document.getElementById('complexity_class').textContent);
+  bb.generate(
+    scatterConfig("class", classComplexityData)
+  );
+  const methodComplexityData = JSON.parse(document.getElementById('complexity_method').textContent);
+  bb.generate(
+    scatterConfig("method", methodComplexityData),
+  );
+  </script>
+ </body>
+</html>

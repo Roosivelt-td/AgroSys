@@ -84,13 +84,23 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div class="relative">
                             <div class="flex items-center bg-[#eef2f7] rounded-xl overflow-hidden shadow-inner h-12 border-b-2 border-agri-green">
-                                <input wire:model="nombres" type="text" required placeholder="Nombres" class="w-full bg-transparent border-none text-slate-800 text-xs focus:ring-0 px-4 font-bold">
+                                <input wire:model.live="nombres"
+                                       type="text"
+                                       required
+                                       placeholder="Nombres"
+                                       class="w-full bg-transparent border-none text-slate-800 text-xs focus:ring-0 px-4 font-bold"
+                                       oninput="this.value = this.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ ]/g, '').replace(/(\s{2,})/g, ' ')">
                             </div>
                             <x-input-error :messages="$errors->get('nombres')" class="mt-1" />
                         </div>
                         <div class="relative">
                             <div class="flex items-center bg-[#eef2f7] rounded-xl overflow-hidden shadow-inner h-12 border-b-2 border-agri-green">
-                                <input wire:model="apellidos" type="text" required placeholder="Apellidos" class="w-full bg-transparent border-none text-slate-800 text-xs focus:ring-0 px-4 font-bold">
+                                <input wire:model.live="apellidos"
+                                       type="text"
+                                       required
+                                       placeholder="Apellidos"
+                                       class="w-full bg-transparent border-none text-slate-800 text-xs focus:ring-0 px-4 font-bold"
+                                       oninput="this.value = this.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ ]/g, '').replace(/(\s{2,})/g, ' ')">
                             </div>
                             <x-input-error :messages="$errors->get('apellidos')" class="mt-1" />
                         </div>

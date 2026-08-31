@@ -4,8 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Volt\Volt;
+use Livewire\Livewire;
 use Tests\TestCase;
+use App\Livewire\Profile\UpdateProfileInformation;
+use App\Livewire\Profile\UpdatePassword;
+use App\Livewire\Profile\DeleteUser;
 
 class ProfileTest extends TestCase
 {
@@ -19,47 +22,46 @@ class ProfileTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSeeVolt('profile.update-profile-information-form')
-            ->assertSeeVolt('profile.update-password-form')
-            ->assertSeeVolt('profile.delete-user-form');
+            ->assertSeeLivewire(UpdateProfileInformation::class)
+            ->assertSeeLivewire(UpdatePassword::class)
+            ->assertSeeLivewire(DeleteUser::class);
     }
 
     public function test_profile_information_can_be_updated(): void
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user);
-
-        $component = Volt::test('profile.update-profile-information-form')
-            ->set('name', 'Test User')
+        Livewire::actingAs($user)
+            ->test(UpdateProfileInformation::class)
+            ->set('nombres', 'Test')
+            ->set('apellidos', 'User')
             ->set('email', 'test@example.com')
-            ->call('updateProfileInformation');
-
-        $component
-            ->assertHasNoErrors()
-            ->assertNoRedirect();
+            ->set('dni', '12345678')
+            ->set('telefono', '999888777')
+            ->call('updateProfileInformation')
+            ->assertHasNoErrors();
 
         $user->refresh();
 
-        $this->assertSame('Test User', $user->name);
+        $this->assertSame('Test', $user->nombres);
+        $this->assertSame('User', $user->apellidos);
         $this->assertSame('test@example.com', $user->email);
         $this->assertNull($user->email_verified_at);
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
 
-        $this->actingAs($user);
-
-        $component = Volt::test('profile.update-profile-information-form')
-            ->set('name', 'Test User')
+        Livewire::actingAs($user)
+            ->test(UpdateProfileInformation::class)
+            ->set('nombres', 'Test')
+            ->set('apellidos', 'User')
             ->set('email', $user->email)
-            ->call('updateProfileInformation');
-
-        $component
-            ->assertHasNoErrors()
-            ->assertNoRedirect();
+            ->call('updateProfileInformation')
+            ->assertHasNoErrors();
 
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
@@ -68,33 +70,25 @@ class ProfileTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user);
-
-        $component = Volt::test('profile.delete-user-form')
+        Livewire::actingAs($user)
+            ->test(DeleteUser::class)
             ->set('password', 'password')
-            ->call('deleteUser');
-
-        $component
-            ->assertHasNoErrors()
+            ->call('deleteUser')
             ->assertRedirect('/');
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+        $this->assertSoftDeleted($user);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user);
-
-        $component = Volt::test('profile.delete-user-form')
+        Livewire::actingAs($user)
+            ->test(DeleteUser::class)
             ->set('password', 'wrong-password')
-            ->call('deleteUser');
-
-        $component
-            ->assertHasErrors('password')
-            ->assertNoRedirect();
+            ->call('deleteUser')
+            ->assertHasErrors(['password']);
 
         $this->assertNotNull($user->fresh());
     }

@@ -20,6 +20,12 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Seed basic roles
+        \DB::table('rol')->insert([
+            ['nombre' => 'Super Admin', 'descripcion' => 'Administrador global del sistema', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Agricultor', 'descripcion' => 'Usuario base del sistema', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
         // 30. roles_organizacion: Cargos internos de una empresa (Admin, Supervisor, Agricultor)
         Schema::create('roles_organizacion', function (Blueprint $table) {
             $table->id();
@@ -35,6 +41,7 @@ return new class extends Migration
             $table->string('nombres', 100);
             $table->string('apellidos', 100);
             $table->string('email', 255)->unique();
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('password', 255);
             $table->string('telefono', 20)->nullable();
             $table->string('dni', 20)->unique()->nullable();

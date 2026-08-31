@@ -284,7 +284,11 @@
                         @endphp
                         @foreach($catalogoLabores as $l)
                             @php
+                                $laborName = strtoupper($l->nombre);
+                                // Excepción: 'OTROS' siempre habilitada.
+                                // De lo contrario, se rige por la categoría definida en el componente.
                                 $isDisabled = !($laborStatusMap[$l->categoria] ?? ($laborStatusMap[$l->nombre] ?? true));
+                                if ($laborName === 'OTROS') $isDisabled = false;
                             @endphp
                             <button wire:click="selectLaborType({{ $l->id }})" @if($isDisabled) disabled @endif
                                     class="group flex flex-col items-center justify-center p-8 rounded-[2.5rem] border-2 transition-all duration-500

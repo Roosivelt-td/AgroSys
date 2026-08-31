@@ -3,9 +3,11 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Models\Rol;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Volt\Volt;
+use Livewire\Livewire;
 use Tests\TestCase;
+use App\Livewire\Auth\Authentication;
 
 class AuthenticationTest extends TestCase
 {
@@ -17,20 +19,17 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSeeVolt('pages.auth.login');
+            ->assertSeeLivewire(Authentication::class);
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();
 
-        $component = Volt::test('pages.auth.login')
-            ->set('form.email', $user->email)
-            ->set('form.password', 'password');
-
-        $component->call('login');
-
-        $component
+        Livewire::test(Authentication::class)
+            ->set('loginForm.email', $user->email)
+            ->set('loginForm.password', 'password')
+            ->call('login')
             ->assertHasNoErrors()
             ->assertRedirect(route('dashboard', absolute: false));
 
@@ -41,14 +40,11 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $component = Volt::test('pages.auth.login')
-            ->set('form.email', $user->email)
-            ->set('form.password', 'wrong-password');
-
-        $component->call('login');
-
-        $component
-            ->assertHasErrors()
+        Livewire::test(Authentication::class)
+            ->set('loginForm.email', $user->email)
+            ->set('loginForm.password', 'wrong-password')
+            ->call('login')
+            ->assertHasErrors(['loginForm.email'])
             ->assertNoRedirect();
 
         $this->assertGuest();
@@ -62,9 +58,7 @@ class AuthenticationTest extends TestCase
 
         $response = $this->get('/dashboard');
 
-        $response
-            ->assertOk()
-            ->assertSeeVolt('layout.navigation');
+        $response->assertOk();
     }
 
     public function test_users_can_logout(): void
@@ -73,12 +67,8 @@ class AuthenticationTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = Volt::test('layout.navigation');
-
-        $component->call('logout');
-
-        $component
-            ->assertHasNoErrors()
+        Livewire::test(\App\Livewire\Layout\Navigation::class)
+            ->call('logout')
             ->assertRedirect('/');
 
         $this->assertGuest();

@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'name_validator' => [
+        'url' => env('NAME_VALIDATOR_URL', 'http://localhost:8001'),
+    ],
+
 ];

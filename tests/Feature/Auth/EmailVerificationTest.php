@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
+use App\Livewire\Auth\VerifyEmail;
 
 class EmailVerificationTest extends TestCase
 {
@@ -15,18 +16,22 @@ class EmailVerificationTest extends TestCase
 
     public function test_email_verification_screen_can_be_rendered(): void
     {
-        $user = User::factory()->unverified()->create();
+        $user = User::factory()->create([
+            'email_verified_at' => null,
+        ]);
 
         $response = $this->actingAs($user)->get('/verify-email');
 
         $response
-            ->assertSeeVolt('pages.auth.verify-email')
-            ->assertStatus(200);
+            ->assertOk()
+            ->assertSeeLivewire(VerifyEmail::class);
     }
 
     public function test_email_can_be_verified(): void
     {
-        $user = User::factory()->unverified()->create();
+        $user = User::factory()->create([
+            'email_verified_at' => null,
+        ]);
 
         Event::fake();
 
@@ -45,7 +50,9 @@ class EmailVerificationTest extends TestCase
 
     public function test_email_is_not_verified_with_invalid_hash(): void
     {
-        $user = User::factory()->unverified()->create();
+        $user = User::factory()->create([
+            'email_verified_at' => null,
+        ]);
 
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',

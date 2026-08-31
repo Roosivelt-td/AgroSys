@@ -58,7 +58,7 @@ class UpdateProfileInformation extends Component
             'apellidos' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
             'dni' => ['required', 'string', 'digits:8', Rule::unique(User::class)->ignore($user->id)],
-            'telefono' => ['nullable', 'string', 'max:15'],
+            'telefono' => ['nullable', 'string', 'max:20'],
             'experiencia_anios' => ['nullable', 'numeric', 'min:0', 'max:60'],
             'nivel_educativo' => ['nullable', 'string', 'max:100'],
             'ubicacion' => ['nullable', 'string', 'max:255'],
