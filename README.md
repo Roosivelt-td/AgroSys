@@ -1,4 +1,4 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="public/AgroSys_logo.png" width="400" alt="AgroSys Logo"></a></p>
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="public/AgroSys_completo.png" width="400" alt="AgroSys Logo"></a></p>
 <p align="center">
 <a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Estado de la Compilación"></a>
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Descargas Totales"></a>
