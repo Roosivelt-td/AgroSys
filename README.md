@@ -108,9 +108,7 @@ Ejecución de las migraciones para crear la estructura de tablas y cargar los ca
 ```bash
 php artisan migrate:fresh --seed
 ```
-
 ---
-
 ## ⚙️ Centro de Operaciones (Comandos)
 
 | Acción | Comando |
@@ -121,6 +119,58 @@ php artisan migrate:fresh --seed
 | **Limpiar Caché** | `php artisan optimize:clear` |
 
 ---
+---
+# 🐳 Intalacion mediante Docker
+#### Ejecución y levantamiento mediante Docker.
+
+### 1. Clonar el proyecto AgroSys de git
+```bash
+git clone https://github.com/Roosivelt-td/AgroSys.git
+cd AgroSys
+```
+### 2. Crear el archivo .env (si no existe)
+```bash
+cp .env.example .env
+```
+configura el .env
+```bash
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=agrosys
+DB_USERNAME=agrosys
+DB_PASSWORD=agrosys123
+```
+### 3. Levantar los contenedores (primera vez)
+```bash
+docker compose up -d --build
+```
+### 4. ⚠️ GENERAR CLAVE (¡PASO IMPORTANTE!)
+```bash
+docker exec agrosys-app php artisan key:generate
+```
+### 5. Ejecutar migraciones de laravel (Para la creación de las tablas). 
+```bash
+docker exec agrosys-app php artisan migrate:fresh --seed
+```
+### 6. Después de cambiar el código (sin cambios en Dockerfile)
+```bash
+docker compose up -d
+```
+### 7. Verificar
+```bash
+http://localhost:8000
+```
+### Datos de usuario en la DB (super administrador)
+Usuario: admin@agrosys.com
+
+Contraseña: password 
+### **funcionamiento de usuarios**
+
+- **Super Admin**: control total del sistema, configuraciones, usuarios, organizaciones y todos los módulos.
+- **Admin:** administra su organización, usuarios y operaciones agrícolas.
+- **Supervisor:** supervisa agricultores, terrenos, cultivos y actividades asignadas.
+- **Agricultor:** registra y consulta únicamente sus propios terrenos, cultivos, labores, cosechas y ventas.
 
 ## 🏆 Estatus del Proyecto
 
