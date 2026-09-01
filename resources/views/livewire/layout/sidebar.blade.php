@@ -4,18 +4,27 @@
     <!-- Brand Area -->
     <div class="h-20 flex items-center shrink-0 bg-agri-green shadow-lg relative z-10 transition-all duration-300"
          :class="sidebarCollapsed && !mobileOpen ? 'px-0 justify-center' : 'px-6'">
-        <div class="flex items-center space-x-3 overflow-hidden">
-            <div class=" h-16 flex items-center justify-center shadow-lg shrink-0">
-                <img src="{{ asset('AgroSys_completo.png') }}" alt="Logo" class=" h-16 object-contain">
+
+        <!-- Contenedor de Logos con Alternancia Dinámica -->
+        <div class="flex items-center justify-center overflow-hidden w-full h-full">
+            <!-- Logo Expandido (Img 1) -->
+            <div x-show="!sidebarCollapsed || mobileOpen"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 class="h-16 flex items-center justify-center px-4">
+                <img src="{{ asset('AgroSys_completo.png') }}" alt="Logo Completo" class="h-16 object-contain">
             </div>
-            <!--
-            <div class="w-16 h-16 flex items-center justify-center shadow-lg shrink-0">
-                <img src="{{ asset('AgroSys_logo.png') }}" alt="Logo" class="w-16 h-16 object-contain">
-            </div> -->
-            <!--
-            <span class="text-2xl font-black text-white tracking-tighter italic whitespace-nowrap" x-show="!sidebarCollapsed || mobileOpen" x-transition>
-              <img src="{{ asset('AgroSys.png') }}" alt="Logo" class="w-32 h-16 object-contain">
-            </span> -->
+
+            <!-- Logo Colapsado / Icono (Img 2) -->
+            <div x-show="sidebarCollapsed && !mobileOpen"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 class="h-12 w-12 flex items-center justify-center">
+                <img src="{{ asset('AgroSys_logo.png') }}" alt="Icono" class="h-12 w-12 object-contain shadow-sm">
+                <img src="{{ asset('AgroSys_text.png') }}" alt="Icono" class="h-12 w-12 object-contain shadow-sm">
+            </div>
         </div>
     </div>
 

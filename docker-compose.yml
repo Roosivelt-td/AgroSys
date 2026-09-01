@@ -1,0 +1,75 @@
+services:
+    # Laravel primero has las migraciones
+    # sudo docker exec agrosys-app php artisan migrate
+    # PHP + Laravel con extensiones MySQL
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: agrosys-app
+        working_dir: /var/www/html
+        volumes:
+            - .:/var/www/html
+        ports:
+            - "8000:8000"
+        command: php artisan serve --host=0.0.0.0 --port=8000
+        depends_on:
+            mysql:
+                condition: service_healthy
+        networks:
+            - agrosys-network
+        environment:
+            - PHP_VERSION=8.4
+
+    # MySQL 8.4.11+
+    mysql:
+        image: mysql:8.4
+        container_name: agrosys-mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: root123
+            MYSQL_DATABASE: agrosys
+            MYSQL_USER: agrosys
+            MYSQL_PASSWORD: agrosys123
+        ports:
+            - "3306:3306"
+        volumes:
+            - mysql_data:/var/lib/mysql
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+            timeout: 20s
+            retries: 10
+            interval: 10s
+        networks:
+            - agrosys-network
+
+    # Node.js 18 LTS
+    node:
+        image: node:18-alpine
+        container_name: agrosys-node
+        working_dir: /var/www/html
+        volumes:
+            - .:/var/www/html
+        ports:
+            - "5173:5173"
+        command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+        networks:
+            - agrosys-network
+
+    # Composer 2.x
+    composer:
+        image: composer:2
+        container_name: agrosys-composer
+        working_dir: /var/www/html
+        volumes:
+            - .:/var/www/html
+        command: composer install
+        networks:
+            - agrosys-network
+
+volumes:
+    mysql_data:
+
+networks:
+    agrosys-network:
+        driver: bridge
