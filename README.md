@@ -105,6 +105,13 @@ DB_PASSWORD=password
 
 ### 🧪 5. Migración de Planos y Semillas
 Ejecución de las migraciones para crear la estructura de tablas y cargar los catálogos maestros.
+
+GENERAR CLAVE ¡PASO IMPORTANTE!
+
+```bash
+php artisan key:generate
+```
+Migraciones de laravel - PHP
 ```bash
 php artisan migrate:fresh --seed
 ```
@@ -120,20 +127,23 @@ php artisan migrate:fresh --seed
 
 ---
 ---
-# 🐳 Intalacion mediante Docker
-#### Ejecución y levantamiento mediante Docker.
+# 🐳 Despliegue e Instalación mediante Docker
+#### Ejecución rápida en entornos aislados.
 
-### 1. Clonar el proyecto AgroSys de git
+### 📥 1. Clonar el repositorio
 ```bash
 git clone https://github.com/Roosivelt-td/AgroSys.git
 cd AgroSys
 ```
-### 2. Crear el archivo .env (si no existe)
+
+### 📝 2. Configuración del Entorno (.env)
+> [!IMPORTANT]
+> Este paso es vital si no existe el archivo .env se tiene que crearlo ya que no funcionara la Base de Datos sin esa configuracion.
 ```bash
 cp .env.example .env
 ```
-configura el .env
-```bash
+Edita el archivo `.env` con los parámetros de Docker:
+```env
 DB_CONNECTION=mysql
 DB_HOST=mysql
 DB_PORT=3306
@@ -141,30 +151,73 @@ DB_DATABASE=agrosys
 DB_USERNAME=agrosys
 DB_PASSWORD=agrosys123
 ```
-### 3. Levantar los contenedores (primera vez)
+
+### 🏗️ 3. Orquestación de Contenedores
 ```bash
 docker compose up -d --build
 ```
-### 4. ⚠️ GENERAR CLAVE (¡PASO IMPORTANTE!)
+
+### 🔑 4. Generación de Llave de Seguridad
+> [!IMPORTANT]
+> Este paso es vital para el cifrado de sesiones y datos.
 ```bash
 docker exec agrosys-app php artisan key:generate
 ```
-### 5. Ejecutar migraciones de laravel (Para la creación de las tablas). 
+
+### 💾 5. Inicialización de Base de Datos
+Crea la estructura de tablas y carga los datos maestros (seeders).
 ```bash
 docker exec agrosys-app php artisan migrate:fresh --seed
 ```
-### 6. Después de cambiar el código (sin cambios en Dockerfile)
+
+### 🔄 6. Actualización de Código
+Si realizas cambios en el código PHP o vistas, simplemente reinicia los servicios:
 ```bash
 docker compose up -d
 ```
-### 7. Verificar
-```bash
-http://localhost:8000
-```
-### Datos de usuario en la DB (super administrador)
-Usuario: admin@agrosys.com
 
-Contraseña: password 
+### ✅ 7. Verificación Final
+Accede al sistema desde tu navegador:
+- **URL:** [http://localhost:8000](http://localhost:8000)
+- **Credenciales Super Admin:** 
+  - 📧 `admin@agrosys.com`
+  - 🔑 `password`
+
+### 📋 COMANDOS COMPLETOS
+```
+# 1. Limpiar caché de configuración
+docker exec agrosys-app php artisan config:clear
+
+# 2. Generar caché de configuración (para producción)
+docker exec agrosys-app php artisan config:cache
+
+# 3. Limpiar caché de la aplicación
+docker exec agrosys-app php artisan cache:clear
+
+# 4. Limpiar caché de vistas
+docker exec agrosys-app php artisan view:clear
+
+# 5. Generar caché de vistas (para producción)
+docker exec agrosys-app php artisan view:cache
+
+# 6. Limpiar caché de rutas
+docker exec agrosys-app php artisan route:clear
+
+# 7. Generar caché de rutas (para producción)
+docker exec agrosys-app php artisan route:cache
+
+# 8. Limpiar TODOS los cachés (recomendado después de cambios)
+docker exec agrosys-app php artisan optimize:clear
+```
+### 🔄 EJECUTAR VARIOS COMANDOS A LA VEZ
+```
+# Limpiar todo (recomendado después de cambios importantes)
+docker exec agrosys-app php artisan optimize:clear
+
+# Regenerar todo (para producción)
+docker exec agrosys-app php artisan optimize
+```
+
 ### **funcionamiento de usuarios**
 
 - **Super Admin**: control total del sistema, configuraciones, usuarios, organizaciones y todos los módulos.
