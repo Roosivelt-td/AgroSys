@@ -127,6 +127,10 @@ class Authentication extends Component
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
         ]);
 
+        /*
+        // MICROSERVIDOR DETENIDO TEMPORALMENTE: Se deshabilita la validación externa
+        // para facilitar la clonación del proyecto en otras máquinas sin el microservicio.
+
         // VALIDACIÓN CON EL MICROSERVICIO (Evitar "test", "hola", etc)
         $validatorUrl = rtrim((string) config('services.name_validator.url'), '/');
 
@@ -168,6 +172,7 @@ class Authentication extends Component
             $this->addError('nombres', 'No se pudo verificar el nombre en este momento. Intente nuevamente.');
             return;
         }
+        */
 
         $rolAgricultor = Rol::where('nombre', 'Agricultor')->first();
 

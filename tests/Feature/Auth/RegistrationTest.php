@@ -25,10 +25,6 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
-        Http::fake([
-            '*' => Http::response(['valid' => true], 200),
-        ]);
-
         Livewire::test(Authentication::class)
             ->set('mode', 'register')
             ->set('nombres', 'Test')
