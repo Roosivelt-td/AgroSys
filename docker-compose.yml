@@ -27,32 +27,33 @@ services:
         container_name: agrosys-mysql
         restart: always
         environment:
-            MYSQL_ROOT_PASSWORD: root123
-            MYSQL_DATABASE: agrosys
-            MYSQL_USER: agrosys
-            MYSQL_PASSWORD: agrosys123
+            MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root123}
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
         ports:
-            - "3306:3306"
+            - "${DB_PORT:-3306}:3306"
         volumes:
             - mysql_data:/var/lib/mysql
         healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root123}"]
             timeout: 20s
             retries: 10
             interval: 10s
         networks:
             - agrosys-network
 
-    # Node.js 18 LTS
+    # Node.js 22 LTS
     node:
-        image: node:18-alpine
+        image: node:22-alpine
         container_name: agrosys-node
         working_dir: /var/www/html
         volumes:
             - .:/var/www/html
         ports:
             - "5173:5173"
-        command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    #    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+        command: sh -c "npm install && npm run build -- --host 0.0.0.0 --port 5173"
         networks:
             - agrosys-network
 
