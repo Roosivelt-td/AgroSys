@@ -49,13 +49,31 @@
                     </div>
                 </div>
 
-                <button @click="$wire.resetForm(); $dispatch('open-modal', 'modal-labor-manager')"
+                <button wire:click="openCreateModal"
                         class="px-10 py-4 bg-agri-green hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 transition-all flex items-center gap-3 active:scale-95 group relative overflow-hidden">
                     <div class="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                     <i class="fa-solid fa-plus text-sm group-hover:rotate-90 transition-transform"></i> NUEVO REGISTRO
                 </button>
             </div>
         </div>
+
+        <!-- Banner de Filtro de Cultivo (Heredado) -->
+        @if($filterCropId && $fExactCrop)
+            <div class="flex items-center justify-between bg-blue-500/10 border border-blue-500/20 px-6 py-3 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-500">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-500 shadow-lg border border-white/20">
+                        <i class="fa-solid fa-leaf text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-[8px] font-black text-blue-500 uppercase tracking-[0.2em] leading-none mb-1">Filtrando por Cultivo Específico</p>
+                        <h4 class="text-sm font-black text-slate-700 dark:text-white uppercase italic tracking-tighter">{{ $fExactCrop }}</h4>
+                    </div>
+                </div>
+                <button wire:click="$set('filterCropId', null)" class="px-4 py-2 bg-white dark:bg-slate-800 text-rose-500 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-50 transition-all shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-circle-xmark"></i> Quitar Filtro
+                </button>
+            </div>
+        @endif
 
         <!-- Fila de Selectores Técnicos -->
         <div class="flex flex-wrap items-center gap-2 p-1.5 bg-white/40 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-white/5 shadow-lg backdrop-blur-md">
@@ -313,7 +331,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-4">
                             <div class="md:col-span-3 space-y-1">
                                 <label class="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2"><i class="fa-solid fa-flag text-agri-green"></i> 1. ESTADO</label>
-                                <select wire:model.live="selStatus" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl p-2.5 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-agri-green shadow-sm">
+                                <select wire:model.live="selStatus" @if($filterCropId) disabled @endif class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl p-2.5 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-agri-green shadow-sm @if($filterCropId) opacity-60 @endif">
                                     <option value="TODOS">TODOS LOS CULTIVOS</option>
                                     <option value="En proceso">EN CRECIMIENTO</option>
                                     <option value="Completada">COSECHADO</option>
@@ -322,14 +340,14 @@
                             </div>
                             <div class="md:col-span-5 space-y-1">
                                 <label class="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2"><i class="fa-solid fa-location-dot text-agri-green"></i> 2. TERRENO / PARCELA</label>
-                                <select wire:model.live="selLandId" @if($selStatus === '') disabled @endif class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl p-2.5 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-agri-green shadow-sm">
+                                <select wire:model.live="selLandId" @if($selStatus === '' || $filterCropId) disabled @endif class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl p-2.5 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-agri-green shadow-sm @if($filterCropId) opacity-60 @endif">
                                     <option value="">Seleccionar parcela...</option>
                                     @foreach($resultsLands as $r) <option value="{{ $r->id }}">{{ $r->nombre }} - {{ $r->hectareas }} Ha</option> @endforeach
                                 </select>
                             </div>
                             <div class="md:col-span-4 space-y-1">
                                 <label class="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2"><i class="fa-solid fa-seedling text-agri-green"></i> 3. TIPO DE CULTIVO</label>
-                                <select wire:model.live="selCatId" @if(!$selLandId) disabled @endif class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl p-2.5 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-agri-green shadow-sm">
+                                <select wire:model.live="selCatId" @if(!$selLandId || $filterCropId) disabled @endif class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl p-2.5 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-agri-green shadow-sm @if($filterCropId) opacity-60 @endif">
                                     <option value="">Seleccionar tipo...</option>
                                     @foreach($resultsCats as $r) <option value="{{ $r->id }}">{{ $r->nombre }}</option> @endforeach
                                 </select>
@@ -338,14 +356,14 @@
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-4 mt-2">
                             <div class="md:col-span-4 space-y-1">
                                 <label class="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2"><i class="fa-solid fa-tags text-agri-green text-[7px]"></i> 4. VARIEDAD</label>
-                                <select wire:model.live="selVarName" @if(!$selCatId) disabled @endif class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl p-2.5 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-agri-green shadow-sm">
+                                <select wire:model.live="selVarName" @if(!$selCatId || $filterCropId) disabled @endif class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl p-2.5 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-agri-green shadow-sm @if($filterCropId) opacity-60 @endif">
                                     <option value="">Seleccionar variedad...</option>
                                     @foreach($resultsVars as $v) <option value="{{ $v }}">{{ strtoupper($v ?: 'GENERICA') }}</option> @endforeach
                                 </select>
                             </div>
                             <div class="md:col-span-8 space-y-1">
                                 <label class="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2"><i class="fa-solid fa-leaf text-agri-green text-[7px]"></i> 5. CULTIVO</label>
-                                <select wire:model.live="cultivo_id" @if($selVarName === '') disabled @endif class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl p-2.5 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-agri-green shadow-sm border-2 border-agri-green/30">
+                                <select wire:model.live="cultivo_id" @if($selVarName === '' || $filterCropId) disabled @endif class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl p-2.5 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-agri-green shadow-sm border-2 border-agri-green/30 @if($filterCropId) opacity-60 @endif">
                                     <option value="">Elegir campaña específica...</option>
                                     @foreach($resultsCrops as $r) <option value="{{ $r->id }}">{{ $r->label_display }}</option> @endforeach
                                 </select>
@@ -394,12 +412,85 @@
 
                     @if($cultivo_id)
                         <div class="px-8 pb-4 space-y-4 animate-in fade-in duration-500">
+
+                            @if($esCosecha)
+                                <div class="space-y-4 animate-in slide-in-from-top-4 duration-500">
+                                    <div class="flex justify-between items-center border-l-4 border-agri-green pl-3">
+                                        <h4 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter italic">DETALLES DE COSECHA (PRODUCCIÓN)</h4>
+                                        <button type="button" wire:click="addItemCosecha" class="px-5 py-1.5 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg active:scale-95">
+                                            <i class="fa-solid fa-plus"></i> AGREGAR
+                                        </button>
+                                    </div>
+                                    <div class="space-y-3">
+                                        @foreach($itemsCosecha as $idx => $item)
+                                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-emerald-500/5 p-4 rounded-[1.8rem] border border-emerald-500/20 shadow-inner items-end" wire:key="harvest-{{ $idx }}">
+                                                <div class="md:col-span-3 space-y-1">
+                                                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                        <i class="fa-solid fa-weight-hanging text-agri-green"></i> Cantidad Recolectada
+                                                    </label>
+                                                    <input type="number" step="0.01" wire:model="itemsCosecha.{{ $idx }}.cantidad" class="w-full bg-white dark:bg-slate-800 border-none rounded-xl p-2.5 text-xs font-black shadow-sm">
+                                                </div>
+                                                <div class="md:col-span-3 space-y-1">
+                                                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                        <i class="fa-solid fa-ruler-combined text-agri-green"></i> Unidad Medida
+                                                    </label>
+                                                    <select wire:model="itemsCosecha.{{ $idx }}.unidad" class="w-full bg-white dark:bg-slate-800 border-none rounded-xl p-2.5 text-xs font-black shadow-sm">
+                                                        <option value="kg">KILOGRAMOS (KG)</option>
+                                                        <option value="tn">TONELADAS (TN)</option>
+                                                        <option value="sacos">SACOS (U)</option>
+                                                        <option value="und">UNIDADES (UND)</option>
+                                                        <option value="jabas">JABAS</option>
+                                                    </select>
+                                                </div>
+                                                <div class="md:col-span-2 space-y-1">
+                                                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                        <i class="fa-solid fa-star text-agri-green"></i> Calidad / Grado
+                                                    </label>
+                                                    <select wire:model="itemsCosecha.{{ $idx }}.calidad" class="w-full bg-white dark:bg-slate-800 border-none rounded-xl p-2.5 text-xs font-black shadow-sm">
+                                                        <option value="primera">PRIMERA (A)</option>
+                                                        <option value="segunda">SEGUNDA (B)</option>
+                                                        <option value="descarte">DESCARTE (C)</option>
+                                                        <option value="exportacion">EXPORTACIÓN</option>
+                                                    </select>
+                                                </div>
+                                                <div class="md:col-span-3 space-y-1">
+                                                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                        <i class="fa-solid fa-money-bill-transfer text-agri-green"></i> Costo Oper. Cosecha
+                                                    </label>
+                                                    <input type="number" step="0.01" wire:model="itemsCosecha.{{ $idx }}.costo_operativo" class="w-full bg-white dark:bg-slate-800 border-none rounded-xl p-2.5 text-xs font-black shadow-sm" placeholder="Opcional S/">
+                                                </div>
+                                                <div class="md:col-span-1 pb-2 flex justify-center">
+                                                    <button type="button" wire:click="removeItem('harvest', {{ $idx }})" class="w-9 h-9 text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
+                                                        <i class="fa-solid fa-trash-can"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
                             <div class="space-y-4">
-                                <div class="flex items-center gap-3 border-l-4 border-blue-500 pl-3"><h4 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter italic">REGISTRO DE COSTOS OPERATIVOS</h4></div>
+                                <div class="flex items-center justify-between border-l-4 border-blue-500 pl-3">
+                                    <h4 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter italic">REGISTRO DE COSTOS OPERATIVOS</h4>
+                                    <div class="text-right">
+                                        <p class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">inversión total</p>
+                                        <p class="text-xl font-black text-agri-green italic tracking-tighter leading-none">S/ {{ number_format($costo_total, 2) }}</p>
+                                    </div>
+                                </div>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div class="bg-emerald-50 dark:bg-emerald-500/10 p-4 rounded-2xl border-2 border-emerald-500/20 shadow-inner"><p class="text-[9px] font-black text-emerald-600 uppercase mb-1 leading-none italic tracking-widest">Inversión Total</p><p class="text-2xl font-black text-slate-900 dark:text-white italic tracking-tighter">S/ {{ number_format($costo_total, 2) }}</p></div>
-                                    <div class="p-4 border-2 border-slate-50 dark:border-white/5 rounded-2xl flex flex-col justify-center bg-slate-50/50 shadow-sm"><p class="text-[9px] font-black text-slate-400 uppercase mb-1 leading-none italic tracking-widest">Mano de Obra</p><p class="text-lg font-black text-slate-700 dark:text-slate-300 italic">S/ {{ number_format($costo_mano_obra_total, 2) }}</p></div>
-                                    <div class="p-4 border-2 border-slate-50 dark:border-white/5 rounded-2xl flex flex-col justify-center bg-slate-50/50 shadow-sm"><p class="text-[9px] font-black text-slate-400 uppercase mb-1 leading-none italic tracking-widest">Maquinaria</p><p class="text-lg font-black text-slate-700 dark:text-slate-300 italic">S/ {{ number_format($costo_maquinaria_total, 2) }}</p></div>
+                                    <div class="bg-emerald-50 dark:bg-emerald-500/10 p-4 rounded-2xl border-2 border-emerald-500/20 shadow-inner">
+                                        <p class="text-[9px] font-black text-emerald-600 uppercase mb-1 leading-none italic tracking-widest">insumos</p>
+                                        <p class="text-lg font-black text-slate-900 dark:text-white italic tracking-tighter">S/ {{ number_format($costo_insumos_total, 2) }}</p>
+                                    </div>
+                                    <div class="p-4 border-2 border-slate-50 dark:border-white/5 rounded-2xl flex flex-col justify-center bg-slate-50/50 shadow-sm">
+                                        <p class="text-[9px] font-black text-slate-400 uppercase mb-1 leading-none italic tracking-widest">MANO DE OBRA</p>
+                                        <p class="text-lg font-black text-slate-700 dark:text-slate-300 italic">S/ {{ number_format($costo_mano_obra_total, 2) }}</p>
+                                    </div>
+                                    <div class="p-4 border-2 border-slate-50 dark:border-white/5 rounded-2xl flex flex-col justify-center bg-slate-50/50 shadow-sm">
+                                        <p class="text-[9px] font-black text-slate-400 uppercase mb-1 leading-none italic tracking-widest">MAQUINARIA</p>
+                                        <p class="text-lg font-black text-slate-700 dark:text-slate-300 italic">S/ {{ number_format($costo_maquinaria_total, 2) }}</p>
+                                    </div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <div class="space-y-1"><label class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Fecha Realización</label><input type="date" wire:model="fecha_realizacion" class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-2.5 text-xs font-black shadow-inner uppercase"></div>
@@ -408,51 +499,88 @@
                                 </div>
                             </div>
                             <div class="space-y-6">
-                                @php $sections = [
-                                    ['title' => 'Insumos / Productos', 'add' => 'addItemInsumo', 'items' => $itemsInsumos, 'color' => 'blue', 'icon' => 'fa-boxes-stacked'],
-                                    ['title' => 'Personal / Jornales', 'add' => 'addItemManoObra', 'items' => $itemsManoObra, 'color' => 'amber', 'icon' => 'fa-people-group'],
-                                    ['title' => 'Maquinaria / Equipos', 'add' => 'addItemMaquinaria', 'items' => $itemsMaquinaria, 'color' => 'violet', 'icon' => 'fa-truck-tractor']
-                                ]; @endphp
-                                @foreach($sections as $sec)
-                                    <div class="space-y-3">
-                                        <div class="flex justify-between items-center border-b border-slate-100 dark:border-white/5 pb-1.5">
-                                            <div class="flex items-center gap-3"><i class="fa-solid {{ $sec['icon'] }} text-{{ $sec['color'] }}-500 text-sm"></i><h4 class="text-[10px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] italic">{{ $sec['title'] }}</h4></div>
-                                            <button type="button" wire:click="{{ $sec['add'] }}" class="px-5 py-1.5 {{ $sec['color'] === 'blue' ? 'bg-blue-600' : ($sec['color'] === 'amber' ? 'bg-amber-500' : 'bg-violet-600') }} text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg active:scale-95">
-                                                <i class="fa-solid fa-plus"></i> AGREGAR
-                                            </button>
-                                        </div>
-                                        <div class="space-y-2">
-                                            @if($sec['add'] === 'addItemInsumo')
-                                                @foreach($sec['items'] as $idx => $item)
-                                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50/50 dark:bg-white/5 p-2 rounded-2xl border border-slate-100 shadow-sm" wire:key="insumo-{{ $idx }}">
-                                                        <div class="md:col-span-5 relative"><label class="text-[9px] font-black text-slate-400 uppercase italic ml-1">Producto</label><input type="text" wire:model.live="itemsInsumos.{{ $idx }}.insumo_nombre" wire:input="searchInsumo({{ $idx }}, $event.target.value)" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[10px] font-black uppercase shadow-sm"><div x-show="$wire.showIns && $wire.activeIdx === {{ $idx }}" class="absolute w-full mt-1 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border z-[70] overflow-hidden max-h-40">@foreach($resultsIns as $ri) <div wire:click="selectInsumoItem({{ $idx }}, {{ $ri->id }}, '{{ $ri->nombre }}')" class="p-2.5 hover:bg-blue-500 hover:text-white cursor-pointer border-b text-[9px] font-black uppercase italic">{{ $ri->nombre }}</div> @endforeach</div></div>
-                                                        <div class="md:col-span-1 flex flex-col items-center pt-2"><label class="text-[9px] font-black text-slate-400 uppercase italic">PROVE</label><input type="checkbox" wire:click="openAddProvider({{ $idx }})" @if($item['proveedor_id']) checked @endif class="w-5 h-5 text-agri-green border-slate-200 rounded"></div>
-                                                        <div class="md:col-span-6 grid grid-cols-11 gap-3 items-center"><div class="col-span-4"><label class="text-[9px] font-black text-slate-400 uppercase text-center block">Cant.</label><input type="number" wire:model.live.blur="itemsInsumos.{{ $idx }}.cantidad" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-2 text-[11px] font-black text-center shadow-sm"></div><div class="col-span-5"><label class="text-[7px] font-black text-slate-400 uppercase text-center block">Costo U.</label><input type="number" step="0.01" wire:model.live.blur="itemsInsumos.{{ $idx }}.costo_unitario" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[11px] font-black text-center shadow-sm"></div><div class="col-span-2 pt-3"><button type="button" wire:click="removeItem('insumo', {{ $idx }})" class="w-8 h-8 text-rose-500 hover:bg-rose-50 rounded-lg"><i class="fa-solid fa-trash-can text-[11px]"></i></button></div></div>
-                                                    </div>
-                                                @endforeach
-                                            @elseif($sec['add'] === 'addItemManoObra')
-                                                @foreach($sec['items'] as $idx => $item)
-                                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50/50 dark:bg-white/5 p-2.5 rounded-2xl border" wire:key="mano-{{ $idx }}">
-                                                        <div class="md:col-span-4"><label class="text-[7px] font-black text-slate-400 uppercase ml-1">Perfil</label><select wire:model.live="itemsManoObra.{{ $idx }}.tipo_id" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[10px] font-black uppercase"><option value="">Elegir...</option>@foreach($manoObraTipos as $mot) <option value="{{ $mot->id }}">{{ $mot->nombre }}</option> @endforeach</select></div>
-                                                        <div class="md:col-span-2"><label class="text-[7px] font-black text-slate-400 uppercase text-center block">Pers.</label><input type="number" wire:model.live.blur="itemsManoObra.{{ $idx }}.cantidad" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-1 text-[10px] font-black text-center"></div>
-                                                        <div class="md:col-span-2"><label class="text-[7px] font-black text-slate-400 uppercase text-center block">Días</label><input type="number" wire:model.live.blur="itemsManoObra.{{ $idx }}.dias" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-1 text-[10px] font-black text-center"></div>
-                                                        <div class="md:col-span-3"><label class="text-[7px] font-black text-slate-400 uppercase text-center block">Costo D.</label><input type="number" step="0.1" wire:model.live.blur="itemsManoObra.{{ $idx }}.costo_dia" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[10px] font-black text-center"></div>
-                                                        <div class="md:col-span-1 pt-3"><button type="button" wire:click="removeItem('mano', {{ $idx }})" class="w-7 h-7 text-rose-500"><i class="fa-solid fa-trash-can text-[10px]"></i></button></div>
-                                                    </div>
-                                                @endforeach
-                                            @else
-                                                @foreach($sec['items'] as $idx => $item)
-                                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50/50 dark:bg-white/5 p-2.5 rounded-2xl border" wire:key="maq-{{ $idx }}">
-                                                        <div class="md:col-span-6"><label class="text-[7px] font-black text-slate-400 uppercase ml-1">Maquinaria</label><input type="text" wire:model.live="itemsMaquinaria.{{ $idx }}.nombre" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[10px] font-black uppercase"></div>
-                                                        <div class="md:col-span-2"><label class="text-[7px] font-black text-slate-400 uppercase text-center block">Hrs.</label><input type="number" wire:model.live.blur="itemsMaquinaria.{{ $idx }}.horas" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-1 text-[10px] font-black text-center"></div>
-                                                        <div class="md:col-span-3"><label class="text-[7px] font-black text-slate-400 uppercase text-center block">Inversión T.</label><input type="number" step="0.01" wire:model.live.blur="itemsMaquinaria.{{ $idx }}.costo_total" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[10px] font-black text-center"></div>
-                                                        <div class="md:col-span-1 pt-3"><button type="button" wire:click="removeItem('maq', {{ $idx }})" class="w-7 h-7 text-rose-500"><i class="fa-solid fa-trash-can text-[10px]"></i></button></div>
-                                                    </div>
-                                                @endforeach
-                                            @endif
-                                        </div>
+                                <!-- SECCIÓN: INSUMOS -->
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center border-b border-slate-100 dark:border-white/5 pb-1.5">
+                                        <div class="flex items-center gap-3"><i class="fa-solid fa-boxes-stacked text-blue-500 text-sm"></i><h4 class="text-[10px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] italic">Insumos / Productos</h4></div>
+                                        <button type="button" wire:click="addItemInsumo" class="px-5 py-1.5 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg active:scale-95">
+                                            <i class="fa-solid fa-plus"></i> AGREGAR
+                                        </button>
                                     </div>
-                                @endforeach
+                                    <div class="space-y-2">
+                                        @foreach($itemsInsumos as $idx => $item)
+                                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50/50 dark:bg-white/5 p-2 rounded-2xl border border-slate-100 shadow-sm" wire:key="insumo-{{ $idx }}">
+                                                <div class="md:col-span-5 relative">
+                                                    <label class="text-[9px] font-black text-slate-400 uppercase italic ml-1">Producto</label>
+                                                    <input type="text" wire:model.live="itemsInsumos.{{ $idx }}.insumo_nombre" wire:input="searchInsumo({{ $idx }}, $event.target.value)" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[10px] font-black uppercase shadow-sm">
+                                                    <div x-show="$wire.showIns && $wire.activeIdx === {{ $idx }}" class="absolute w-full mt-1 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border z-[70] overflow-hidden max-h-40">
+                                                        @foreach($resultsIns as $ri)
+                                                            <div wire:click="selectInsumoItem({{ $idx }}, {{ $ri->id }}, '{{ $ri->nombre }}')" class="p-2.5 hover:bg-blue-500 hover:text-white cursor-pointer border-b text-[9px] font-black uppercase italic">{{ $ri->nombre }}</div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                                <div class="md:col-span-1 flex flex-col items-center pt-2">
+                                                    <label class="text-[9px] font-black text-slate-400 uppercase italic">PROVE</label>
+                                                    <input type="checkbox" wire:click="openAddProvider({{ $idx }})" @if($item['proveedor_id']) checked @endif class="w-5 h-5 text-agri-green border-slate-200 rounded">
+                                                </div>
+                                                <div class="md:col-span-6 grid grid-cols-11 gap-3 items-center">
+                                                    <div class="col-span-4">
+                                                        <label class="text-[9px] font-black text-slate-400 uppercase text-center block">Cant.</label>
+                                                        <input type="number" wire:model.live.blur="itemsInsumos.{{ $idx }}.cantidad" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-2 text-[11px] font-black text-center shadow-sm">
+                                                    </div>
+                                                    <div class="col-span-5">
+                                                        <label class="text-[7px] font-black text-slate-400 uppercase text-center block">Costo U.</label>
+                                                        <input type="number" step="0.01" wire:model.live.blur="itemsInsumos.{{ $idx }}.costo_unitario" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[11px] font-black text-center shadow-sm">
+                                                    </div>
+                                                    <div class="col-span-2 pt-3">
+                                                        <button type="button" wire:click="removeItem('insumo', {{ $idx }})" class="w-8 h-8 text-rose-500 hover:bg-rose-50 rounded-lg"><i class="fa-solid fa-trash-can text-[11px]"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <!-- SECCIÓN: PERSONAL -->
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center border-b border-slate-100 dark:border-white/5 pb-1.5">
+                                        <div class="flex items-center gap-3"><i class="fa-solid fa-people-group text-amber-500 text-sm"></i><h4 class="text-[10px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] italic">Personal / Jornales</h4></div>
+                                        <button type="button" wire:click="addItemManoObra" class="px-5 py-1.5 bg-amber-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg active:scale-95">
+                                            <i class="fa-solid fa-plus"></i> AGREGAR
+                                        </button>
+                                    </div>
+                                    <div class="space-y-2">
+                                        @foreach($itemsManoObra as $idx => $item)
+                                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50/50 dark:bg-white/5 p-2.5 rounded-2xl border" wire:key="mano-{{ $idx }}">
+                                                <div class="md:col-span-4"><label class="text-[7px] font-black text-slate-400 uppercase ml-1">Perfil</label><select wire:model.live="itemsManoObra.{{ $idx }}.tipo_id" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[10px] font-black uppercase"><option value="">Elegir...</option>@foreach($manoObraTipos as $mot) <option value="{{ $mot->id }}">{{ $mot->nombre }}</option> @endforeach</select></div>
+                                                <div class="md:col-span-2"><label class="text-[7px] font-black text-slate-400 uppercase text-center block">Pers.</label><input type="number" wire:model.live.blur="itemsManoObra.{{ $idx }}.cantidad" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-1 text-[10px] font-black text-center"></div>
+                                                <div class="md:col-span-2"><label class="text-[7px] font-black text-slate-400 uppercase text-center block">Días</label><input type="number" wire:model.live.blur="itemsManoObra.{{ $idx }}.dias" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-1 text-[10px] font-black text-center"></div>
+                                                <div class="md:col-span-3"><label class="text-[7px] font-black text-slate-400 uppercase text-center block">Costo D.</label><input type="number" step="0.1" wire:model.live.blur="itemsManoObra.{{ $idx }}.costo_dia" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[10px] font-black text-center"></div>
+                                                <div class="md:col-span-1 pt-3"><button type="button" wire:click="removeItem('mano', {{ $idx }})" class="w-7 h-7 text-rose-500"><i class="fa-solid fa-trash-can text-[10px]"></i></button></div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <!-- SECCIÓN: MAQUINARIA -->
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center border-b border-slate-100 dark:border-white/5 pb-1.5">
+                                        <div class="flex items-center gap-3"><i class="fa-solid fa-truck-tractor text-violet-500 text-sm"></i><h4 class="text-[10px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] italic">Maquinaria / Equipos</h4></div>
+                                        <button type="button" wire:click="addItemMaquinaria" class="px-5 py-1.5 bg-violet-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg active:scale-95">
+                                            <i class="fa-solid fa-plus"></i> AGREGAR
+                                        </button>
+                                    </div>
+                                    <div class="space-y-2">
+                                        @foreach($itemsMaquinaria as $idx => $item)
+                                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50/50 dark:bg-white/5 p-2.5 rounded-2xl border" wire:key="maq-{{ $idx }}">
+                                                <div class="md:col-span-6"><label class="text-[7px] font-black text-slate-400 uppercase ml-1">Maquinaria</label><input type="text" wire:model.live="itemsMaquinaria.{{ $idx }}.nombre" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[10px] font-black uppercase"></div>
+                                                <div class="md:col-span-2"><label class="text-[7px] font-black text-slate-400 uppercase text-center block">Hrs.</label><input type="number" wire:model.live.blur="itemsMaquinaria.{{ $idx }}.horas" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-1 text-[10px] font-black text-center"></div>
+                                                <div class="md:col-span-3"><label class="text-[7px] font-black text-slate-400 uppercase text-center block">Inversión T.</label><input type="number" step="0.01" wire:model.live.blur="itemsMaquinaria.{{ $idx }}.costo_total" wire:change="calculateTotals" class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-1.5 px-3 text-[10px] font-black text-center"></div>
+                                                <div class="md:col-span-1 pt-3"><button type="button" wire:click="removeItem('maq', {{ $idx }})" class="w-7 h-7 text-rose-500"><i class="fa-solid fa-trash-can text-[10px]"></i></button></div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
                             </div>
                             <div class="space-y-3 pt-2">
                                 <div class="flex items-center gap-3 border-l-4 border-slate-600 pl-3"><h4 class="text-[10px] font-black text-slate-800 dark:text-white uppercase tracking-widest italic">EVIDENCIA TÉCNICA</h4></div>
@@ -462,6 +590,19 @@
                                 </div>
                             </div>
                             <div class="pt-4 pb-2">
+                                @if ($errors->any())
+                                    <div class="bg-rose-50 border-l-4 border-rose-500 p-4 mb-4 rounded-xl">
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <i class="fa-solid fa-circle-exclamation text-rose-500"></i>
+                                            <p class="text-[10px] font-black text-rose-700 uppercase italic">Errores detectados:</p>
+                                        </div>
+                                        <ul class="list-disc list-inside space-y-0.5">
+                                            @foreach ($errors->all() as $error)
+                                                <li class="text-[9px] font-bold text-rose-600 uppercase italic">{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
                                 <button type="submit" wire:loading.attr="disabled" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3 italic">
                                     <i class="fa-solid fa-shield-check text-sm" wire:loading.remove></i><i class="fa-solid fa-spinner fa-spin text-sm" wire:loading></i><span>GUARDAR REGISTRO</span>
                                 </button>
@@ -599,7 +740,7 @@
                             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
                                 <!-- Gráfico -->
                                 <div class="lg:col-span-6 h-56 relative bg-white/50 dark:bg-slate-900/50 rounded-3xl p-4">
-                                    <div data-react-component="agro-bar-chart"
+                                    <div data-react-component="agro-pie-chart"
                                          data-props="{{ json_encode(['data' => $chartData]) }}"
                                          class="w-full h-full"
                                          wire:key="view-chart-final-{{ $viewingLabor->id }}-{{ $viewTimestamp }}"></div>

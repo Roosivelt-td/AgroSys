@@ -20,14 +20,61 @@
                 <input type="date" wire:model.live="filterDateEnd" class="bg-transparent border-none p-0 text-[10px] font-black text-slate-600 dark:text-slate-300 focus:ring-0 outline-none w-28 uppercase">
             </div>
 
-            <button @click="$wire.resetForm(); $dispatch('open-modal', 'modal-crop-manager')" class="px-10 py-3 bg-agri-green text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-agri-green/20 hover:scale-105 transition-all italic">
+            <button wire:click="openCreateModal" class="px-10 py-3 bg-agri-green text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-agri-green/20 hover:scale-105 transition-all italic">
                 <i class="fa-solid fa-plus mr-2"></i> Nuevo Registro
             </button>
         </div>
     </div>
 
     <!-- Filtros Searchables (Compact agrosys_cultivos_v2) -->
-    <div class="flex flex-wrap items-center gap-2 p-1.5 bg-white/40 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-white/5 shadow-lg backdrop-blur-md">
+    <div class="space-y-4">
+        @if($filterTerrenoId && $filteredTerreno)
+            <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 px-6 py-4 rounded-[2rem] animate-in fade-in slide-in-from-top-4 duration-500 shadow-xl">
+                <div class="flex items-center gap-6">
+                    <div class="w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border-2 border-white dark:border-white/10 shrink-0">
+                        <img src="{{ $filteredTerreno->foto_path ? Storage::url($filteredTerreno->foto_path) : 'https://ui-avatars.com/api/?name='.urlencode($filteredTerreno->nombre).'&background=003a38&color=fff' }}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] leading-none">Filtrando por Terreno</p>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <h4 class="text-lg font-black text-slate-800 dark:text-white uppercase italic tracking-tighter leading-none">
+                                {{ number_format($filteredTerreno->hectareas, 2) }} HA DEL TERRENO {{ $filteredTerreno->nombre }}
+                                <span class="text-agri-green text-sm ml-2">({{ number_format($filteredTerreno->area_disponible, 2) }} Ha. disponibles)</span>
+                            </h4>
+
+                            @php
+                                $tenureClass = 'bg-emerald-500';
+                                $tenureText = strtoupper($filteredTerreno->tipo_tenencia);
+
+                                if($filteredTerreno->tipo_tenencia === 'alquilado') {
+                                    if($filteredTerreno->is_alquiler_vencido) {
+                                        $tenureClass = 'bg-rose-500 animate-pulse';
+                                        $tenureText = 'ALQUILER FINALIZADO';
+                                    } else {
+                                        $tenureClass = 'bg-amber-500';
+                                    }
+                                }
+                            @endphp
+
+                            <span class="{{ $tenureClass }} text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg">
+                                {{ $tenureText }}
+                            </span>
+
+                            @if($filteredTerreno->tipo_tenencia === 'alquilado')
+                                <span class="text-[10px] font-black text-slate-400 italic">
+                                    ({{ $filteredTerreno->fecha_alquiler ? $filteredTerreno->fecha_alquiler->format('d/m/Y') : 'N/A' }} - {{ $filteredTerreno->fecha_vencimiento_alquiler ? $filteredTerreno->fecha_vencimiento_alquiler->format('d/m/Y') : 'N/A' }})
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                <button wire:click="$set('filterTerrenoId', null)" class="px-6 py-2.5 bg-white dark:bg-slate-800 text-rose-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all shadow-sm border border-rose-100 dark:border-rose-900/20 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-xmark"></i> Quitar Filtro
+                </button>
+            </div>
+        @endif
+
+        <div class="flex flex-wrap items-center gap-2 p-1.5 bg-white/40 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-white/5 shadow-lg backdrop-blur-md">
         <!-- Terreno -->
         <div class="relative min-w-[140px] flex-1">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i class="fa-solid fa-mountain-sun text-[9px]"></i></span>
@@ -140,9 +187,35 @@
                 </a>
 
                 <!-- 1. Clima (Fondo Blanco) -->
-                <div class="absolute top-5 left-5 z-30 flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-2xl border border-white/20">
-                    <i class="fa-solid fa-cloud-sun text-amber-500 text-xs"></i>
-                    <span class="text-[10px] font-black text-slate-800 dark:text-white italic uppercase leading-none">{{ $temp }}°C | {{ $hmd }}% HR</span>
+                <div class="absolute top-5 left-5 z-30 space-y-2">
+                    <div class="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-2xl border border-white/20">
+                        <i class="fa-solid fa-cloud-sun text-amber-500 text-xs"></i>
+                        <span class="text-[10px] font-black text-slate-800 dark:text-white italic uppercase leading-none">{{ $temp }}°C | {{ $hmd }}% HR</span>
+                    </div>
+
+                    <!-- Indicadores de Fechas (Punto 1 y 2) -->
+                    <div class="flex flex-col space-y-1.5">
+                        <div class="bg-black/40 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 w-fit">
+                            <p class="text-[11px] font-black text-white uppercase italic tracking-wider leading-none">
+                                <i class="fa-solid fa-calendar-check text-agri-green mr-1.5"></i>
+                                @if($cultivo->estado === 'Planificado')
+                                    siembra planificada el <br> {{ $cultivo->fecha_planificada->format('d/m/Y') }}
+                                @else
+                                    sembrado el <br> {{ $cultivo->fecha_siembra ? $cultivo->fecha_siembra->format('d/m/Y') : $cultivo->fecha_planificada->format('d/m/Y') }}
+                                @endif
+                            </p>
+                        </div>
+                        <div class="bg-black/40 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 w-fit">
+                            <p class="text-[11px] font-black text-white uppercase italic tracking-wider leading-none">
+                                <i class="fa-solid fa-calendar-plus text-blue-400 mr-1.5"></i>
+                                @if($cultivo->estado === 'Cosechado')
+                                    cosechado el <br> {{ $cultivo->fecha_cosecha_finalizada ? $cultivo->fecha_cosecha_finalizada->format('d/m/Y') : date('d/m/Y') }}
+                                @else
+                                    cosecha planificada el <br>{{ $cultivo->fecha_cosecha_estimada ? $cultivo->fecha_cosecha_estimada->format('d/m/Y') : '---' }}
+                                @endif
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Menú "..." -->
@@ -187,7 +260,7 @@
             </div>
 
             <!-- LÍNEA DE TIEMPO FENOLÓGICA (Único elemento inferior) -->
-            <div class="px-8 py-7 space-y-3 bg-white dark:bg-slate-900">
+            <div wire:click="showCropReport({{ $cultivo->id }})" class="px-8 py-7 space-y-3 bg-white dark:bg-slate-900 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                 <div class="flex justify-between items-center">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fenología: {{ strtoupper($cultivo->estado) }}</p>
                     <span class="text-[11px] font-black text-agri-green uppercase tracking-tighter">{{ round($progreso) }}% completo</span>
@@ -221,9 +294,18 @@
                             <div class="flex items-center justify-between bg-emerald-50 dark:bg-white/5 border-2 border-emerald-500/30 rounded-2xl p-4 animate-in zoom-in-95">
                                 <div class="flex items-center space-x-4 overflow-hidden">
                                     <img src="{{ $selectedTerrenoModel->foto_path ? Storage::url($selectedTerrenoModel->foto_path) : 'https://ui-avatars.com/api/?name='.urlencode($selectedTerrenoModel->nombre).'&background=003a38&color=fff' }}" class="w-12 h-12 rounded-xl object-cover shadow-md">
-                                    <div class="min-w-0"><p class="text-[11px] font-black text-slate-800 dark:text-white uppercase truncate">{{ $selectedTerrenoModel->nombre }}</p></div>
+                                    <div class="min-w-0">
+                                        <p class="text-[11px] font-black text-slate-800 dark:text-white uppercase truncate">{{ $selectedTerrenoModel->nombre }}</p>
+                                        <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-tighter">
+                                            Total: {{ number_format($selectedTerrenoModel->hectareas, 2) }} ha | Disp: {{ number_format($areaDisponible, 2) }} ha
+                                        </p>
+                                    </div>
                                 </div>
-                                <button type="button" wire:click="$set('terreno_id', null)" class="text-slate-400 hover:text-rose-500"><i class="fa-solid fa-rotate-right"></i></button>
+                                @if(!$filterTerrenoId)
+                                    <button type="button" wire:click="$set('terreno_id', null)" class="text-slate-400 hover:text-rose-500"><i class="fa-solid fa-rotate-right"></i></button>
+                                @else
+                                    <div class="text-agri-green opacity-50"><i class="fa-solid fa-lock text-xs"></i></div>
+                                @endif
                             </div>
                         @else
                             <div class="relative">
@@ -291,21 +373,25 @@
                         <x-input-label :value="__('Área a Sembrar (ha) *')" class="text-[10px] font-black text-slate-400" />
                         <x-text-input wire:model.live="area_destinada" type="number" step="0.01" class="block w-full {{ !$terreno_id ? 'bg-slate-100 opacity-50' : '' }}" :disabled="!$terreno_id" />
                     </div>
-                    <div class="space-y-1.5">
-                        <x-input-label :value="__('Plantas Estimadas')" class="text-[10px] font-black text-slate-400" />
-                        <x-text-input wire:model="plantas_estimadas" type="number" class="block w-full" placeholder="Cant. aprox." />
-                    </div>
-                    <div class="space-y-1.5">
-                        <x-input-label :value="__('Rendimiento Esp. (tn/ha)')" class="text-[10px] font-black text-slate-400" />
-                        <x-text-input wire:model="rendimiento_esperado_tn_ha" type="number" step="0.1" class="block w-full" placeholder="0.0" />
-                    </div>
+
+                    @if($selectedCultivoModel && $selectedCultivoModel->tipo_ciclo === 'perenne')
+                        <div class="space-y-1.5 animate-in slide-in-from-left-4">
+                            <x-input-label :value="__('Plantas Estimadas')" class="text-[10px] font-black text-slate-400" />
+                            <x-text-input wire:model="plantas_estimadas" type="number" class="block w-full" placeholder="Cant. aprox." />
+                        </div>
+                    @endif
+
+                    @if($selectedCultivoModel && $selectedCultivoModel->tipo_ciclo === 'ciclo_corto')
+                        <div class="space-y-1.5 animate-in slide-in-from-right-4">
+                            <x-input-label :value="__('Rendimiento Esp. (tn/ha)')" class="text-[10px] font-black text-slate-400" />
+                            <x-text-input wire:model="rendimiento_esperado_tn_ha" type="number" step="0.1" class="block w-full" placeholder="0.0" />
+                        </div>
+                    @endif
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-1.5"><x-input-label :value="__('Fecha Planificada')" class="text-[10px] font-black text-slate-400" /><x-text-input wire:model="fecha_planificada" type="date" class="block w-full" /></div>
-                    <div class="space-y-1.5"><x-input-label :value="__('Fecha Siembra *')" class="text-[10px] font-black text-slate-400" /><x-text-input wire:model.live="fecha_siembra" type="date" class="block w-full" /></div>
                     <div class="space-y-1.5"><x-input-label :value="__('Cosecha Estimada')" class="text-[10px] font-black text-slate-400" /><x-text-input wire:model="fecha_cosecha_estimada" type="date" class="block w-full" /></div>
-                    <div class="space-y-1.5"><x-input-label :value="__('Cosecha Finalizada')" class="text-[10px] font-black text-slate-400" /><x-text-input wire:model="fecha_cosecha_finalizada" type="date" class="block w-full" /></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -355,5 +441,233 @@
                 </div>
             </form>
         </div>
+    </x-modal>
+
+    <!-- MODAL DE REPORTE DE CULTIVO -->
+    <x-modal name="modal-crop-report" :show="false" focusable>
+        @if($selectedCropForReport)
+        <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-100 dark:border-white/10 max-w-5xl mx-auto"
+             x-init="$watch('show', value => { if(value) { setTimeout(() => window.mountAgroReact(), 500) } })">
+
+            <!-- Header con Imagen de Fondo (Estilo Detalle Terreno) -->
+            <div class="relative h-72 w-full ">
+                @if($selectedCropForReport->foto_path)
+                    <img src="{{ Storage::url($selectedCropForReport->foto_path) }}" class="w-full h-full object-cover">
+                @else
+                    <div class="w-full h-full bg-gradient-to-br from-[#003a38] to-emerald-900 flex items-center justify-center">
+                        <i class="fa-solid fa-leaf text-8xl text-white/10"></i>
+                    </div>
+                @endif
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+
+                <!-- 1. Clima (Top Left) -->
+                <div class="absolute top-6 left-6 z-30">
+                    <div class="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-2xl border border-white/20">
+                        <i class="fa-solid fa-cloud-sun text-amber-500 text-sm"></i>
+                        <span class="text-[11px] font-black text-slate-800 dark:text-white italic uppercase leading-none">{{ rand(18,26) }}°C | {{ rand(55,75) }}% HR</span>
+                    </div>
+                </div>
+
+                <!-- Botón Cerrar Flotante -->
+                <div class="absolute top-6 right-6 z-30">
+                    <button @click="$dispatch('close')" class="w-11 h-11 bg-black/20 backdrop-blur-md text-white rounded-full hover:bg-black/40 transition-all flex items-center justify-center border border-white/10">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- 2. Título y Badges Flotantes -->
+                <div class="absolute bottom-8 left-10 right-10 p-4 z-30">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="px-3 py-1 bg-agri-green text-white text-[10px] font-black uppercase rounded-lg shadow-lg border border-white/20">
+                            Campaña #{{ $selectedCropForReport->id }}
+                        </span>
+                        <span class="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase rounded-lg border border-white/10">
+                            {{ strtoupper($selectedCropForReport->estado) }}
+                        </span>
+                    </div>
+                    <h2 class="text-6xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-2xl mb-4">
+                        {{ $selectedCropForReport->detalleCatalogo->nombre }}
+                        <span class="text-3xl font-bold text-white/60 ml-4 lowercase">{{ $selectedCropForReport->variedad ?: 'genérica' }}</span>
+                    </h2>
+
+                    <div class="flex flex-wrap items-center gap-4">
+                        <p class="text-white font-bold text-sm flex items-center gap-2 drop-shadow-md pr-4 border-r border-white/20">
+                            <i class="fa-solid fa-location-dot text-agri-green"></i> {{ strtoupper($selectedCropForReport->terreno->nombre) }}
+                        </p>
+
+                        <!-- 3. Indicadores de Siembra y Cosecha (Translucidos) -->
+                        <div class="flex gap-4">
+                            <div class="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
+                                <p class="text-[12px] text-center font-black text-white/50 uppercase leading-none mb-1">Siembra</p>
+                                <p class="text-[11px] font-black text-white uppercase italic tracking-wider leading-none">
+                                    @if($selectedCropForReport->estado === 'Planificado')
+                                        planificada {{ $selectedCropForReport->fecha_planificada->format('d/m/Y') }}
+                                    @else
+                                        sembrado {{ $selectedCropForReport->fecha_siembra ? $selectedCropForReport->fecha_siembra->format('d/m/Y') : $selectedCropForReport->fecha_planificada->format('d/m/Y') }}
+                                    @endif
+                                </p>
+                            </div>
+                            <div class="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
+                                <p class="text-[12px] text-center font-black text-white/50 uppercase leading-none mb-1">Cosecha</p>
+                                <p class="text-[11px] font-black text-white uppercase italic tracking-wider leading-none">
+                                    @if($selectedCropForReport->estado === 'Cosechado')
+                                        cosechado {{ $selectedCropForReport->fecha_cosecha_finalizada ? $selectedCropForReport->fecha_cosecha_finalizada->format('d/m/Y') : date('d/m/Y') }}
+                                    @else
+                                        planificada {{ $selectedCropForReport->fecha_cosecha_estimada ? $selectedCropForReport->fecha_cosecha_estimada->format('d/m/Y') : '---' }}
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cuerpo del Informe en 3 Columnas -->
+            <div class="p-10 space-y-10 max-h-[65vh] overflow-y-auto custom-scrollbar">
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+                    <!-- Columna 1: Perfil Operativo -->
+                    <div class="space-y-6">
+                        <h4 class="text-[11px] font-black text-agri-green uppercase tracking-[0.3em] mb-4 border-b border-slate-100 dark:border-white/5 pb-2">Perfil Operativo</h4>
+                        <div class="space-y-5">
+                            <div class="flex items-center gap-4 group">
+                                <div class="w-12 h-12 bg-slate-50 dark:bg-white/5 rounded-2xl flex items-center justify-center text-agri-green shadow-sm group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-chart-area text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">Área Destinada</p>
+                                    <p class="text-md font-black text-slate-700 dark:text-slate-300 italic">{{ number_format($selectedCropForReport->area_destinada, 2) }} <span class="text-[11px] opacity-50">HA</span></p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 group">
+                                <div class="w-12 h-12 bg-slate-50 dark:bg-white/5 rounded-2xl flex items-center justify-center text-blue-500 shadow-sm group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-mountain text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">Suelo del Terreno</p>
+                                    <p class="text-md font-black text-slate-700 dark:text-slate-300 italic uppercase">{{ $selectedCropForReport->terreno->calidad_suelo }}</p>
+                                </div>
+                            </div>
+
+                            <!-- 4. Riego en Perfil Operativo -->
+                            <div class="flex items-center gap-4 group">
+                                <div class="w-12 h-12 bg-slate-50 dark:bg-white/5 rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-droplet text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">Sistema de Riego</p>
+                                    <p class="text-md font-black text-slate-700 dark:text-slate-300 italic uppercase">{{ $selectedCropForReport->terreno->fuente_agua }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna 2: Distribución de Gastos (5 y 6) -->
+                    <div class="space-y-6">
+                        <h4 class="text-[11px] font-black text-blue-500 uppercase tracking-[0.3em] mb-4 border-b border-slate-100 dark:border-white/5 pb-2">Distribución de Gastos</h4>
+                        <div class="flex flex-col gap-6 bg-slate-50/50 dark:bg-white/5 rounded-[1.5rem] shadow-inner border border-black/5 dark:border-white/5">
+                            <!-- 6. Desglose de Texto de Inversión -->
+                            <div class="bg-white/80 dark:bg-slate-800/40 p-5  border-slate-100 dark:border-white/5 space-y-4 shadow-sm">
+                                <!-- Inversión Total -->
+                                <div class="flex flex-col gap-1 border-b border-slate-100 dark:border-white/5 pb-3 mb-3">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase italic">Inversión Total:</span>
+                                    <span class="text-sm font-black text-slate-800 dark:text-white">
+                                        S/ {{ number_format(
+                                            $reportData['costoInsumos']
+                                            + $reportData['costoManoObra']
+                                            + $reportData['costoMaquinaria'],
+                                            2
+                                        ) }}
+                                    </span>
+                                </div>
+                                <!-- Insumos -->
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-black text-blue-500 uppercase">Insumos:</span>
+                                    <span class="text-xs font-black text-blue-600">S/ {{ number_format($reportData['costoInsumos'], 2) }}</span>
+                                </div>
+                                <!-- Mano de Obra -->
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-black text-amber-500 uppercase">Mano de Obra:</span>
+                                    <span class="text-xs font-black text-amber-600">S/ {{ number_format($reportData['costoManoObra'], 2) }}</span>
+                                </div>
+                                <!-- Maquinaria -->
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-black text-violet-500 uppercase">Maquinaria:</span>
+                                    <span class="text-xs font-black text-violet-600">S/ {{ number_format($reportData['costoMaquinaria'], 2) }}</span>
+                                </div>
+                            </div>
+                            <!-- 5. Chart Circular -->
+                            <div class="h-64 relative">
+                                <div data-react-component="agro-pie-chart"
+                                    data-props="{{ json_encode(['data' => $reportData['chart']]) }}"
+                                    wire:key="report-pie-final-v4-{{ $selectedCropForReport->id }}-{{ array_sum($reportData['chart']['values']) }}"
+                                    class="w-full h-full">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna 3: Balance Económico -->
+                    <div class="space-y-6">
+                        <h4 class="text-[11px] font-black text-violet-500 uppercase tracking-[0.3em] mb-4 border-b border-slate-100 dark:border-white/5 pb-2">Balance Económico</h4>
+                        <div class="space-y-4">
+                            <!-- Nuevos Detalles de Cosecha -->
+                            <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 space-y-4">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 pb-1 mb-1">Resumen de Producción</p>
+                                 <!-- Total Cosechado -->
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-slate-500 uppercase italic">Total Cosechado:</span>
+                                    <span class="text-sm font-black text-agri-green"> {{ number_format($reportData['cantidadCosechada'], 2) }} {{ strtoupper($reportData['unidadCosecha']) }}</span>
+                                </div>
+                                <!-- Precio Promedio Venta -->
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[12px] font-black text-slate-500 uppercase italic">Precio Promedio Venta:</span>
+                                    <span class="text-sm font-black text-blue-500">S/{{ $reportData['cantidadCosechada'] > 0 ? number_format($reportData['ingresosTotales'] / $reportData['cantidadCosechada'], 2): '0.00' }}</span>
+                                </div>
+                            </div>
+                            <div class="p-6 bg-slate-800 dark:bg-black rounded-2xl border border-white/10 shadow-xl overflow-hidden relative group">
+                                <div class="absolute right-0 top-0 opacity-10 p-2 transform rotate-12 transition-transform group-hover:rotate-0"><i class="fa-solid fa-vault text-5xl text-white"></i></div>
+                                <p class="text-[9px] font-black text-slate-200 uppercase tracking-[0.3em] mb-1 italic">Ganancia Final</p>
+                                <h3 class="text-xl font-black {{ $reportData['balance'] >= 0 ? 'text-agri-green' : 'text-rose-500' }} italic tracking-tighter leading-none">S/ {{ number_format($reportData['balance'], 2) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. Desglose y Observaciones Inferiores -->
+                <div class="space-y-6 pt-6 border-t border-slate-100 dark:border-white/5">
+                    <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] italic">Resumen de Rubros Operativos</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="flex items-center gap-5 p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10 shadow-sm">
+                            <div class="w-14 h-14 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center text-2xl shadow-inner"><i class="fa-solid fa-boxes-stacked"></i></div>
+                            <div><p class="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Insumos</p><p class="text-xl font-black text-slate-700 dark:text-white italic leading-none">S/ {{ number_format($reportData['costoInsumos'], 2) }}</p></div>
+                        </div>
+                        <div class="flex items-center gap-5 p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10 shadow-sm">
+                            <div class="w-14 h-14 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center text-2xl shadow-inner"><i class="fa-solid fa-people-group"></i></div>
+                            <div><p class="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Mano de Obra</p><p class="text-xl font-black text-slate-700 dark:text-white italic leading-none">S/ {{ number_format($reportData['costoManoObra'], 2) }}</p></div>
+                        </div>
+                        <div class="flex items-center gap-5 p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10 shadow-sm">
+                            <div class="w-14 h-14 bg-violet-500/10 text-violet-500 rounded-2xl flex items-center justify-center text-2xl shadow-inner"><i class="fa-solid fa-truck-tractor"></i></div>
+                            <div><p class="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Maquinaria</p><p class="text-xl font-black text-slate-700 dark:text-white italic leading-none">S/ {{ number_format($reportData['costoMaquinaria'], 2) }}</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                @if($selectedCropForReport->observaciones)
+                <div class="bg-slate-50 dark:bg-white/5 p-8 rounded-[2.5rem] border-l-4 border-agri-green shadow-inner">
+                    <p class="text-[9px] font-black text-agri-green uppercase mb-2 tracking-widest leading-none">Notas Técnicas de Campaña</p>
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-400 italic">"{{ $selectedCropForReport->observaciones }}"</p>
+                </div>
+                @endif
+            </div>
+
+            <div class="bg-slate-50 dark:bg-black/20 px-10 py-6 flex justify-between items-center border-t border-slate-100 dark:border-white/5">
+                <p class="text-[11px] font-black text-slate-400 uppercase italic">Informe generado automáticamente por AgroSys Cloud</p>
+                <button @click="$dispatch('close')" class="px-12 py-3 bg-slate-800 hover:bg-black text-white rounded-xl font-black text-[11px] uppercase tracking-widest transition-all italic shadow-xl">Cerrar Informe</button>
+            </div>
+        </div>
+        @endif
     </x-modal>
 </div>

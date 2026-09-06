@@ -86,6 +86,16 @@ class Terreno extends Model
     }
 
     /**
+     * Verifica si el alquiler ha vencido.
+     */
+    public function getIsAlquilerVencidoAttribute()
+    {
+        return $this->tipo_tenencia === 'alquilado' &&
+               $this->fecha_vencimiento_alquiler &&
+               $this->fecha_vencimiento_alquiler->isPast();
+    }
+
+    /**
      * Área disponible para nuevos cultivos.
      */
     public function getAreaDisponibleAttribute()

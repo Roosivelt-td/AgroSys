@@ -161,13 +161,13 @@ docker compose up -d --build
 > [!IMPORTANT]
 > Este paso es vital para el cifrado de sesiones y datos.
 ```bash
-docker exec agrosys-app php artisan key:generate
+docker compose exec app php artisan key:generate
 ```
 
 ### 💾 5. Inicialización de Base de Datos
 Crea la estructura de tablas y carga los datos maestros (seeders) y asi mismo generar un enlace simbólico public/storage y/o los permisos para el acceso de vista de las imagenes.
 ```bash
-docker exec agrosys-app php artisan migrate:fresh --seed
+docker compose exec app php artisan migrate:fresh --seed
 docker compose exec app php artisan storage:link
 ```
 

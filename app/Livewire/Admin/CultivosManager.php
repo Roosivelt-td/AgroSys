@@ -59,6 +59,19 @@ class CultivosManager extends Component
     public $terrenoNombreSelected = '';
     public $cultivoNombreSelected = '';
 
+    // Reporte de Cultivo
+    public $selectedCropForReport = null;
+    public $reportData = [
+        'costoInsumos' => 0,
+        'costoManoObra' => 0,
+        'costoMaquinaria' => 0,
+        'ingresosTotales' => 0,
+        'cantidadCosechada' => 0,
+        'unidadCosecha' => 'kg',
+        'balance' => 0,
+        'chart' => []
+    ];
+
     protected $queryString = [
         'searchTerreno', 'searchCultivo', 'searchVariedad',
         'filterStatus', 'filterTerrenoId', 'filterDateStart', 'filterDateEnd', 'chartType'
@@ -125,6 +138,23 @@ class CultivosManager extends Component
         }
     }
 
+    public function openCreateModal()
+    {
+        $this->resetForm();
+
+        if ($this->filterTerrenoId) {
+            $t = Terreno::find($this->filterTerrenoId);
+            if ($t) {
+                $ocupado = Cultivo::where('terreno_id', $t->id)
+                    ->whereIn('estado', ['Planificado', 'En crecimiento'])
+                    ->sum('area_destinada');
+                $this->selectTerreno($t->id, $t->nombre, max(0, $t->hectareas - $ocupado));
+            }
+        }
+
+        $this->dispatch('open-modal', 'modal-crop-manager');
+    }
+
     public function resetForm()
     {
         $this->reset([
@@ -146,7 +176,7 @@ class CultivosManager extends Component
             'catalogo_cultivo_id' => 'required',
             'nombre_lote' => 'required',
             'area_destinada' => "required|numeric|min:0.01|max:{$this->areaDisponible}",
-            'fecha_siembra' => 'required|date',
+            'fecha_planificada' => 'required|date',
             'plantas_estimadas' => 'nullable|integer|min:0',
             'rendimiento_esperado_tn_ha' => 'nullable|numeric|min:0',
             'cropPhoto' => 'nullable|image|max:5120',
@@ -161,15 +191,18 @@ class CultivosManager extends Component
             ArchivoMultimedia::create($fileData);
         }
 
+        // Si quitamos fecha_siembra del form, usamos fecha_planificada por defecto
+        $siembraDate = $this->fecha_planificada;
+
         $data = [
             'terreno_id' => $this->terreno_id,
             'catalogo_cultivo_id' => $this->catalogo_cultivo_id,
             'nombre_lote' => $this->nombre_lote,
             'variedad' => $this->variedad,
             'fecha_planificada' => $this->fecha_planificada,
-            'fecha_siembra' => $this->fecha_siembra,
+            'fecha_siembra' => $siembraDate,
             'fecha_cosecha_estimada' => $this->fecha_cosecha_estimada ?: null,
-            'fecha_cosecha_finalizada' => $this->fecha_cosecha_finalizada ?: null,
+            'fecha_cosecha_finalizada' => null, // Eliminado del form
             'estado' => $this->estado,
             'area_destinada' => $this->area_destinada,
             'plantas_estimadas' => $this->plantas_estimadas ?: 0,
@@ -395,5 +428,63 @@ class CultivosManager extends Component
     public function resetFilters()
     {
         $this->reset(['searchTerreno', 'searchCultivo', 'searchVariedad', 'filterStatus', 'filterTerrenoId', 'filterDateStart', 'filterDateEnd']);
+    }
+
+    public function showCropReport($id)
+    {
+        $crop = Cultivo::with(['labores.insumos', 'labores.cosechaResultado.ventas', 'detalleCatalogo', 'terreno'])->findOrFail($id);
+        $this->selectedCropForReport = $crop;
+
+        $costoInsumos = 0;
+        $costoManoObra = 0;
+        $costoMaquinaria = 0;
+        $ingresosTotales = 0;
+        $cantidadCosechada = 0;
+        $unidadCosecha = 'kg';
+
+        foreach ($crop->labores as $labor) {
+            $cMano = (float)$labor->costo_mano_obra_total;
+            $cMaq = (float)$labor->costo_maquinaria_total;
+            $cTotal = (float)$labor->costo_total;
+
+            $costoManoObra += $cMano;
+            $costoMaquinaria += $cMaq;
+
+            // Calculamos Insumos como la diferencia para mayor precisión
+            $insumoLabor = max(0, $cTotal - ($cMano + $cMaq));
+            $costoInsumos += $insumoLabor;
+
+            if ($labor->cosechaResultado) {
+                $cantidadCosechada += (float)$labor->cosechaResultado->cantidad_kg;
+                $unidadCosecha = $labor->cosechaResultado->unidad_medida;
+                foreach ($labor->cosechaResultado->ventas as $venta) {
+                    $ingresosTotales += ((float)$venta->cantidad_vendida_kg * (float)$venta->precio_por_kg);
+                }
+            }
+        }
+
+        $totalGastos = $costoInsumos + $costoManoObra + $costoMaquinaria;
+
+        // Evitar que el gráfico se rompa si todo es cero
+        $chartValues = [$costoInsumos, $costoManoObra, $costoMaquinaria];
+        $hasData = array_sum($chartValues) > 0;
+
+        $this->reportData = [
+            'costoInsumos' => $costoInsumos,
+            'costoManoObra' => $costoManoObra,
+            'costoMaquinaria' => $costoMaquinaria,
+            'ingresosTotales' => $ingresosTotales,
+            'cantidadCosechada' => $cantidadCosechada,
+            'unidadCosecha' => $unidadCosecha,
+            'balance' => $ingresosTotales - $totalGastos,
+            'chart' => [
+                'labels' => ['Insumos', 'Mano de Obra', 'Maquinaria'],
+                'values' => $hasData ? $chartValues : [],
+                'colors' => ['#3b82f6', '#f59e0b', '#8b5cf6'],
+                'unit' => 'S/'
+            ]
+        ];
+
+        $this->dispatch('open-modal', 'modal-crop-report');
     }
 }

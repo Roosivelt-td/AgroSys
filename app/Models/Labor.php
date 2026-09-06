@@ -72,7 +72,16 @@ class Labor extends Model
     }
 
     /**
+     * Relación: Todas las cosechas vinculadas a esta labor.
+     */
+    public function cosechas()
+    {
+        return $this->hasMany(Cosecha::class, 'labor_id');
+    }
+
+    /**
      * Relación: Si la labor fue de tipo 'cosecha', se vincula con la producción obtenida.
+     * (Mantenido por compatibilidad con informes previos)
      */
     public function cosechaResultado()
     {

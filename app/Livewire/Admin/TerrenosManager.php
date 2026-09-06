@@ -49,6 +49,9 @@ class TerrenosManager extends Component
     public $landPhoto;
     public $currentPhotoPath;
 
+    // Versión para forzar re-montado de componentes React en Modales
+    public $modalVersion = 0;
+
     protected $queryString = ['search', 'filterCrop', 'filterArea'];
 
     public function mount()
@@ -76,13 +79,14 @@ class TerrenosManager extends Component
         $this->landSoil = 'franco';
         $this->landWater = 'Riego por goteo';
         $this->landStatus = 'activo';
+        $this->modalVersion++;
     }
 
     public function save()
     {
         $this->validate([
             'landName' => 'required|string|max:150',
-            'landArea' => 'required|numeric|min:0.1',
+            'landArea' => 'required|numeric|min:0.01',
             'landLat' => 'required',
             'landLng' => 'required',
             'landPolygon' => 'required',
@@ -160,6 +164,7 @@ class TerrenosManager extends Component
         $this->landStatus = $t->estado_terreno;
         $this->currentPhotoPath = $t->foto_path;
         $this->selectedOrgId = $t->organizacion_id;
+        $this->modalVersion++;
 
         $this->dispatch('open-modal', 'modal-add-terrain');
     }
@@ -242,6 +247,11 @@ class TerrenosManager extends Component
             elseif ($this->filterArea === '5-10') $baseQuery->where('hectareas', '>=', 5)->where('hectareas', '<=', 10);
             elseif ($this->filterArea === '10+') $baseQuery->where('hectareas', '>', 10);
         }
+
+        // Ordenar: Alquileres vigentes y terrenos propios primero, vencidos al final
+        $baseQuery->orderByRaw("CASE WHEN tipo_tenencia = 'alquilado' AND fecha_vencimiento_alquiler < CURRENT_DATE THEN 1 ELSE 0 END ASC")
+                  ->orderBy('fecha_vencimiento_alquiler', 'desc')
+                  ->orderBy('created_at', 'desc');
 
         // Clonamos para los totales y mapa antes de paginar
         $allResultsQuery = clone $baseQuery;

@@ -129,23 +129,32 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
     useEffect(() => {
         if (!mapRef.current || mapInstance.current) return;
         const L = window.L;
-        if (!L) return;
+        if (!L) {
+            console.error("[AgroMap] Leaflet (L) no encontrado en window.");
+            return;
+        }
 
+        console.log("[AgroMap] Inicializando mapa...");
         mapInstance.current = L.map(mapRef.current, {
             center: [-13.1606, -74.2257],
             zoom: 15,
             zoomControl: true,
-            fadeAnimation: false,
-            layers: [L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-                maxZoom: 22, subdomains:['mt0','mt1','mt2','mt3'], attribution: '&copy; Google'
-            })]
+            fadeAnimation: false
+        });
+
+        // Capas Base
+        const satellite = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            maxZoom: 22, subdomains:['mt0','mt1','mt2','mt3'], attribution: '&copy; Google'
         });
 
         const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19, attribution: '&copy; OSM'
+            maxZoom: 19, attribution: '&copy; OpenStreetMap'
         });
 
-        L.control.layers({ "Satélite": mapInstance.current.options.layers[0], "Calles": osm }, null, { position: 'bottomright' }).addTo(mapInstance.current);
+        // Agregamos OSM primero para evitar pantallas blancas si Google falla
+        osm.addTo(mapInstance.current);
+
+        L.control.layers({ "Calles (OSM)": osm, "Satélite (Google)": satellite }, null, { position: 'bottomright' }).addTo(mapInstance.current);
 
         markersLayerGroup.current = L.layerGroup().addTo(mapInstance.current);
         drawingLayerGroup.current = L.layerGroup().addTo(mapInstance.current);
@@ -166,16 +175,16 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
         const flyHandler = (e) => {
             const data = Array.isArray(e.detail) ? e.detail[0] : e.detail;
             if (data?.lat && mapInstance.current) {
-                // Zoom 16: Una vista clara pero no tan asfixiante como el 18
-                mapInstance.current.flyTo([data.lat, data.lng], 17, {
-                    animate: true,
-                    duration: 1.5
-                });
+                mapInstance.current.flyTo([data.lat, data.lng], 17, { animate: true, duration: 1.5 });
             }
         };
         window.addEventListener('map-fly-to', flyHandler);
 
         setIsInitialized(true);
+
+        // Corrección de tamaño después del montaje
+        setTimeout(() => mapInstance.current?.invalidateSize(), 500);
+
         return () => window.removeEventListener('map-fly-to', flyHandler);
     }, []);
 

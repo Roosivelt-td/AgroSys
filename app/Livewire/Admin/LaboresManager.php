@@ -35,6 +35,7 @@ class LaboresManager extends Component
 
     public $filterDateStart = '';
     public $filterDateEnd = '';
+    public $filterCropId = null; // Para el enlace desde cultivos
     public $selectedOrgId = null;
 
     // Formulario Modal
@@ -42,6 +43,7 @@ class LaboresManager extends Component
     public $cultivo_id = '';
     public $catalogo_labor_id = '';
     public $fecha_realizacion = '';
+    public $costo_insumos_total = 0;
     public $costo_mano_obra_total = 0;
     public $costo_maquinaria_total = 0;
     public $costo_total = 0;
@@ -49,6 +51,10 @@ class LaboresManager extends Component
     public $observaciones = '';
     public $laborPhoto;
     public $currentPhotoPath;
+
+    // Campos Especializados para COSECHA
+    public $esCosecha = false;
+    public $itemsCosecha = [];
 
     // Registros Dinámicos
     public $itemsInsumos = [];
@@ -78,7 +84,14 @@ class LaboresManager extends Component
     public $viewingLabor = null;
     public $viewTimestamp = '';
 
-    protected $queryString = ['fStatus', 'fLand', 'fCat', 'fVariety', 'fExactCrop', 'fLaborId', 'filterDateStart', 'filterDateEnd'];
+    // Propiedades para Registro Rápido de Proveedor
+    public $newProvNombre;
+    public $newProvRuc;
+    public $newProvTelf;
+    public $newProvTipo = 'Insumos';
+    public $currentInsumoIdx = null;
+
+    protected $queryString = ['fStatus', 'fLand', 'fCat', 'fVariety', 'fExactCrop', 'fLaborId', 'filterDateStart', 'filterDateEnd', 'filterCropId'];
 
     public function mount()
     {
@@ -86,10 +99,11 @@ class LaboresManager extends Component
         $membresia = MiembroOrganizacion::where('usuario_id', Auth::id())->where('estado', 1)->first();
         if ($membresia) $this->selectedOrgId = $membresia->organizacion_id;
 
-        if (request()->has('filterCropId')) {
-            $c = Cultivo::find(request('filterCropId'));
+        if (request()->has('filterCropId') || $this->filterCropId) {
+            $this->filterCropId = request('filterCropId') ?? $this->filterCropId;
+            $c = Cultivo::with('terreno', 'detalleCatalogo')->find($this->filterCropId);
             if ($c) {
-                $this->fExactCrop = $c->nombre_lote;
+                $this->fExactCrop = $c->descripcion_completa;
                 $this->fLand = $c->terreno->nombre;
             }
         }
@@ -97,7 +111,34 @@ class LaboresManager extends Component
         $this->checkLaborAvailability($this->cultivo_id);
     }
 
-    public function resetFilters() { $this->reset(['fStatus', 'fLand', 'fCat', 'fVariety', 'fExactCrop', 'fLaborId', 'filterDateStart', 'filterDateEnd']); }
+    public function resetFilters() { $this->reset(['fStatus', 'fLand', 'fCat', 'fVariety', 'fExactCrop', 'fLaborId', 'filterDateStart', 'filterDateEnd', 'filterCropId']); }
+
+    public function openCreateModal()
+    {
+        $this->resetForm();
+
+        if ($this->filterCropId) {
+            $c = Cultivo::with('terreno', 'detalleCatalogo')->find($this->filterCropId);
+            if ($c) {
+                $this->cultivo_id = $c->id;
+                $this->updatedCultivoId($c->id); // Carga datos del cultivo
+
+                // Configurar el asistente de selección (resumen del modal)
+                $this->selStatus = $c->estado === 'En crecimiento' ? 'En proceso' : ($c->estado === 'Cosechado' ? 'Completada' : $c->estado);
+                $this->selLandId = $c->terreno_id;
+                $this->selCatId = $c->catalogo_cultivo_id;
+                $this->selVarName = $c->variedad;
+
+                $this->landNombreSelected = strtoupper($c->terreno->nombre);
+                $this->catNombreSelected = strtoupper($c->detalleCatalogo->nombre);
+                $this->cropNombreSelected = strtoupper($c->descripcion_completa);
+                $this->cropFechaPlanificada = $c->fecha_siembra;
+                $this->cropHectareas = $c->area_destinada;
+            }
+        }
+
+        $this->dispatch('open-modal', 'modal-labor-manager');
+    }
 
     public function checkLaborAvailability($cropId = null)
     {
@@ -159,6 +200,8 @@ class LaboresManager extends Component
     public function selectLaborType($catId)
     {
         $cat = CatalogoLabor::find($catId);
+        $this->esCosecha = ($cat && $cat->categoria === 'cosecha');
+
         if ($this->cultivo_id) {
             $this->checkLaborAvailability($this->cultivo_id);
             $catKey = $cat->categoria;
@@ -221,27 +264,153 @@ class LaboresManager extends Component
             $this->costo_maquinaria_total += (float)$item['costo_total'];
         }
 
-        $insTotal = 0;
+        $this->costo_insumos_total = 0;
         foreach($this->itemsInsumos as $item) {
-            $insTotal += ((float)$item['cantidad'] * (float)$item['costo_unitario']) + (float)$item['costo_flete'];
+            $this->costo_insumos_total += ((float)$item['cantidad'] * (float)$item['costo_unitario']) + (float)$item['costo_flete'];
         }
 
-        $this->costo_total = $this->costo_mano_obra_total + $this->costo_maquinaria_total + $insTotal;
+        $this->costo_total = $this->costo_mano_obra_total + $this->costo_maquinaria_total + $this->costo_insumos_total;
     }
 
     public function save()
     {
-        $this->validate(['cultivo_id' => 'required', 'catalogo_labor_id' => 'required', 'fecha_realizacion' => 'required|date|before_or_equal:today', 'costo_total' => 'required|numeric']);
+        $rules = [
+            'cultivo_id' => 'required',
+            'catalogo_labor_id' => 'required',
+            'fecha_realizacion' => 'required|date|before_or_equal:today',
+            'costo_total' => 'required|numeric'
+        ];
+
+        if ($this->esCosecha) {
+            $rules['itemsCosecha.*.cantidad'] = 'required|numeric|min:0.01';
+            $rules['itemsCosecha.*.unidad'] = 'required';
+            $rules['itemsCosecha.*.calidad'] = 'required';
+        }
+
+        $this->validate($rules);
+
         return DB::transaction(function() {
-            $user = Auth::user(); $path = $this->currentPhotoPath;
-            if ($this->laborPhoto) { $fileData = AgroStorageService::storeUserFile($this->laborPhoto, $user, 'labor', $this->selectedOrgId); $path = $fileData['ruta_completa']; ArchivoMultimedia::create($fileData); }
-            $data = ['cultivo_id' => $this->cultivo_id, 'catalogo_labor_id' => $this->catalogo_labor_id, 'fecha_realizacion' => $this->fecha_realizacion, 'costo_mano_obra_total' => $this->costo_mano_obra_total, 'costo_maquinaria_total' => $this->costo_maquinaria_total, 'costo_total' => $this->costo_total, 'estado' => $this->estado, 'observaciones' => $this->observaciones, 'foto_path' => $path];
-            if ($this->laborId) { $labor = Labor::find($this->laborId); $labor->update($data); $labor->insumos()->delete(); $labor->manoDeObra()->delete(); $labor->maquinaria()->delete(); } else { $labor = Labor::create($data); }
+            $user = Auth::user();
+            $path = $this->currentPhotoPath;
+
+            if ($this->laborPhoto) {
+                $fileData = AgroStorageService::storeUserFile($this->laborPhoto, $user, 'labor', $this->selectedOrgId);
+                $path = $fileData['ruta_completa'];
+                ArchivoMultimedia::create($fileData);
+            }
+
+            $data = [
+                'cultivo_id' => $this->cultivo_id,
+                'catalogo_labor_id' => $this->catalogo_labor_id,
+                'fecha_realizacion' => $this->fecha_realizacion,
+                'costo_mano_obra_total' => (float)$this->costo_mano_obra_total,
+                'costo_maquinaria_total' => (float)$this->costo_maquinaria_total,
+                'costo_total' => (float)$this->costo_total,
+                'estado' => $this->estado,
+                'observaciones' => $this->observaciones,
+                'foto_path' => $path
+            ];
+
+            if ($this->laborId) {
+                $labor = Labor::find($this->laborId);
+                $labor->update($data);
+                $labor->insumos()->delete();
+                $labor->manoDeObra()->delete();
+                $labor->maquinaria()->delete();
+                \App\Models\Cosecha::where('labor_id', $labor->id)->delete();
+            } else {
+                $labor = Labor::create($data);
+            }
+
+            // 1. Guardar Cosechas
+            if ($this->esCosecha) {
+                $crop = Cultivo::find($this->cultivo_id);
+
+                // Actualizar estado del cultivo a Cosechado
+                $crop->update([
+                    'estado' => 'Cosechado',
+                    'fecha_cosecha_finalizada' => $this->fecha_realizacion
+                ]);
+
+                foreach ($this->itemsCosecha as $item) {
+                    if ($item['cantidad'] > 0) {
+                        \App\Models\Cosecha::create([
+                            'labor_id' => $labor->id,
+                            'fecha_cosecha' => $this->fecha_realizacion,
+                            'cantidad_kg' => $item['cantidad'],
+                            'unidad_medida' => $item['unidad'],
+                            'calidad' => $item['calidad'],
+                            'lote_codigo' => $crop->nombre_lote,
+                            'costo_operativo_cosecha' => $item['costo_operativo'] ?: 0,
+                            'observaciones' => $this->observaciones,
+                            'foto_path' => $path
+                        ]);
+                    }
+                }
+            }
+
+            // 2. Guardar Insumos (con creación automática si no existe el ID)
+            foreach($this->itemsInsumos as $item) {
+                if (!empty($item['insumo_nombre'])) {
+                    $idInsumo = $item['insumo_id'];
+
+                    // Si no tiene ID pero sí nombre, lo buscamos o creamos en el catálogo
+                    if (empty($idInsumo)) {
+                        $nuevoInsumo = \App\Models\CatalogoInsumo::firstOrCreate(
+                            ['nombre' => strtoupper($item['insumo_nombre'])],
+                            ['categoria' => 'OTROS', 'unidad_medida' => 'ud']
+                        );
+                        $idInsumo = $nuevoInsumo->id;
+                    }
+
+                    $labor->insumos()->create([
+                        'catalogo_insumo_id' => $idInsumo,
+                        'proveedor_id' => $item['proveedor_id'] ?: null,
+                        'cantidad' => $item['cantidad'],
+                        'costo_unitario' => $item['costo_unitario'],
+                        'costo_flete' => $item['costo_flete'] ?: 0
+                    ]);
+                }
+            }
+
+            // 3. Guardar Mano de Obra
+            foreach($this->itemsManoObra as $item) {
+                if (!empty($item['tipo_id'])) {
+                    $labor->manoDeObra()->create([
+                        'tipo_id' => $item['tipo_id'],
+                        'cantidad_trabajadores' => $item['cantidad'],
+                        'dias_trabajados' => $item['dias'],
+                        'costo_por_dia' => $item['costo_dia'],
+                        'subtotal' => ($item['cantidad'] * $item['dias'] * $item['costo_dia'])
+                    ]);
+                }
+            }
+
+            // 4. Guardar Maquinaria
             $mainLaborName = CatalogoLabor::find($this->catalogo_labor_id)->nombre ?? 'Labor Realizada';
-            foreach($this->itemsInsumos as $item) if ($item['insumo_id']) $labor->insumos()->create(['catalogo_insumo_id' => $item['insumo_id'], 'proveedor_id' => $item['proveedor_id'] ?: null, 'cantidad' => $item['cantidad'], 'costo_unitario' => $item['costo_unitario'], 'costo_flete' => $item['costo_flete']]);
-            foreach($this->itemsManoObra as $item) if ($item['tipo_id']) $labor->manoDeObra()->create(['tipo_id' => $item['tipo_id'], 'cantidad_trabajadores' => $item['cantidad'], 'dias_trabajados' => $item['dias'], 'costo_por_dia' => $item['costo_dia'], 'subtotal' => ($item['cantidad'] * $item['dias'] * $item['costo_dia'])]);
-            foreach($this->itemsMaquinaria as $item) if ($item['nombre']) $labor->maquinaria()->create(['nombre_maquinaria' => $item['nombre'], 'labor_realizada' => $item['labor'] ?: $mainLaborName, 'horas_trabajadas' => $item['horas'], 'costo_total' => $item['costo_total']]);
-            $this->dispatch('close-modal', 'modal-labor-manager'); $this->resetForm(); session()->flash('status', "Labor guardada.");
+            foreach($this->itemsMaquinaria as $item) {
+                if (!empty($item['nombre'])) {
+                    $labor->maquinaria()->create([
+                        'nombre_maquinaria' => $item['nombre'],
+                        'labor_realizada' => $item['labor'] ?: $mainLaborName,
+                        'horas_trabajadas' => $item['horas'],
+                        'costo_total' => $item['costo_total']
+                    ]);
+                }
+            }
+
+            // Si es labor de Siembra, actualizar el cultivo
+            $laborCat = CatalogoLabor::find($this->catalogo_labor_id)->categoria ?? '';
+            if ($laborCat === 'siembra') {
+                Cultivo::where('id', $this->cultivo_id)->update([
+                    'estado' => 'En crecimiento',
+                    'fecha_siembra' => $this->fecha_realizacion
+                ]);
+            }
+
+            $this->dispatch('close-modal', 'modal-labor-manager');
+            $this->resetForm();
+            session()->flash('status', "Labor guardada correctamente.");
         });
     }
 
@@ -263,12 +432,17 @@ class LaboresManager extends Component
         }
 
         // Filtros de Barra %...%
-        if ($this->fStatus) $baseQuery->where('estado', $this->fStatus);
-        if ($this->fLand) $baseQuery->whereHas('cultivo.terreno', fn($q) => $q->where('nombre', 'like', '%'.$this->fLand.'%'));
-        if ($this->fCat) $baseQuery->whereHas('cultivo.detalleCatalogo', fn($q) => $q->where('nombre', 'like', '%'.$this->fCat.'%'));
-        if ($this->fVariety) $baseQuery->whereHas('cultivo', fn($q) => $q->where('variedad', 'like', '%'.$this->fVariety.'%'));
-        if ($this->fExactCrop) $baseQuery->whereHas('cultivo', fn($q) => $q->where('nombre_lote', 'like', '%'.$this->fExactCrop.'%'));
-        if ($this->fLaborId) $baseQuery->where('catalogo_labor_id', $this->fLaborId);
+        if ($this->filterCropId) {
+            $baseQuery->where('cultivo_id', $this->filterCropId);
+        } else {
+            if ($this->fStatus) $baseQuery->where('estado', $this->fStatus);
+            if ($this->fLand) $baseQuery->whereHas('cultivo.terreno', fn($q) => $q->where('nombre', 'like', '%'.$this->fLand.'%'));
+            if ($this->fCat) $baseQuery->whereHas('cultivo.detalleCatalogo', fn($q) => $q->where('nombre', 'like', '%'.$this->fCat.'%'));
+            if ($this->fVariety) $baseQuery->whereHas('cultivo', fn($q) => $q->where('variedad', 'like', '%'.$this->fVariety.'%'));
+            if ($this->fExactCrop) $baseQuery->whereHas('cultivo', fn($q) => $q->where('nombre_lote', 'like', '%'.$this->fExactCrop.'%'));
+            if ($this->fLaborId) $baseQuery->where('catalogo_labor_id', $this->fLaborId);
+        }
+
         if ($this->filterDateStart) $baseQuery->whereDate('fecha_realizacion', '>=', $this->filterDateStart);
         if ($this->filterDateEnd) $baseQuery->whereDate('fecha_realizacion', '<=', $this->filterDateEnd);
 
@@ -339,12 +513,13 @@ class LaboresManager extends Component
 
     public function resetForm() {
         $this->reset([
-            'laborId', 'cultivo_id', 'catalogo_labor_id', 'costo_mano_obra_total',
+            'laborId', 'cultivo_id', 'catalogo_labor_id', 'costo_insumos_total', 'costo_mano_obra_total',
             'costo_maquinaria_total', 'costo_total', 'estado', 'observaciones',
             'laborPhoto', 'currentPhotoPath', 'selStatus', 'selLandId', 'selCatId',
             'selVarName', 'landNombreSelected', 'catNombreSelected', 'cropNombreSelected',
             'cropFechaPlanificada', 'cropHectareas', 'cropEstado', 'step', 'strictMode',
-            'viewingLabor', 'itemsInsumos', 'itemsManoObra', 'itemsMaquinaria'
+            'viewingLabor', 'itemsInsumos', 'itemsManoObra', 'itemsMaquinaria',
+            'esCosecha', 'itemsCosecha'
         ]);
         $this->fecha_realizacion = date('Y-m-d');
         $this->estado = 'Pendiente';
@@ -365,7 +540,7 @@ class LaboresManager extends Component
         $this->dispatch('open-modal', 'modal-view-labor');
     }
     public function edit($id) {
-        $l = Labor::with(['cultivo.terreno', 'insumos.detalleCatalogo', 'insumos.proveedor', 'manoDeObra.tipoPersona', 'maquinaria'])->find($id);
+        $l = Labor::with(['cultivo.terreno', 'insumos.detalleCatalogo', 'insumos.proveedor', 'manoDeObra.tipoPersona', 'maquinaria', 'cosechas'])->find($id);
         $this->laborId = $l->id;
         $this->cultivo_id = $l->cultivo_id;
         $this->catalogo_labor_id = $l->catalogo_labor_id;
@@ -376,6 +551,20 @@ class LaboresManager extends Component
         $this->costo_maquinaria_total = $l->costo_maquinaria_total;
         $this->costo_total = $l->costo_total;
         $this->currentPhotoPath = $l->foto_path;
+
+        $this->esCosecha = ($l->detalleCatalogo->categoria === 'cosecha');
+        if ($this->esCosecha) {
+            $this->itemsCosecha = $l->cosechas->map(fn($c) => [
+                'cantidad' => $c->cantidad_kg,
+                'unidad' => $c->unidad_medida,
+                'calidad' => $c->calidad,
+                'costo_operativo' => $c->costo_operativo_cosecha
+            ])->toArray();
+
+            if (count($this->itemsCosecha) === 0) {
+                $this->addItemCosecha();
+            }
+        }
 
         // Cargar ítems dinámicos con nombres explícitos
         $this->itemsInsumos = $l->insumos->map(fn($i) => [
@@ -406,6 +595,8 @@ class LaboresManager extends Component
             'costo_total' => $mq->costo_total
         ])->toArray();
 
+        $this->calculateTotals();
+
         // Configurar cascada para resumen del modal
         $c = $l->cultivo;
         $this->selStatus = $c->estado === 'En crecimiento' ? 'En proceso' : ($c->estado === 'Cosechado' ? 'Completada' : $c->estado);
@@ -424,9 +615,10 @@ class LaboresManager extends Component
     }
     public function delete($id) { Labor::destroy($id); session()->flash('status', "Registro eliminado."); }
     public function addItemInsumo() { $this->itemsInsumos[] = ['id' => '', 'insumo_id' => '', 'insumo_nombre' => '', 'proveedor_id' => '', 'proveedor_nombre' => '', 'cantidad' => 1, 'costo_unitario' => 0, 'costo_flete' => 0]; }
+    public function addItemCosecha() { $this->itemsCosecha[] = ['cantidad' => 0, 'unidad' => 'kg', 'calidad' => 'primera', 'costo_operativo' => 0]; }
     public function addItemManoObra() { $this->itemsManoObra[] = ['id' => '', 'tipo_id' => '', 'tipo_nombre' => '', 'cantidad' => 1, 'dias' => 1, 'costo_dia' => 0]; }
     public function addItemMaquinaria() { $this->itemsMaquinaria[] = ['id' => '', 'nombre' => '', 'labor' => '', 'horas' => 1, 'costo_total' => 0]; }
-    public function removeItem($type, $index) { if ($type === 'insumo') unset($this->itemsInsumos[$index]); elseif ($type === 'mano') unset($this->itemsManoObra[$index]); elseif ($type === 'maq') unset($this->itemsMaquinaria[$index]); $this->itemsInsumos = array_values($this->itemsInsumos); $this->itemsManoObra = array_values($this->itemsManoObra); $this->itemsMaquinaria = array_values($this->itemsMaquinaria); $this->calculateTotals(); }
+    public function removeItem($type, $index) { if ($type === 'insumo') unset($this->itemsInsumos[$index]); elseif ($type === 'mano') unset($this->itemsManoObra[$index]); elseif ($type === 'maq') unset($this->itemsMaquinaria[$index]); elseif ($type === 'harvest') unset($this->itemsCosecha[$index]); $this->itemsInsumos = array_values($this->itemsInsumos); $this->itemsManoObra = array_values($this->itemsManoObra); $this->itemsMaquinaria = array_values($this->itemsMaquinaria); $this->itemsCosecha = array_values($this->itemsCosecha); $this->calculateTotals(); }
     public function searchInsumo($idx, $val) { $this->activeIdx = $idx; $this->queryIns = $val; $this->showIns = true; }
     public function selectInsumoItem($idx, $id, $nombre) { $this->itemsInsumos[$idx]['insumo_id'] = $id; $this->itemsInsumos[$idx]['insumo_nombre'] = $nombre; $this->showIns = false; $this->activeIdx = null; }
     public function openAddProvider($idx = null) { $this->currentInsumoIdx = $idx; $this->dispatch('open-modal', 'modal-add-provider'); }

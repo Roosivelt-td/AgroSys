@@ -67,10 +67,10 @@
                     @if($activeLandId)
                         @php $activeL = \App\Models\Terreno::find($activeLandId); @endphp
                         <p class="text-[9px] font-black text-white/60 uppercase tracking-[0.3em] mb-1">Analizando: {{ $activeL->nombre }}</p>
-                        <h4 class="text-4xl font-black text-white italic tracking-tighter">{{ number_format($activeL->hectareas, 1) }} <span class="text-lg font-bold opacity-50 uppercase">ha</span></h4>
+                        <h4 class="text-4xl font-black text-white italic tracking-tighter">{{ number_format($activeL->hectareas, 2) }} <span class="text-lg font-bold opacity-50 uppercase">ha</span></h4>
                     @else
                         <p class="text-[9px] font-black text-white/60 uppercase tracking-[0.3em] mb-1">Superficie Total</p>
-                        <h4 class="text-4xl font-black text-white italic tracking-tighter">{{ number_format($totalArea, 1) }} <span class="text-lg font-bold opacity-50 uppercase">ha</span></h4>
+                        <h4 class="text-4xl font-black text-white italic tracking-tighter">{{ number_format($totalArea, 2) }} <span class="text-lg font-bold opacity-50 uppercase">ha</span></h4>
                     @endif
                 </div>
 
@@ -107,8 +107,11 @@
         </div>
 
         @if(!$activeLandId)
-            <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-2 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl min-h-[350px]" wire:ignore>
-                <div data-react-component="agro-map-terrenos" data-props="{{ json_encode(['terrenos' => $mapData]) }}" class="w-full h-full rounded-[2rem] overflow-hidden"></div>
+            <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-2 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl min-h-[450px]" wire:ignore>
+                <div data-react-component="agro-map-terrenos"
+                     data-props="{{ json_encode(['terrenos' => $mapData]) }}"
+                     wire:key="main-map-{{ count($mapData) }}"
+                     class="w-full h-full rounded-[2rem] overflow-hidden min-h-[430px]"></div>
             </div>
         @endif
     </div>
@@ -224,7 +227,7 @@
                         <div class="space-y-5 text-right border-l border-slate-100 dark:border-white/5 pl-4">
                             <div>
                                 <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-3">Situación Legal</p>
-                                <span class="inline-block px-3 py-1.5 bg-slate-50 dark:bg-[#0a1a19] border border-slate-200 dark:border-white/10 rounded-lg text-[10px] font-black text-agri-green uppercase tracking-widest italic shadow-sm group-hover/info:bg-agri-green group-hover/info:text-white transition-all">
+                                <span class="inline-block px-3 py-1.5 {{ $terreno->is_alquiler_vencido ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-100 dark:border-rose-900/50 text-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.1)]' : 'bg-slate-50 dark:bg-[#0a1a19] border-slate-200 dark:border-white/10 text-agri-green' }} border rounded-lg text-[10px] font-black uppercase tracking-widest italic shadow-sm group-hover/info:bg-agri-green group-hover/info:text-white transition-all">
                                     {{ strtoupper($terreno->tipo_tenencia) }}
                                 </span>
 
@@ -238,8 +241,10 @@
 
                                 @if($terreno->tipo_tenencia === 'alquilado')
                                     <div class="mt-2 space-y-0.5">
-                                        <p class="text-[10px] font-black text-amber-500 italic group-hover/info:scale-110 transition-transform origin-right">S/ {{ number_format($terreno->costo_alquiler_anual, 2) }}</p>
-                                        <p class="text-[10px] font-black text-slate-400 uppercase italic">Vence: {{ $terreno->fecha_vencimiento_alquiler ? $terreno->fecha_vencimiento_alquiler->format('d/m/Y') : 'N/A' }}</p>
+                                        <p class="text-[10px] font-black {{ $terreno->is_alquiler_vencido ? 'text-rose-500 animate-pulse' : 'text-amber-500' }} italic group-hover/info:scale-110 transition-transform origin-right">S/ {{ number_format($terreno->costo_alquiler_anual, 2) }}</p>
+                                        <p class="text-[10px] font-black {{ $terreno->is_alquiler_vencido ? 'text-rose-600' : 'text-slate-400' }} uppercase italic">
+                                            {{ $terreno->is_alquiler_vencido ? 'FINALIZADO' : 'VENCE' }}: {{ $terreno->fecha_vencimiento_alquiler ? $terreno->fecha_vencimiento_alquiler->format('d/m/Y') : 'N/A' }}
+                                        </p>
                                     </div>
                                 @endif
                             </div>
@@ -285,9 +290,10 @@
                                 'tenure' => $landTenure,
                                 'terrenos' => $mapData,
                                 'initialPoints' => $landPolygon ? json_decode($landPolygon) : null,
-                                'center' => ($landLat && $landLng) ? ['lat' => (float)$landLat, 'lng' => (float)$landLng] : null
+                                'center' => ($landLat && $landLng) ? ['lat' => (float)$landLat, 'lng' => (float)$landLng] : null,
+                                'version' => $modalVersion ?? 0
                              ]) }}"
-                             wire:key="draw-map-{{ $landId ?? 'new' }}"
+                             wire:key="draw-map-{{ $landId ?? 'new' }}-{{ $modalVersion ?? 0 }}"
                              class="w-full h-full"></div>
                         <div class="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-xl text-[9px] font-black text-white uppercase z-[2] flex flex-col gap-1">
                             <span><i class="fa-solid fa-mouse-pointer mr-2"></i>Clic: Añadir punto</span>
@@ -324,7 +330,7 @@
                         </div>
                         <div class="space-y-1.5">
                             <x-input-label for="landArea" :value="__('Área (Hectáreas) *')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest" />
-                            <x-text-input wire:model="landArea" id="landArea" type="number" step="0.1" class="block w-full" placeholder="0.0" required />
+                            <x-text-input wire:model="landArea" id="landArea" type="number" step="0.01" class="block w-full" placeholder="0.00" required />
                         </div>
                         <div class="space-y-1.5 md:col-span-2">
                             <x-input-label for="landLocation" :value="__('Ubicación Detectada (Auto)')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest" />

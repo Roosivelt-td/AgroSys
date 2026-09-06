@@ -56,6 +56,23 @@ class Cultivo extends Model
     }
 
     /**
+     * Obtiene una descripción legible y completa del cultivo para banners y reportes.
+     */
+    public function getDescripcionCompletaAttribute()
+    {
+        $area = number_format($this->area_destinada, 2);
+        $cultivo = strtoupper($this->detalleCatalogo->nombre);
+        $variedad = strtoupper($this->variedad ?: 'GENERICA');
+        $tipoFecha = ($this->estado === 'Planificado') ? 'PLANIFICADO' : 'SEMBRADO';
+        $fecha = ($this->estado === 'Planificado')
+            ? ($this->fecha_planificada ? $this->fecha_planificada->format('d/m/Y') : '---')
+            : ($this->fecha_siembra ? $this->fecha_siembra->format('d/m/Y') : '---');
+        $terreno = strtoupper($this->terreno->nombre);
+
+        return "{$area} HA DE {$cultivo} {$variedad}, {$tipoFecha} EL {$fecha} EN EL TERRENO {$terreno}";
+    }
+
+    /**
      * Relación: Actividades realizadas a este cultivo (Riego, Abono, etc.).
      */
     public function labores()
