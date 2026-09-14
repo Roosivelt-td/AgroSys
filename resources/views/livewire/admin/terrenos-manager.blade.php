@@ -373,6 +373,7 @@
                             </select>
                         </div>
 
+                        @if($landRentMod === 'global')
                         <div class="space-y-1.5 animate-in slide-in-from-top-2">
                             <x-input-label for="landRentPeriod" :value="__('Periodo de Alquiler')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest" />
                             <select wire:model.live="landRentPeriod" id="landRentPeriod" class="block w-full bg-slate-50 dark:bg-white/5 border-none rounded-xl text-xs font-bold">
@@ -380,16 +381,21 @@
                                 <option value="anual">Anual</option>
                             </select>
                         </div>
+                        @endif
 
                         <div class="space-y-1.5 animate-in slide-in-from-top-2">
                             <x-input-label for="landRentStart" :value="__('Fecha Inicio')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest" />
-                            <x-text-input wire:model="landRentStart" id="landRentStart" type="date" class="block w-full" />
+                            <x-text-input wire:model.live="landRentStart" id="landRentStart" type="date" class="block w-full" />
+                            <x-input-error :messages="$errors->get('landRentStart')" class="mt-2" />
                         </div>
 
+                        @if($landRentMod === 'global')
                         <div class="space-y-1.5 animate-in slide-in-from-top-2">
                             <x-input-label for="landRentEnd" :value="__('Fecha Vencimiento')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest" />
-                            <x-text-input wire:model="landRentEnd" id="landRentEnd" type="date" class="block w-full" />
+                            <x-text-input wire:model="landRentEnd" id="landRentEnd" type="date" class="block w-full" :readonly="$landRentPeriod === 'anual'" />
+                            <x-input-error :messages="$errors->get('landRentEnd')" class="mt-2" />
                         </div>
+                        @endif
                         @endif
                     </div>
                 </div>
@@ -553,8 +559,12 @@
                                             <span class="text-xs font-black text-slate-700 dark:text-slate-300 italic">S/ {{ number_format($selectedLandForDetail->costo_alquiler_anual, 2) }}</span>
                                         </div>
                                         <div class="flex justify-between items-end">
+                                            <span class="text-[9px] text-slate-500 font-bold uppercase">Fecha Inicio:</span>
+                                            <span class="text-xs font-black text-slate-700 dark:text-slate-300 italic">{{ $selectedLandForDetail->fecha_alquiler ? $selectedLandForDetail->fecha_alquiler->format('d M, Y') : 'N/A' }}</span>
+                                        </div>
+                                        <div class="flex justify-between items-end">
                                             <span class="text-[9px] text-slate-500 font-bold uppercase">Vencimiento:</span>
-                                            <span class="text-xs font-black text-rose-500 italic">{{ $selectedLandForDetail->fecha_vencimiento_alquiler ? $selectedLandForDetail->fecha_vencimiento_alquiler->format('d M, Y') : 'N/A' }}</span>
+                                            <span class="text-xs font-black text-rose-500 italic">{{ $selectedLandForDetail->fecha_vencimiento_alquiler ? $selectedLandForDetail->fecha_vencimiento_alquiler->format('d M, Y') : '1 campaña' }}</span>
                                         </div>
                                     </div>
                                 </div>

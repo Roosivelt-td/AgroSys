@@ -2,7 +2,6 @@
 
     <!-- CABECERA PREMIUM -->
     <div class="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl flex flex-col lg:flex-row items-center justify-between gap-6 relative overflow-hidden">
-
         <div data-react-component="agro-logo-premium"
              data-props="{{ json_encode([
                  'src' => asset('AgroSys_logo.png'),
@@ -11,7 +10,7 @@
              ]) }}"
              class="z-10"></div>
 
-        <!-- Indicadores Climáticos en Cabecera (Línea Recta) -->
+        <!-- Indicadores Climáticos en Cabecera -->
         <div class="flex flex-wrap items-center gap-6 bg-slate-50 dark:bg-white/5 px-8 py-4 rounded-[2rem] border border-black/5 dark:border-white/5 shadow-inner">
             <div class="flex items-center gap-3">
                 <i class="fa-solid {{ $current['icon'] }} text-amber-500 text-2xl"></i>
@@ -20,9 +19,7 @@
                     <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{{ $current['condicion'] }}</span>
                 </div>
             </div>
-
             <div class="w-px h-8 bg-slate-200 dark:bg-white/10"></div>
-
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-droplet text-blue-500 text-sm"></i>
                 <div class="flex flex-col">
@@ -30,7 +27,6 @@
                     <span class="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Humedad</span>
                 </div>
             </div>
-
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-wind text-slate-400 text-sm"></i>
                 <div class="flex flex-col">
@@ -38,20 +34,11 @@
                     <span class="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Viento</span>
                 </div>
             </div>
-
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-gauge-high text-emerald-500 text-sm"></i>
                 <div class="flex flex-col">
                     <span class="text-[13px] font-bold text-slate-700 dark:text-slate-200 leading-none">{{ $current['presion'] }} hPa</span>
                     <span class="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Presión</span>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-3">
-                <i class="fa-solid fa-cloud-rain text-blue-400 text-sm"></i>
-                <div class="flex flex-col">
-                    <span class="text-[13px] font-bold text-slate-700 dark:text-slate-200 leading-none">23%</span>
-                    <span class="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Prob. Lluvia</span>
                 </div>
             </div>
         </div>
@@ -62,58 +49,162 @@
         </div>
     </div>
 
-    <!-- CUERPO PRINCIPAL (Grilla Rediseñada) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- 1. ALERTAS INTELIGENTES (BANNER AMARILLO SOLICITADO) -->
+    <div class="bg-amber-50 dark:bg-amber-900/10 rounded-2xl shadow-sm p-5 border-l-4 border-amber-500 animate-in slide-in-from-top-2 duration-500">
+        <div class="flex items-center gap-3 mb-2">
+            <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm"></i>
+            <h2 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Alertas inteligentes</h2>
+        </div>
+        <div class="flex items-center gap-2 bg-white/50 dark:bg-white/5 px-4 py-2 rounded-xl border border-white/20 w-fit">
+            <i class="fa-solid fa-bell text-slate-400 text-[10px]"></i>
+            <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 italic">
+                @if(count($generalRecs) > 0 && $generalRecs[0]['type'] !== 'Clima Estable')
+                    {{ $generalRecs[0]['msg'] }}
+                @else
+                    Sin alertas climáticas activas. Todo estable.
+                @endif
+            </p>
+        </div>
+    </div>
 
-        <!-- Bloque Izquierdo (Mapa con Selectores en Cabecera) -->
-        <div class="lg:col-span-5">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-2xl flex flex-col h-[450px]">
-
-                <!-- Selectores integrados en cabecera de tarjeta -->
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="relative flex-1">
-                        <i class="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-agri-green text-[10px]"></i>
-                        <select wire:model.live="selectedTerrenoId" class="w-full pl-8 pr-6 py-2 bg-slate-50 dark:bg-white/5 border-none rounded-xl text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-agri-green appearance-none italic">
-                            <option value="">VER TODOS LOS TERRENOS</option>
-                            @foreach($terrenos as $t) <option value="{{ $t->id }}">{{ $t->nombre }}</option> @endforeach
-                        </select>
-                    </div>
-                    <div class="relative flex-1">
-                        <i class="fa-solid fa-leaf absolute left-3 top-1/2 -translate-y-1/2 text-blue-500 text-[10px]"></i>
-                        <select wire:model.live="selectedCropId" class="w-full pl-8 pr-6 py-2 bg-slate-50 dark:bg-white/5 border-none rounded-xl text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-blue-500 appearance-none italic">
-                            <option value="">CULTIVOS ACTIVOS</option>
-                            @foreach($cultivos as $c)
-                                <option value="{{ $c->id }}">{{ $c->detalleCatalogo->nombre }} - {{ $c->variedad }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+    <!-- 2. IA PREDICCIÓN Y RECOMENDACIONES (MODO INTELIGENTE) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- IA Predicción de plagas -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 border border-slate-100 dark:border-white/5 space-y-4 hover:shadow-2xl transition-all group/card relative overflow-hidden">
+            <div class="flex justify-between items-center relative z-10">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-bug text-slate-400 text-sm"></i>
+                    <h2 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight italic">IA · Predicción de plagas</h2>
                 </div>
 
-                <!-- Contenedor del Mapa -->
-                <div class="flex-1 w-full rounded-[2rem] overflow-hidden shadow-inner bg-slate-50 dark:bg-slate-800 relative">
-                    <div data-react-component="agro-map-terrenos"
-                         data-props="{{ json_encode(['terrenos' => $mapTerrenos]) }}"
-                         wire:key="map-clima-estatico"
-                         wire:ignore
-                         class="w-full h-full absolute inset-0"></div>
+                <!-- CONTROLES DE REGISTRO IA -->
+                <div class="flex gap-2">
+                    <button wire:click="toggleFavorite('plagas')" class="transition-all {{ in_array('plagas', $favorites) ? 'text-rose-500 scale-110' : 'text-slate-300 hover:text-rose-500' }}" title="Destacar predicción">
+                        <i class="fa-{{ in_array('plagas', $favorites) ? 'solid' : 'regular' }} fa-heart text-xs"></i>
+                    </button>
+                    <button wire:click="toggleSave('plagas')" class="transition-all {{ in_array('plagas', $savedItems) ? 'text-blue-500 scale-110' : 'text-slate-300 hover:text-blue-500' }}" title="Seguimiento posterior">
+                        <i class="fa-{{ in_array('plagas', $savedItems) ? 'solid' : 'regular' }} fa-clock text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            @php
+                $riskLevel = ($current['temp'] > 22 && $current['humedad'] > 75) ? 'ALTO' : 'BAJO';
+                $riskColor = ($riskLevel === 'ALTO') ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/20 text-rose-700' : 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700';
+            @endphp
+            <div class="p-4 rounded-xl border-l-4 {{ $riskColor }} space-y-1 relative z-10">
+                <p class="text-sm font-black uppercase tracking-tight">Riesgo: {{ $riskLevel }}</p>
+                <div class="flex items-center gap-1.5 text-[11px] font-bold">
+                    <i class="fa-solid fa-check text-[10px]"></i>
+                    <p>{{ $riskLevel === 'ALTO' ? 'Riesgo inminente detectado.' : 'Condiciones favorables.' }}</p>
+                </div>
+                <p class="text-[11px] font-medium opacity-80 leading-relaxed">{{ $riskLevel === 'ALTO' ? 'Se recomienda aplicación preventiva inmediata.' : 'Sin riesgo inminente de plagas en este ciclo.' }}</p>
+                <p class="text-[9px] font-black opacity-40 uppercase pt-2 italic tracking-widest border-t border-black/5 dark:border-white/5 mt-2">Sensores: {{ $current['humedad'] }}% HR / {{ $current['temp'] }}°C</p>
+            </div>
+        </div>
+
+        <!-- Recomendaciones IA -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 border border-slate-100 dark:border-white/5 space-y-4 hover:shadow-2xl transition-all group/card relative overflow-hidden">
+            <div class="flex justify-between items-center relative z-10">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-robot text-slate-400 text-sm"></i>
+                    <h2 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight italic">Recomendaciones IA</h2>
+                </div>
+
+                <!-- CONTROLES DE REGISTRO IA -->
+                <div class="flex gap-2">
+                    <button wire:click="toggleFavorite('recs')" class="transition-all {{ in_array('recs', $favorites) ? 'text-rose-500 scale-110' : 'text-slate-300 hover:text-rose-500' }}" title="Destacar recomendación">
+                        <i class="fa-{{ in_array('recs', $favorites) ? 'solid' : 'regular' }} fa-heart text-xs"></i>
+                    </button>
+                    <button wire:click="toggleSave('recs')" class="transition-all {{ in_array('recs', $savedItems) ? 'text-blue-500 scale-110' : 'text-slate-300 hover:text-blue-500' }}" title="Programar labor">
+                        <i class="fa-{{ in_array('recs', $savedItems) ? 'solid' : 'regular' }} fa-clock text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/10 flex items-start gap-3 relative z-10">
+                <i class="fa-solid fa-leaf text-agri-green text-xs mt-0.5 animate-pulse"></i>
+                <p class="text-[11px] font-bold text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                    @if($selectedCropId && count($cropRecs) > 0)
+                        {{ $cropRecs[0]['msg'] }}
+                    @else
+                        Condiciones climáticas normales. Mantenga el plan de labores programado sin cambios.
+                    @endif
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. SECCIÓN DE ANÁLISIS GEOGRÁFICO Y TENDENCIAS -->
+    <div class="space-y-4">
+        <!-- Banner de Título Seccional -->
+        <div class="bg-white dark:bg-slate-900 px-8 py-4 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-xl flex items-center justify-between">
+            <div class="flex items-center gap-4 border-l-4 border-rose-500 pl-6">
+                <h3 class="text-lg font-black italic tracking-tighter uppercase text-slate-800 dark:text-white">Tendencias climáticas (últimos 7 días)</h3>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-0.5 bg-rose-500"></div>
+                    <span class="text-[9px] font-black text-slate-400 uppercase">Temperatura (°C)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-0.5 bg-blue-500"></div>
+                    <span class="text-[9px] font-black text-slate-400 uppercase">Humedad (%)</span>
                 </div>
             </div>
         </div>
 
-        <!-- Bloque Derecho: Gráfico de Tendencias -->
-        <div class="lg:col-span-7">
-            <div class="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-2xl flex flex-col h-[450px]">
-                <div class="flex justify-between items-center mb-6">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-chart-line text-agri-green"></i>
-                        <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] italic leading-none">TENDENCIAS CLIMÁTICAS (ÚLTIMOS 7 DÍAS)</h4>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Bloque Izquierdo: Mapa de Monitoreo -->
+            <div class="lg:col-span-5">
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-2xl flex flex-col h-[480px]">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-agri-green text-[10px]"></i>
+                            <select wire:model.live="selectedTerrenoId" class="w-full pl-8 pr-6 py-2 bg-slate-50 dark:bg-white/5 border-none rounded-xl text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-agri-green appearance-none italic">
+                                <option value="">VER TODOS LOS TERRENOS</option>
+                                @foreach($terrenos as $t) <option value="{{ $t->id }}">{{ $t->nombre }}</option> @endforeach
+                            </select>
+                        </div>
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-leaf absolute left-3 top-1/2 -translate-y-1/2 text-blue-500 text-[10px]"></i>
+                            <select wire:model.live="selectedCropId" class="w-full pl-8 pr-6 py-2 bg-slate-50 dark:bg-white/5 border-none rounded-xl text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-blue-500 appearance-none italic">
+                                <option value="">CULTIVOS ACTIVOS</option>
+                                @foreach($cultivos as $c)
+                                    <option value="{{ $c->id }}">{{ $c->detalleCatalogo->nombre }} - {{ $c->variedad }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex-1 w-full rounded-[2rem] overflow-hidden shadow-inner bg-slate-50 dark:bg-slate-800 relative">
+                        <div data-react-component="agro-map-terrenos"
+                             data-props="{{ json_encode(['terrenos' => $mapTerrenos]) }}"
+                             wire:key="map-clima-estatico"
+                             wire:ignore
+                             class="w-full h-full absolute inset-0"></div>
                     </div>
                 </div>
-                <div class="flex-1 w-full relative">
-                    <div data-react-component="agro-climate-trend-chart"
-                         data-props="{{ json_encode(['data' => $trendData]) }}"
-                         wire:key="clima-trend-chart-{{ $viewTimestamp }}"
-                         class="w-full h-full absolute inset-0"></div>
+            </div>
+
+            <!-- Bloque Derecho: Gráfico de Tendencias Real -->
+            <div class="lg:col-span-7">
+                <div class="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-2xl flex flex-col h-[480px] relative overflow-hidden">
+                    <div class="flex items-center gap-3 mb-6 relative z-10">
+                        <i class="fa-solid fa-chart-line text-agri-green text-sm"></i>
+                        <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] italic leading-none">Análisis Predictivo de Sensores</h4>
+                    </div>
+
+                    <div class="flex-1 w-full relative z-10 min-h-[300px]">
+                        <!-- COMPONENTE REACT DE CHART JS CARGADO AQUÍ -->
+                        <div data-react-component="agro-climate-trend-chart"
+                             data-props="{{ json_encode(['data' => $trendData]) }}"
+                             wire:key="clima-trend-chart-{{ $viewTimestamp }}"
+                             class="w-full h-full"></div>
+                    </div>
+
+                    <!-- Marca de Agua de Auditoría -->
+                    <div class="absolute bottom-6 right-8 opacity-20 pointer-events-none">
+                        <p class="text-[8px] font-black text-slate-400 uppercase tracking-[0.4em] italic">AgroSys Cloud Predictive v4.2</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -221,36 +312,45 @@
                                 <div class="w-2 h-6 bg-agri-green"></div>
                                 <h4 class="text-sm font-black uppercase tracking-[0.2em] italic">RIESGO DE PLAGAS IA</h4>
                             </div>
-                            <span class="text-[9px] font-black bg-rose-500 px-3 py-1 rounded-full animate-pulse">ALTO RIESGO</span>
+                            @php
+                                $riskLevel = ($current['temp'] > 22 && $current['humedad'] > 75) ? 'ALTO RIESGO' : 'RIESGO MODERADO';
+                                $riskColor = ($riskLevel === 'ALTO RIESGO') ? 'bg-rose-500' : 'bg-amber-500';
+                            @endphp
+                            <span class="text-[9px] font-black {{ $riskColor }} px-3 py-1 rounded-full animate-pulse">{{ $riskLevel }}</span>
                         </div>
 
-                        <!-- Barras de Probabilidad de Plagas -->
+                        <!-- Barras de Probabilidad de Plagas Dinámicas -->
                         <div class="space-y-4 py-4">
+                            @php
+                                $ranchaProb = ($current['temp'] >= 18 && $current['temp'] <= 24 && $current['humedad'] > 80) ? 88 : 45;
+                                $gusanoProb = ($current['temp'] > 25) ? 65 : 34;
+                                $moscaProb = ($current['humedad'] < 50) ? 58 : 12;
+                            @endphp
                             <div class="space-y-2">
                                 <div class="flex justify-between text-[10px] font-black uppercase tracking-widest">
                                     <span>Rancha (Phytophthora)</span>
-                                    <span class="text-rose-400">88%</span>
+                                    <span class="text-rose-400">{{ $ranchaProb }}%</span>
                                 </div>
                                 <div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                                    <div class="h-full bg-rose-500 rounded-full" style="width: 88%"></div>
+                                    <div class="h-full bg-rose-500 rounded-full transition-all duration-1000" style="width: {{ $ranchaProb }}%"></div>
                                 </div>
                             </div>
                             <div class="space-y-2">
                                 <div class="flex justify-between text-[10px] font-black uppercase tracking-widest">
                                     <span>Gusano de tierra</span>
-                                    <span class="text-amber-400">34%</span>
+                                    <span class="text-amber-400">{{ $gusanoProb }}%</span>
                                 </div>
                                 <div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                                    <div class="h-full bg-amber-500 rounded-full" style="width: 34%"></div>
+                                    <div class="h-full bg-amber-500 rounded-full transition-all duration-1000" style="width: {{ $gusanoProb }}%"></div>
                                 </div>
                             </div>
                             <div class="space-y-2">
                                 <div class="flex justify-between text-[10px] font-black uppercase tracking-widest">
                                     <span>Mosca Blanca</span>
-                                    <span class="text-emerald-400">12%</span>
+                                    <span class="text-emerald-400">{{ $moscaProb }}%</span>
                                 </div>
                                 <div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                                    <div class="h-full bg-emerald-500 rounded-full" style="width: 12%"></div>
+                                    <div class="h-full bg-emerald-500 rounded-full transition-all duration-1000" style="width: {{ $moscaProb }}%"></div>
                                 </div>
                             </div>
                         </div>
@@ -351,6 +451,14 @@
 </div>
 
 <script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('refreshChart', () => {
+            setTimeout(() => {
+                if (window.mountAgroReact) window.mountAgroReact();
+            }, 100);
+        });
+    });
+
     window.addEventListener('map-marker-clicked', (e) => {
         const id = e.detail.id;
         @this.call('selectTerreno', id);

@@ -289,129 +289,151 @@ class LaboresManager extends Component
 
         $this->validate($rules);
 
-        return DB::transaction(function() {
-            $user = Auth::user();
-            $path = $this->currentPhotoPath;
+        try {
+            DB::transaction(function() {
+                $user = Auth::user();
+                $path = $this->currentPhotoPath;
 
-            if ($this->laborPhoto) {
-                $fileData = AgroStorageService::storeUserFile($this->laborPhoto, $user, 'labor', $this->selectedOrgId);
-                $path = $fileData['ruta_completa'];
-                ArchivoMultimedia::create($fileData);
-            }
+                if ($this->laborPhoto && $this->laborPhoto instanceof \Illuminate\Http\UploadedFile) {
+                    $fileData = AgroStorageService::storeUserFile($this->laborPhoto, $user, 'labor', $this->selectedOrgId);
+                    $path = $fileData['ruta_completa'];
+                    ArchivoMultimedia::create($fileData);
+                }
 
-            $data = [
-                'cultivo_id' => $this->cultivo_id,
-                'catalogo_labor_id' => $this->catalogo_labor_id,
-                'fecha_realizacion' => $this->fecha_realizacion,
-                'costo_mano_obra_total' => (float)$this->costo_mano_obra_total,
-                'costo_maquinaria_total' => (float)$this->costo_maquinaria_total,
-                'costo_total' => (float)$this->costo_total,
-                'estado' => $this->estado,
-                'observaciones' => $this->observaciones,
-                'foto_path' => $path
-            ];
+                $data = [
+                    'cultivo_id' => $this->cultivo_id,
+                    'catalogo_labor_id' => $this->catalogo_labor_id,
+                    'fecha_realizacion' => $this->fecha_realizacion,
+                    'costo_mano_obra_total' => (float)$this->costo_mano_obra_total,
+                    'costo_maquinaria_total' => (float)$this->costo_maquinaria_total,
+                    'costo_total' => (float)$this->costo_total,
+                    'estado' => $this->estado,
+                    'observaciones' => $this->observaciones,
+                    'foto_path' => $path
+                ];
 
-            if ($this->laborId) {
-                $labor = Labor::find($this->laborId);
-                $labor->update($data);
-                $labor->insumos()->delete();
-                $labor->manoDeObra()->delete();
-                $labor->maquinaria()->delete();
-                \App\Models\Cosecha::where('labor_id', $labor->id)->delete();
-            } else {
-                $labor = Labor::create($data);
-            }
+                if ($this->laborId) {
+                    $labor = Labor::findOrFail($this->laborId);
+                    $labor->update($data);
+                    $labor->insumos()->delete();
+                    $labor->manoDeObra()->delete();
+                    $labor->maquinaria()->delete();
 
-            // 1. Guardar Cosechas
-            if ($this->esCosecha) {
-                $crop = Cultivo::find($this->cultivo_id);
+                    if ($this->esCosecha) {
+                        $idsMantener = collect($this->itemsCosecha)->pluck('id')->filter()->toArray();
+                        $cosechasAEliminar = \App\Models\Cosecha::where('labor_id', $labor->id)
+                            ->whereNotIn('id', $idsMantener)
+                            ->get();
 
-                // Actualizar estado del cultivo a Cosechado
-                $crop->update([
-                    'estado' => 'Cosechado',
-                    'fecha_cosecha_finalizada' => $this->fecha_realizacion
-                ]);
+                        foreach($cosechasAEliminar as $cos) {
+                            if ($cos->ventas()->exists()) {
+                                throw new \Exception("No se puede eliminar un registro de cosecha (Calidad: {$cos->calidad}) que ya tiene ventas registradas.");
+                            }
+                            $cos->delete();
+                        }
+                    } else {
+                        $cosechasAEliminar = \App\Models\Cosecha::where('labor_id', $labor->id)->get();
+                        foreach($cosechasAEliminar as $cos) {
+                            if ($cos->ventas()->exists()) {
+                                throw new \Exception("No se puede cambiar el tipo de labor porque una de sus cosechas tiene ventas registradas.");
+                            }
+                            $cos->delete();
+                        }
+                    }
+                } else {
+                    $labor = Labor::create($data);
+                }
 
-                foreach ($this->itemsCosecha as $item) {
-                    if ($item['cantidad'] > 0) {
-                        \App\Models\Cosecha::create([
-                            'labor_id' => $labor->id,
-                            'fecha_cosecha' => $this->fecha_realizacion,
-                            'cantidad_kg' => $item['cantidad'],
-                            'unidad_medida' => $item['unidad'],
-                            'calidad' => $item['calidad'],
-                            'lote_codigo' => $crop->nombre_lote,
-                            'costo_operativo_cosecha' => $item['costo_operativo'] ?: 0,
-                            'observaciones' => $this->observaciones,
-                            'foto_path' => $path
+                if ($this->esCosecha) {
+                    $crop = Cultivo::findOrFail($this->cultivo_id);
+                    $crop->update([
+                        'estado' => 'Cosechado',
+                        'fecha_cosecha_finalizada' => $this->fecha_realizacion
+                    ]);
+
+                    foreach ($this->itemsCosecha as $item) {
+                        if ($item['cantidad'] > 0) {
+                            $cosechaData = [
+                                'labor_id' => $labor->id,
+                                'fecha_cosecha' => $this->fecha_realizacion,
+                                'cantidad_kg' => $item['cantidad'],
+                                'unidad_medida' => $item['unidad'],
+                                'calidad' => $item['calidad'],
+                                'lote_codigo' => $crop->nombre_lote,
+                                'costo_operativo_cosecha' => $item['costo_operativo'] ?: 0,
+                                'observaciones' => $this->observaciones,
+                                'foto_path' => $path
+                            ];
+
+                            if (!empty($item['id'])) {
+                                \App\Models\Cosecha::where('id', $item['id'])->update($cosechaData);
+                            } else {
+                                \App\Models\Cosecha::create($cosechaData);
+                            }
+                        }
+                    }
+                }
+
+                foreach($this->itemsInsumos as $item) {
+                    if (!empty($item['insumo_nombre'])) {
+                        $idInsumo = $item['insumo_id'];
+                        if (empty($idInsumo)) {
+                            $nuevoInsumo = \App\Models\CatalogoInsumo::firstOrCreate(
+                                ['nombre' => strtoupper($item['insumo_nombre'])],
+                                ['categoria' => 'OTROS', 'unidad_medida' => 'ud']
+                            );
+                            $idInsumo = $nuevoInsumo->id;
+                        }
+                        $labor->insumos()->create([
+                            'catalogo_insumo_id' => $idInsumo,
+                            'proveedor_id' => $item['proveedor_id'] ?: null,
+                            'cantidad' => $item['cantidad'],
+                            'costo_unitario' => $item['costo_unitario'],
+                            'costo_flete' => $item['costo_flete'] ?: 0
                         ]);
                     }
                 }
-            }
 
-            // 2. Guardar Insumos (con creación automática si no existe el ID)
-            foreach($this->itemsInsumos as $item) {
-                if (!empty($item['insumo_nombre'])) {
-                    $idInsumo = $item['insumo_id'];
-
-                    // Si no tiene ID pero sí nombre, lo buscamos o creamos en el catálogo
-                    if (empty($idInsumo)) {
-                        $nuevoInsumo = \App\Models\CatalogoInsumo::firstOrCreate(
-                            ['nombre' => strtoupper($item['insumo_nombre'])],
-                            ['categoria' => 'OTROS', 'unidad_medida' => 'ud']
-                        );
-                        $idInsumo = $nuevoInsumo->id;
+                foreach($this->itemsManoObra as $item) {
+                    if (!empty($item['tipo_id'])) {
+                        $labor->manoDeObra()->create([
+                            'tipo_id' => $item['tipo_id'],
+                            'cantidad_trabajadores' => $item['cantidad'],
+                            'dias_trabajados' => $item['dias'],
+                            'costo_por_dia' => $item['costo_dia'],
+                            'subtotal' => ($item['cantidad'] * $item['dias'] * $item['costo_dia'])
+                        ]);
                     }
+                }
 
-                    $labor->insumos()->create([
-                        'catalogo_insumo_id' => $idInsumo,
-                        'proveedor_id' => $item['proveedor_id'] ?: null,
-                        'cantidad' => $item['cantidad'],
-                        'costo_unitario' => $item['costo_unitario'],
-                        'costo_flete' => $item['costo_flete'] ?: 0
+                $mainLaborName = CatalogoLabor::find($this->catalogo_labor_id)->nombre ?? 'Labor Realizada';
+                foreach($this->itemsMaquinaria as $item) {
+                    if (!empty($item['nombre'])) {
+                        $labor->maquinaria()->create([
+                            'nombre_maquinaria' => $item['nombre'],
+                            'labor_realizada' => $item['labor'] ?: $mainLaborName,
+                            'horas_trabajadas' => $item['horas'],
+                            'costo_total' => $item['costo_total']
+                        ]);
+                    }
+                }
+
+                $laborCat = CatalogoLabor::find($this->catalogo_labor_id)->categoria ?? '';
+                if ($laborCat === 'siembra') {
+                    Cultivo::where('id', $this->cultivo_id)->update([
+                        'estado' => 'En crecimiento',
+                        'fecha_siembra' => $this->fecha_realizacion
                     ]);
                 }
-            }
-
-            // 3. Guardar Mano de Obra
-            foreach($this->itemsManoObra as $item) {
-                if (!empty($item['tipo_id'])) {
-                    $labor->manoDeObra()->create([
-                        'tipo_id' => $item['tipo_id'],
-                        'cantidad_trabajadores' => $item['cantidad'],
-                        'dias_trabajados' => $item['dias'],
-                        'costo_por_dia' => $item['costo_dia'],
-                        'subtotal' => ($item['cantidad'] * $item['dias'] * $item['costo_dia'])
-                    ]);
-                }
-            }
-
-            // 4. Guardar Maquinaria
-            $mainLaborName = CatalogoLabor::find($this->catalogo_labor_id)->nombre ?? 'Labor Realizada';
-            foreach($this->itemsMaquinaria as $item) {
-                if (!empty($item['nombre'])) {
-                    $labor->maquinaria()->create([
-                        'nombre_maquinaria' => $item['nombre'],
-                        'labor_realizada' => $item['labor'] ?: $mainLaborName,
-                        'horas_trabajadas' => $item['horas'],
-                        'costo_total' => $item['costo_total']
-                    ]);
-                }
-            }
-
-            // Si es labor de Siembra, actualizar el cultivo
-            $laborCat = CatalogoLabor::find($this->catalogo_labor_id)->categoria ?? '';
-            if ($laborCat === 'siembra') {
-                Cultivo::where('id', $this->cultivo_id)->update([
-                    'estado' => 'En crecimiento',
-                    'fecha_siembra' => $this->fecha_realizacion
-                ]);
-            }
+            });
 
             $this->dispatch('close-modal', 'modal-labor-manager');
             $this->resetForm();
             session()->flash('status', "Labor guardada correctamente.");
-        });
+
+        } catch (\Exception $e) {
+            session()->flash('error', $e->getMessage());
+        }
     }
 
     public function render()
@@ -507,7 +529,14 @@ class LaboresManager extends Component
             'labores' => $labores, 'catalogoLabores' => CatalogoLabor::all(), 'manoObraTipos' => \App\Models\ManoObraTipo::all(),
             'terrenosBarra' => $terrenosBarra, 'catalogosBarra' => $catalogosBarra, 'variedadesBarra' => $variedadesBarra, 'cultivosExactosBarra' => $cultivosExactosBarra,
             'resultsLands' => $resultsLands, 'resultsCats' => $resultsCats, 'resultsVars' => $resultsVars, 'resultsCrops' => $resultsCrops, 'resultsIns' => $resultsIns,
-            'stats' => ['total' => $labores->total(), 'costo_total' => $baseQuery->sum('costo_total'), 'pendientes' => (clone $baseQuery)->where('estado','Pendiente')->count(), 'avg_cost' => $labores->total() > 0 ? $baseQuery->avg('costo_total') : 0]
+            'stats' => ['total' => $labores->total(), 'costo_total' => $baseQuery->sum('costo_total'), 'pendientes' => (clone $baseQuery)->where('estado','Pendiente')->count(), 'avg_cost' => $labores->total() > 0 ? $baseQuery->avg('costo_total') : 0],
+            'hasCultivos' => Cultivo::whereHas('terreno', function($q) use ($user) {
+                if ($this->selectedOrgId) {
+                    $q->where('organizacion_id', $this->selectedOrgId)->orWhere('usuario_id', Auth::id());
+                } else {
+                    $q->where('usuario_id', Auth::id());
+                }
+            })->exists()
         ]);
     }
 
@@ -555,6 +584,7 @@ class LaboresManager extends Component
         $this->esCosecha = ($l->detalleCatalogo->categoria === 'cosecha');
         if ($this->esCosecha) {
             $this->itemsCosecha = $l->cosechas->map(fn($c) => [
+                'id' => $c->id,
                 'cantidad' => $c->cantidad_kg,
                 'unidad' => $c->unidad_medida,
                 'calidad' => $c->calidad,
@@ -615,8 +645,19 @@ class LaboresManager extends Component
     }
     public function delete($id) { Labor::destroy($id); session()->flash('status', "Registro eliminado."); }
     public function addItemInsumo() { $this->itemsInsumos[] = ['id' => '', 'insumo_id' => '', 'insumo_nombre' => '', 'proveedor_id' => '', 'proveedor_nombre' => '', 'cantidad' => 1, 'costo_unitario' => 0, 'costo_flete' => 0]; }
-    public function addItemCosecha() { $this->itemsCosecha[] = ['cantidad' => 0, 'unidad' => 'kg', 'calidad' => 'primera', 'costo_operativo' => 0]; }
-    public function addItemManoObra() { $this->itemsManoObra[] = ['id' => '', 'tipo_id' => '', 'tipo_nombre' => '', 'cantidad' => 1, 'dias' => 1, 'costo_dia' => 0]; }
+    public function addItemCosecha() { $this->itemsCosecha[] = ['id' => null, 'cantidad' => 0, 'unidad' => 'kg', 'calidad' => 'primera', 'costo_operativo' => 0]; }
+    public function addItemManoObra() {
+        $defaultTipo = \App\Models\ManoObraTipo::first();
+        $this->itemsManoObra[] = [
+            'id' => '',
+            'tipo_id' => $defaultTipo ? $defaultTipo->id : '',
+            'tipo_nombre' => '',
+            'cantidad' => 1,
+            'dias' => 1,
+            'costo_dia' => 0
+        ];
+        $this->calculateTotals();
+    }
     public function addItemMaquinaria() { $this->itemsMaquinaria[] = ['id' => '', 'nombre' => '', 'labor' => '', 'horas' => 1, 'costo_total' => 0]; }
     public function removeItem($type, $index) { if ($type === 'insumo') unset($this->itemsInsumos[$index]); elseif ($type === 'mano') unset($this->itemsManoObra[$index]); elseif ($type === 'maq') unset($this->itemsMaquinaria[$index]); elseif ($type === 'harvest') unset($this->itemsCosecha[$index]); $this->itemsInsumos = array_values($this->itemsInsumos); $this->itemsManoObra = array_values($this->itemsManoObra); $this->itemsMaquinaria = array_values($this->itemsMaquinaria); $this->itemsCosecha = array_values($this->itemsCosecha); $this->calculateTotals(); }
     public function searchInsumo($idx, $val) { $this->activeIdx = $idx; $this->queryIns = $val; $this->showIns = true; }

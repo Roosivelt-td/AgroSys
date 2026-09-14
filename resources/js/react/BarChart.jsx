@@ -6,96 +6,71 @@ const BarChart = ({ data }) => {
     const chartRef = useRef(null);
     const chartInstance = useRef(null);
 
-    useEffect(() => {
-        const chartElement = chartRef.current;
-        if (!chartElement) return;
+    const initChart = () => {
+        if (!chartRef.current) return;
+        const ctx = chartRef.current.getContext('2d');
 
-        // Limpieza absoluta inicial
         if (chartInstance.current) {
             chartInstance.current.destroy();
-            chartInstance.current = null;
         }
 
-        if (!data || !data.labels || data.labels.length === 0) return;
+        const values = data?.values || [];
+        const labels = data?.labels || [];
 
-        const ctx = chartElement.getContext('2d');
+        if (values.length === 0) return;
 
-        const createChart = () => {
-            // Destruir instancia previa si existe antes de crear la nueva
-            if (chartInstance.current) {
-                chartInstance.current.destroy();
-            }
-
-            chartInstance.current = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: data.unit || 'S/',
-                        data: data.values,
-                        backgroundColor: data.colors || '#00ba2e',
-                        borderRadius: 10,
-                        borderSkipped: false,
-                        barThickness: 35
-                    }]
+        chartInstance.current = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: data.title || 'Inversión',
+                    data: values,
+                    backgroundColor: data.colors || ['#3b82f6', '#f59e0b', '#8b5cf6'],
+                    borderRadius: 8,
+                    borderWidth: 0,
+                    barThickness: 30
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } },
+                    x: { grid: { display: false }, ticks: { font: { size: 9, weight: 'bold' } } }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 500 },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#003a38',
-                            titleFont: { size: 11, weight: 'bold' },
-                            bodyFont: { size: 10 },
-                            padding: 10,
-                            cornerRadius: 8,
-                            displayColors: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(0,0,0,0.03)', drawBorder: false },
-                            ticks: { font: { size: 9, weight: '700' }, color: '#94a3b8' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { font: { size: 9, weight: '700' }, color: '#94a3b8' }
-                        }
-                    }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { backgroundColor: '#003a38', cornerRadius: 8 }
                 }
-            });
-        };
+            }
+        });
+    };
 
-        // Usamos un observador de redimensionamiento para detectar cuándo el canvas es visible y tiene tamaño real
-        const resizeObserver = new ResizeObserver((entries) => {
-            if (entries[0].contentRect.width > 0 && entries[0].contentRect.height > 0) {
-                createChart();
+    useEffect(() => {
+        // Delay crítico para esperar al modal
+        const timer = setTimeout(initChart, 500);
+
+        const observer = new ResizeObserver(() => {
+            if (chartRef.current?.parentElement?.clientWidth > 0) {
+                initChart();
             }
         });
 
-        resizeObserver.observe(chartElement.parentElement);
+        if (chartRef.current?.parentElement) {
+            observer.observe(chartRef.current.parentElement);
+        }
 
         return () => {
-            resizeObserver.disconnect();
-            if (chartInstance.current) {
-                chartInstance.current.destroy();
-                chartInstance.current = null;
-            }
+            clearTimeout(timer);
+            observer.disconnect();
+            if (chartInstance.current) chartInstance.current.destroy();
         };
-    }, [data]);
+    }, [JSON.stringify(data)]);
 
     return (
-        <div className="w-full h-full relative p-4 flex flex-col items-center justify-center">
-            {(!data || !data.labels || data.labels.length === 0) && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-                    <i className="fa-solid fa-chart-pie text-4xl mb-2 opacity-20"></i>
-                    <span className="text-[10px] font-black uppercase tracking-widest italic">No hay datos para esta selección</span>
-                </div>
-            )}
-            <canvas ref={chartRef} className="w-full h-full"></canvas>
+        <div className="w-full h-full min-h-[200px] flex items-center justify-center p-4">
+            <canvas ref={chartRef}></canvas>
         </div>
     );
 };

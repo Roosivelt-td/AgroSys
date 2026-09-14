@@ -1,29 +1,34 @@
 <div class="flex flex-col h-full overflow-hidden">
     <!-- VISTA (FRONTEND) - Sidebar ADMIRO -->
 
-    <!-- Brand Area -->
-    <div class="h-20 flex items-center shrink-0 bg-agri-green shadow-lg relative z-10 transition-all duration-300"
-         :class="sidebarCollapsed && !mobileOpen ? 'px-0 justify-center' : 'px-6'">
+    <!-- Brand Area (Rediseño Premium) -->
+    <div class="h-24 flex items-center shrink-0 bg-agri-green relative z-20 transition-all duration-500 overflow-hidden shadow-2xl border-b border-white/10"
+         :class="sidebarCollapsed && !mobileOpen ? 'px-2 justify-center' : 'px-2'">
 
-        <!-- Contenedor de Logos con Alternancia Dinámica -->
-        <div class="flex items-center justify-center overflow-hidden w-full h-full">
-            <!-- Logo Expandido (Img 1) -->
+        <!-- Decorative background elements -->
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-10 -left-10 w-24 h-24 bg-black/5 rounded-full blur-xl pointer-events-none"></div>
+
+        <div class="flex items-center w-full h-full relative z-10 overflow-hidden">
+            <!-- Logo Expandido -->
             <div x-show="!sidebarCollapsed || mobileOpen"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 class="h-16 flex items-center justify-center px-4">
-                <img src="{{ asset('AgroSys_completo.png') }}" alt="Logo Completo" class="h-16 object-contain">
+                 x-transition:enter="transition ease-out duration-500"
+                 x-transition:enter-start="opacity-0 -translate-x-10 blur-sm"
+                 x-transition:enter-end="opacity-100 translate-x-0 blur-0"
+                 class="flex items-center justify-center w-full py-1">
+                <img src="{{ asset('AgroSys_completo.png') }}" alt="AgroSys Cloud" class="h-32 w-full object-contain filter drop-shadow-2xl hover:scale-105 transition-transform duration-500 brightness-110 contrast-110">
             </div>
 
-            <!-- Logo Colapsado / Icono (Img 2) -->
+            <!-- Logo Colapsado (Icon Only) -->
             <div x-show="sidebarCollapsed && !mobileOpen"
                  x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-start="opacity-0 scale-50"
                  x-transition:enter-end="opacity-100 scale-100"
-                 class="h-12 w-12 flex items-center justify-center">
-                <img src="{{ asset('AgroSys_logo.png') }}" alt="Icono" class="h-12 w-12 object-contain shadow-sm">
-                <img src="{{ asset('AgroSys_text.png') }}" alt="Icono" class="h-12 w-12 object-contain shadow-sm">
+                 class="mx-auto w-auto h-auto flex flex-col items-center justify-center shadow-2xl  hover:scale-110 transition-transform duration-300 cursor-pointer">
+                <!-- Imagen 1: arriba -->
+                <img src="{{ asset('AgroSys_logo.png') }}" alt="Logo" class="w-full h-full object-contain filter drop-shadow-md">
+                <!-- Imagen 2: abajo -->
+               <img src="{{ asset('AgroSys_text.png') }}" alt="Logo" class=" object-contain filter drop-shadow-md">
             </div>
         </div>
     </div>
@@ -67,7 +72,6 @@
                 <x-sidebar-link :href="route('profile.organizaciones')" :active="request()->routeIs('profile.organizaciones') || request()->routeIs('admin.organizacion.*')" icon="fa-solid fa-building-wheat">
                     {{ __('Mis Organizaciones') }}
                 </x-sidebar-link>
-
                 @can('admin-org')
                     <x-sidebar-link :href="route('admin.solicitudes.internas')" :active="request()->routeIs('admin.solicitudes.internas*')" icon="fa-solid fa-envelope-open-text">
                         {{ __('Solicitudes Internas') }}
@@ -112,8 +116,11 @@
                 <x-sidebar-link :href="route('admin.labores')" :active="request()->routeIs('admin.labores*')" icon="fa-solid fa-screwdriver-wrench">
                     {{ __('Mis Labores') }}
                 </x-sidebar-link>
-                <x-sidebar-link href="#" icon="fa-solid fa-wheat-awn">
+                <x-sidebar-link :href="route('admin.cosechas')" :active="request()->routeIs('admin.cosechas*')" icon="fa-solid fa-wheat-awn">
                     {{ __('Mis Cosechas') }}
+                </x-sidebar-link>
+                <x-sidebar-link :href="route('admin.ventas')" :active="request()->routeIs('admin.ventas*')" icon="fa-solid fa-hand-holding-dollar">
+                    {{ __('Mis Ventas') }}
                 </x-sidebar-link>
             </div>
         </div>

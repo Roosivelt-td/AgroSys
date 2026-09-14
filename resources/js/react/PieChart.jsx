@@ -10,52 +10,72 @@ const PieChart = ({ data }) => {
         if (!chartRef.current) return;
         const ctx = chartRef.current.getContext('2d');
 
-        if (chartInstance.current) chartInstance.current.destroy();
+        if (chartInstance.current) {
+            chartInstance.current.destroy();
+            chartInstance.current = null;
+        }
 
-        const values = data?.values || [];
-        const hasValues = values.length > 0 && values.reduce((a,b) => a+b, 0) > 0;
-
-        if (!hasValues) return;
+        const values = Array.isArray(data?.values) ? data.values : [];
+        if (values.length === 0 || values.reduce((a, b) => a + b, 0) === 0) return;
 
         chartInstance.current = new Chart(ctx, {
-            type: 'doughnut',
+            type: 'pie',
             data: {
                 labels: data.labels || [],
                 datasets: [{
                     data: values,
                     backgroundColor: data.colors || ['#3b82f6', '#f59e0b', '#8b5cf6'],
-                    borderWidth: 0,
-                    cutout: '70%'
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverOffset: 15
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: { duration: 1000, animateRotate: true },
                 plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } } }
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 15,
+                            font: { size: 10, weight: 'bold' }
+                        }
+                    },
+                    tooltip: { backgroundColor: '#003a38', cornerRadius: 8 }
                 }
             }
         });
     };
 
     useEffect(() => {
-        // Intentar dibujar con un pequeño retraso para asegurar que el modal terminó su animación
-        const timer = setTimeout(draw, 300);
+        // Ejecutar dibujo inmediatamente y con un par de reintentos por si el modal está animando
+        draw();
+        const timer1 = setTimeout(draw, 500);
+        const timer2 = setTimeout(draw, 1000);
+
+        const observer = new ResizeObserver(() => {
+            if (chartRef.current?.parentElement?.clientWidth > 0) {
+                draw();
+            }
+        });
+
+        if (chartRef.current?.parentElement) observer.observe(chartRef.current.parentElement);
+
         return () => {
-            clearTimeout(timer);
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+            observer.disconnect();
             if (chartInstance.current) chartInstance.current.destroy();
         };
     }, [JSON.stringify(data)]);
 
     return (
-        <div className="w-full h-full relative min-h-[250px] flex items-center justify-center">
+        <div className="w-full h-full relative flex items-center justify-center min-h-[250px] overflow-visible">
             <canvas ref={chartRef}></canvas>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
-                <span className="text-[10px] font-black text-slate-400 uppercase">Total</span>
-                <span className="text-sm font-black text-slate-800 dark:text-white">
-                    S/ {data?.values?.reduce((a,b) => a+b, 0).toLocaleString()}
-                </span>
-            </div>
         </div>
     );
 };

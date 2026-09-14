@@ -82,6 +82,37 @@ class TerrenosManager extends Component
         $this->modalVersion++;
     }
 
+    public function updatedLandRentMod($value)
+    {
+        if ($value === 'por_campana') {
+            $this->landRentEnd = '';
+            // Si es por campaña, el periodo no es relevante para el usuario pero lo dejamos en fecha por defecto
+            $this->landRentPeriod = 'fecha';
+        }
+    }
+
+    public function updatedLandRentPeriod($value)
+    {
+        if ($value === 'anual') {
+            if ($this->landRentStart) {
+                $this->landRentEnd = Carbon::parse($this->landRentStart)->addYear()->format('Y-m-d');
+            } else {
+                $this->landRentEnd = '';
+            }
+        }
+    }
+
+    public function updatedLandRentStart($value)
+    {
+        if ($this->landRentPeriod === 'anual' && $this->landRentMod === 'global') {
+            if ($value) {
+                $this->landRentEnd = Carbon::parse($value)->addYear()->format('Y-m-d');
+            } else {
+                $this->landRentEnd = '';
+            }
+        }
+    }
+
     public function save()
     {
         $this->validate([
@@ -93,7 +124,30 @@ class TerrenosManager extends Component
             'landPhoto' => 'nullable|image|max:5120',
             'landRentCost' => 'required_if:landTenure,alquilado|numeric|min:0',
             'landRentStart' => 'required_if:landTenure,alquilado',
-            'landRentEnd' => 'required_if:landTenure,alquilado',
+            'landRentEnd' => [
+                'nullable',
+                function ($attribute, $value, $fail) {
+                    if ($this->landTenure === 'alquilado' && $this->landRentMod === 'global') {
+                        if (!$value) {
+                            $fail('La fecha de vencimiento es obligatoria para alquileres globales.');
+                            return;
+                        }
+
+                        $start = Carbon::parse($this->landRentStart);
+                        $end = Carbon::parse($value);
+
+                        if ($this->landRentPeriod === 'fecha') {
+                            if ($end->lt($start)) {
+                                $fail('La fecha de vencimiento no puede ser anterior a la fecha de inicio.');
+                            }
+                            // Usamos addMonth para asegurar que hay al menos 30 días o un mes calendario
+                            if ($end->lt($start->copy()->addMonth())) {
+                                $fail('El periodo de alquiler por fecha debe ser de al menos un mes.');
+                            }
+                        }
+                    }
+                }
+            ],
         ]);
 
         $user = Auth::user();

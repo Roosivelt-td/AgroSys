@@ -29,6 +29,14 @@ Route::middleware('auth')->group(function () {
     Route::get('mis-cultivos', \App\Livewire\Admin\CultivosManager::class)
         ->name('admin.cultivos');
 
+    // Gestión de Cosechas
+    Route::get('mis-cosechas', \App\Livewire\Admin\CosechasManager::class)
+        ->name('admin.cosechas');
+
+    // Gestión de Ventas
+    Route::get('mis-ventas', \App\Livewire\Admin\VentasManager::class)
+        ->name('admin.ventas');
+
     // Gestión de Labores
     Route::get('mis-labores', \App\Livewire\Admin\LaboresManager::class)
         ->name('admin.labores');

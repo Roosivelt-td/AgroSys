@@ -19,6 +19,28 @@ class ClimaIA extends Component
     public $selectedOrgId = null;
     public $viewTimestamp = '';
 
+    // Estados para Favoritos y Ver más tarde (Interacción estilo Movie18)
+    public $favorites = [];
+    public $savedItems = [];
+
+    public function toggleFavorite($id)
+    {
+        if (in_array($id, $this->favorites)) {
+            $this->favorites = array_diff($this->favorites, [$id]);
+        } else {
+            $this->favorites[] = $id;
+        }
+    }
+
+    public function toggleSave($id)
+    {
+        if (in_array($id, $this->savedItems)) {
+            $this->savedItems = array_diff($this->savedItems, [$id]);
+        } else {
+            $this->savedItems[] = $id;
+        }
+    }
+
     public function selectTerreno($id)
     {
         $this->selectedTerrenoId = $id;
@@ -48,6 +70,8 @@ class ClimaIA extends Component
                 ]);
             }
         }
+
+        $this->dispatch('refreshChart');
     }
 
     public function render()
@@ -83,13 +107,24 @@ class ClimaIA extends Component
                 ->get()
             : collect();
 
-        $trendData = [
-            'labels' => $history->reverse()->map(fn($h) => \Carbon\Carbon::parse($h->fecha_hora)->format('d/m'))->toArray(),
-            'tempValues' => $history->reverse()->pluck('temperatura')->toArray(),
-            'humValues' => $history->reverse()->pluck('humedad')->toArray(),
-            'title' => 'Tendencias climáticas',
-            'unit' => '°C / %'
-        ];
+        // VALIDACIÓN: Si no hay historial, generamos data de simulación para que el gráfico no se vea vacío
+        if ($history->isEmpty()) {
+            $trendData = [
+                'labels' => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                'tempValues' => [18, 22, 19, 25, 21, 23, 20],
+                'humValues' => [65, 70, 68, 75, 72, 80, 69],
+                'title' => 'Tendencias Climáticas (Simulación)',
+                'unit' => '°C / %'
+            ];
+        } else {
+            $trendData = [
+                'labels' => $history->reverse()->map(fn($h) => \Carbon\Carbon::parse($h->fecha_hora)->format('d/m'))->toArray(),
+                'tempValues' => $history->reverse()->pluck('temperatura')->toArray(),
+                'humValues' => $history->reverse()->pluck('humedad')->toArray(),
+                'title' => 'Tendencias climáticas reales',
+                'unit' => '°C / %'
+            ];
+        }
 
         // Solo cultivos activos o planificados
         $cultivosActivos = $this->selectedTerrenoId
@@ -101,17 +136,20 @@ class ClimaIA extends Component
         // Recomendaciones IA Generales para el Terreno
         $generalRecs = [];
         if ($latestWeather) {
-            if ($latestWeather->prob_lluvia > 70) {
-                $generalRecs[] = ['type' => 'Alerta Lluvia', 'msg' => 'Alta probabilidad de precipitación. Asegurar drenajes y suspender aplicaciones foliares.', 'priority' => 'Alta', 'color' => 'blue'];
+            if ($latestWeather->prob_lluvia > 60) {
+                $generalRecs[] = ['type' => 'Alerta Precipitación', 'msg' => 'Se detecta un ' . $latestWeather->prob_lluvia . '% de probabilidad de lluvia. Se recomienda proteger maquinaria y revisar sistemas de drenaje.', 'priority' => 'Alta', 'color' => 'blue'];
             }
-            if ($latestWeather->viento_kmh > 25) {
-                $generalRecs[] = ['type' => 'Vientos Fuertes', 'msg' => 'Vientos detectados sobre 25km/h. Evitar fumigación por deriva.', 'priority' => 'Media', 'color' => 'amber'];
+            if ($latestWeather->viento_kmh > 20) {
+                $generalRecs[] = ['type' => 'Alerta de Viento', 'msg' => 'Vientos de ' . $latestWeather->viento_kmh . ' km/h detectados. Riesgo de deriva alto para fumigaciones foliares.', 'priority' => 'Media', 'color' => 'amber'];
+            }
+            if ($latestWeather->temperatura > 28) {
+                $generalRecs[] = ['type' => 'Estrés Térmico', 'msg' => 'Temperaturas elevadas detectadas. Aumentar monitoreo de humedad en suelo para evitar marchitamiento.', 'priority' => 'Media', 'color' => 'rose'];
             }
         }
 
         if (empty($generalRecs)) {
             $generalRecs = [
-                ['type' => 'Estado Óptimo', 'msg' => 'Condiciones estables para labores generales.', 'priority' => 'Baja', 'color' => 'emerald']
+                ['type' => 'Clima Estable', 'msg' => 'Las condiciones actuales son óptimas para labores de campo generales.', 'priority' => 'Baja', 'color' => 'emerald']
             ];
         }
 
@@ -120,14 +158,33 @@ class ClimaIA extends Component
         if ($this->selectedCropId) {
             $c = Cultivo::with('detalleCatalogo')->find($this->selectedCropId);
             if ($c && $c->detalleCatalogo) {
-                // Riego IA
-                if ($currentWeather['humedad'] > 80) {
-                    $cropRecs[] = ['type' => 'IA Riego', 'msg' => "Humedad alta (" . $currentWeather['humedad'] . "%). " . ($c->detalleCatalogo->instrucciones_base_riego ?: 'Reducir frecuencia de riego.'), 'priority' => 'Media', 'color' => 'blue'];
+                $cat = $c->detalleCatalogo;
+
+                // IA de Riego Dinámica
+                if ($currentWeather['humedad'] > 75) {
+                    $cropRecs[] = [
+                        'type' => 'IA Riego (Ahorro)',
+                        'msg' => "Humedad ambiente alta ({$currentWeather['humedad']}%). " . ($cat->instrucciones_base_riego ?: 'Se sugiere suspender o reducir el riego programado para evitar asfixia radicular.'),
+                        'priority' => 'Media',
+                        'color' => 'blue'
+                    ];
+                } elseif ($currentWeather['temp'] > 26 && $currentWeather['humedad'] < 40) {
+                    $cropRecs[] = [
+                        'type' => 'IA Riego (Urgente)',
+                        'msg' => "Condiciones de sequedad extrema. Se recomienda riego de auxilio inmediato según: " . ($cat->instrucciones_base_riego ?: 'Aplicar riego profundo.'),
+                        'priority' => 'Alta',
+                        'color' => 'rose'
+                    ];
                 }
 
-                // Plagas IA
-                if ($currentWeather['temp'] > 25 && $currentWeather['humedad'] > 70) {
-                    $cropRecs[] = ['type' => 'IA Fitopatología', 'msg' => "Riesgo de plagas por calor/humedad. " . ($c->detalleCatalogo->instrucciones_base_plagas ?: 'Monitorear presencia de hongos.'), 'priority' => 'Alta', 'color' => 'rose'];
+                // IA de Sanidad Vegetal (Plagas/Hongos)
+                if ($currentWeather['temp'] >= 18 && $currentWeather['temp'] <= 24 && $currentWeather['humedad'] > 80) {
+                    $cropRecs[] = [
+                        'type' => 'IA Fitopatología',
+                        'msg' => "Condiciones ideales para la propagación de 'Rancha' (Phytophthora) en {$cat->nombre}. " . ($cat->instrucciones_base_plagas ?: 'Realizar monitoreo preventivo en el envés de las hojas.'),
+                        'priority' => 'Alta',
+                        'color' => 'rose'
+                    ];
                 }
             }
         }

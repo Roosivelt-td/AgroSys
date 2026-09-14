@@ -10,6 +10,8 @@ use App\Models\ArchivoMultimedia;
 use App\Services\AgroStorageService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -47,6 +49,7 @@ class CultivosManager extends Component
     public $area_destinada = '';
     public $plantas_estimadas = '';
     public $rendimiento_esperado_tn_ha = '';
+    public $showRendimientoPerenne = false; // Nueva propiedad
     public $observaciones = '';
     public $cropPhoto;
     public $currentPhotoPath;
@@ -81,6 +84,7 @@ class CultivosManager extends Component
     {
         $this->fecha_planificada = date('Y-m-d');
         $this->fecha_siembra = date('Y-m-d');
+        $this->estado = 'Planificado';
 
         // Detectar organización activa
         $membresia = MiembroOrganizacion::where('usuario_id', Auth::id())
@@ -114,6 +118,25 @@ class CultivosManager extends Component
         $this->catalogo_cultivo_id = $id;
         $this->cultivoNombreSelected = strtoupper($nombre);
         $this->queryCultivo = '';
+
+        // Calcular Cosecha Estimada
+        $cropDetail = CatalogoCultivo::find($id);
+        if ($cropDetail && $cropDetail->dias_a_cosecha_promedio) {
+            $baseDate = $this->fecha_planificada ? Carbon::parse($this->fecha_planificada) : Carbon::now();
+            $this->fecha_cosecha_estimada = $baseDate->addDays($cropDetail->dias_a_cosecha_promedio)->format('Y-m-d');
+        }
+
+        $this->generarNombreLote();
+    }
+
+    public function updatedFechaPlanificada($value)
+    {
+        if ($this->catalogo_cultivo_id && $value) {
+            $cropDetail = CatalogoCultivo::find($this->catalogo_cultivo_id);
+            if ($cropDetail && $cropDetail->dias_a_cosecha_promedio) {
+                $this->fecha_cosecha_estimada = Carbon::parse($value)->addDays($cropDetail->dias_a_cosecha_promedio)->format('Y-m-d');
+            }
+        }
         $this->generarNombreLote();
     }
 
@@ -129,12 +152,9 @@ class CultivosManager extends Component
 
     protected function generarNombreLote()
     {
-        if ($this->catalogo_cultivo_id && $this->terreno_id) {
-            $cultivoNombre = CatalogoCultivo::find($this->catalogo_cultivo_id)?->nombre;
-            // Usamos el ID actual si existe (edición), o calculamos el próximo ID disponible (creación)
-            $idLabel = $this->cropId ?: (Cultivo::max('id') + 1);
-            $fecha = $this->fecha_siembra ? date('d-m-Y', strtotime($this->fecha_siembra)) : date('d-m-Y');
-            $this->nombre_lote = "{$idLabel}-" . strtoupper($cultivoNombre) . "-" . strtoupper($this->variedad ?: 'GENERICA') . "-{$fecha}";
+        // Si es un nuevo registro y aún no tiene nombre de lote, generamos el aleatorio de 4 caracteres
+        if (!$this->cropId && empty($this->nombre_lote)) {
+            $this->nombre_lote = strtoupper(Str::random(4));
         }
     }
 
@@ -152,6 +172,7 @@ class CultivosManager extends Component
             }
         }
 
+        $this->generarNombreLote();
         $this->dispatch('open-modal', 'modal-crop-manager');
     }
 
@@ -161,12 +182,12 @@ class CultivosManager extends Component
             'cropId', 'terreno_id', 'catalogo_cultivo_id', 'nombre_lote', 'variedad',
             'fecha_planificada', 'fecha_siembra', 'fecha_cosecha_estimada', 'fecha_cosecha_finalizada',
             'estado', 'area_destinada', 'plantas_estimadas', 'rendimiento_esperado_tn_ha',
-            'observaciones', 'cropPhoto', 'currentPhotoPath', 'areaDisponible',
+            'showRendimientoPerenne', 'observaciones', 'cropPhoto', 'currentPhotoPath', 'areaDisponible',
             'terrenoNombreSelected', 'cultivoNombreSelected', 'queryTerreno', 'queryCultivo'
         ]);
         $this->fecha_planificada = date('Y-m-d');
         $this->fecha_siembra = date('Y-m-d');
-        $this->estado = 'En crecimiento';
+        $this->estado = 'Planificado';
     }
 
     public function save()
@@ -176,7 +197,21 @@ class CultivosManager extends Component
             'catalogo_cultivo_id' => 'required',
             'nombre_lote' => 'required',
             'area_destinada' => "required|numeric|min:0.01|max:{$this->areaDisponible}",
-            'fecha_planificada' => 'required|date',
+            'fecha_planificada' => [
+                'required',
+                'date',
+                function ($attribute, $value, $fail) {
+                    $terreno = Terreno::find($this->terreno_id);
+                    if ($terreno && $terreno->tipo_tenencia === 'alquilado' && $terreno->fecha_alquiler) {
+                        $fechaPlanificada = Carbon::parse($value)->startOfDay();
+                        $fechaAlquiler = Carbon::parse($terreno->fecha_alquiler)->startOfDay();
+
+                        if ($fechaPlanificada->lt($fechaAlquiler)) {
+                            $fail("La fecha planificada no puede ser anterior al inicio del alquiler (" . $fechaAlquiler->format('d/m/Y') . ").");
+                        }
+                    }
+                }
+            ],
             'plantas_estimadas' => 'nullable|integer|min:0',
             'rendimiento_esperado_tn_ha' => 'nullable|numeric|min:0',
             'cropPhoto' => 'nullable|image|max:5120',
@@ -194,6 +229,13 @@ class CultivosManager extends Component
         // Si quitamos fecha_siembra del form, usamos fecha_planificada por defecto
         $siembraDate = $this->fecha_planificada;
 
+        // Limpiar rendimiento si es perenne y el switch está apagado
+        $cropDetail = CatalogoCultivo::find($this->catalogo_cultivo_id);
+        $rendimientoFinal = $this->rendimiento_esperado_tn_ha;
+        if ($cropDetail && $cropDetail->tipo_ciclo === 'perenne' && !$this->showRendimientoPerenne) {
+            $rendimientoFinal = 0;
+        }
+
         $data = [
             'terreno_id' => $this->terreno_id,
             'catalogo_cultivo_id' => $this->catalogo_cultivo_id,
@@ -206,7 +248,7 @@ class CultivosManager extends Component
             'estado' => $this->estado,
             'area_destinada' => $this->area_destinada,
             'plantas_estimadas' => $this->plantas_estimadas ?: 0,
-            'rendimiento_esperado_tn_ha' => $this->rendimiento_esperado_tn_ha ?: 0,
+            'rendimiento_esperado_tn_ha' => $rendimientoFinal ?: 0,
             'observaciones' => $this->observaciones,
             'foto_path' => $photoPath,
         ];
@@ -232,14 +274,15 @@ class CultivosManager extends Component
         $this->catalogo_cultivo_id = $c->catalogo_cultivo_id;
         $this->nombre_lote = $c->nombre_lote;
         $this->variedad = $c->variedad;
-        $this->fecha_planificada = $c->fecha_planificada;
-        $this->fecha_siembra = $c->fecha_siembra;
-        $this->fecha_cosecha_estimada = $c->fecha_cosecha_estimada;
-        $this->fecha_cosecha_finalizada = $c->fecha_cosecha_finalizada;
+        $this->fecha_planificada = $c->fecha_planificada ? $c->fecha_planificada->format('Y-m-d') : '';
+        $this->fecha_siembra = $c->fecha_siembra ? $c->fecha_siembra->format('Y-m-d') : '';
+        $this->fecha_cosecha_estimada = $c->fecha_cosecha_estimada ? $c->fecha_cosecha_estimada->format('Y-m-d') : '';
+        $this->fecha_cosecha_finalizada = $c->fecha_cosecha_finalizada ? $c->fecha_cosecha_finalizada->format('Y-m-d') : '';
         $this->estado = $c->estado;
         $this->area_destinada = $c->area_destinada;
         $this->plantas_estimadas = $c->plantas_estimadas;
         $this->rendimiento_esperado_tn_ha = $c->rendimiento_esperado_tn_ha;
+        $this->showRendimientoPerenne = ($c->detalleCatalogo->tipo_ciclo === 'perenne' && $c->rendimiento_esperado_tn_ha > 0);
         $this->observaciones = $c->observaciones;
         $this->currentPhotoPath = $c->foto_path;
 
@@ -421,7 +464,8 @@ class CultivosManager extends Component
             'totalArea' => $totalQuery->sum('area_destinada'),
             'totalCount' => $totalQuery->count(),
             'misTerrenos' => Terreno::where('usuario_id', Auth::id())->get(),
-            'catalogo' => CatalogoCultivo::whereIn('id', $misCultivosIds)->get()
+            'catalogo' => CatalogoCultivo::whereIn('id', $misCultivosIds)->get(),
+            'hasTerrenos' => Terreno::where('usuario_id', Auth::id())->orWhere('organizacion_id', $this->selectedOrgId)->exists()
         ]);
     }
 
@@ -442,6 +486,8 @@ class CultivosManager extends Component
         $cantidadCosechada = 0;
         $unidadCosecha = 'kg';
 
+        // Búsqueda de Ventas y Fletes
+        $fletesTotales = 0;
         foreach ($crop->labores as $labor) {
             $cMano = (float)$labor->costo_mano_obra_total;
             $cMaq = (float)$labor->costo_maquinaria_total;
@@ -449,8 +495,6 @@ class CultivosManager extends Component
 
             $costoManoObra += $cMano;
             $costoMaquinaria += $cMaq;
-
-            // Calculamos Insumos como la diferencia para mayor precisión
             $insumoLabor = max(0, $cTotal - ($cMano + $cMaq));
             $costoInsumos += $insumoLabor;
 
@@ -459,28 +503,32 @@ class CultivosManager extends Component
                 $unidadCosecha = $labor->cosechaResultado->unidad_medida;
                 foreach ($labor->cosechaResultado->ventas as $venta) {
                     $ingresosTotales += ((float)$venta->cantidad_vendida_kg * (float)$venta->precio_por_kg);
+                    $fletesTotales += (float)$venta->costo_flete;
                 }
             }
         }
 
-        $totalGastos = $costoInsumos + $costoManoObra + $costoMaquinaria;
+        $totalGastos = $costoInsumos + $costoManoObra + $costoMaquinaria + $fletesTotales;
 
         // Evitar que el gráfico se rompa si todo es cero
         $chartValues = [$costoInsumos, $costoManoObra, $costoMaquinaria];
+        if ($fletesTotales > 0) $chartValues[] = $fletesTotales;
+
         $hasData = array_sum($chartValues) > 0;
 
         $this->reportData = [
             'costoInsumos' => $costoInsumos,
             'costoManoObra' => $costoManoObra,
             'costoMaquinaria' => $costoMaquinaria,
+            'costoFlete' => $fletesTotales,
             'ingresosTotales' => $ingresosTotales,
             'cantidadCosechada' => $cantidadCosechada,
             'unidadCosecha' => $unidadCosecha,
             'balance' => $ingresosTotales - $totalGastos,
             'chart' => [
-                'labels' => ['Insumos', 'Mano de Obra', 'Maquinaria'],
+                'labels' => $fletesTotales > 0 ? ['Insumos', 'Mano de Obra', 'Maquinaria', 'Fletes'] : ['Insumos', 'Mano de Obra', 'Maquinaria'],
                 'values' => $hasData ? $chartValues : [],
-                'colors' => ['#3b82f6', '#f59e0b', '#8b5cf6'],
+                'colors' => ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
                 'unit' => 'S/'
             ]
         ];

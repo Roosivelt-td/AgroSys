@@ -5,11 +5,11 @@ const AgroLogoPremium = ({ src, title, subtitle }) => {
         <div className="flex items-center gap-4 group cursor-pointer transition-all duration-500 hover:scale-105">
             <div className="relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-agri-green rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                <div className="relative w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-2xl border border-white/20 p-2">
+                <div className="relative w-14 h-14 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-2xl border border-white/20 p-1.5">
                     <img
                         src={src}
                         alt="Logo"
-                        className="w-full h-full object-contain filter drop-shadow-md group-hover:rotate-12 transition-transform duration-500"
+                        className="w-full h-full object-contain filter drop-shadow-md group-hover:rotate-6 transition-transform duration-500"
                     />
                 </div>
             </div>
