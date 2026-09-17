@@ -78,6 +78,14 @@ class Terreno extends Model
     }
 
     /**
+     * Relación: El registro climático más reciente para este terreno.
+     */
+    public function latestClima()
+    {
+        return $this->hasOne(ClimaRegistro::class, 'terreno_id')->latestOfMany('fecha_hora');
+    }
+
+    /**
      * Área ocupada por cultivos activos.
      */
     public function getAreaOcupadaAttribute()

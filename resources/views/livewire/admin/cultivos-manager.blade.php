@@ -83,7 +83,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
         @foreach($cultivos as $cultivo)
         @php
-            $temp = rand(18, 26); $hmd = rand(55, 75);
+
             $siembra = \Carbon\Carbon::parse($cultivo->fecha_siembra);
             $cosecha = $cultivo->fecha_cosecha_estimada ? \Carbon\Carbon::parse($cultivo->fecha_cosecha_estimada) : $siembra->copy()->addMonths(4);
             $totalDias = $siembra->diffInDays($cosecha);
@@ -127,10 +127,26 @@
                 </div>
 
                 <!-- 1. Clima y Menú (Z-50: Siempre arriba y nítidos) -->
+                @php
+                    $clima = $cultivo->terreno->latestClima;
+                    $icon = 'fa-sun';
+                    if($clima) {
+                        $cond = strtolower($clima->condicion);
+                        if(str_contains($cond, 'lluvia') || str_contains($cond, 'llovizna')) $icon = 'fa-cloud-showers-heavy';
+                        elseif(str_contains($cond, 'nublado')) $icon = 'fa-cloud';
+                        elseif(str_contains($cond, 'tormenta')) $icon = 'fa-cloud-bolt';
+                    }
+                @endphp
                 <div class="absolute top-5 left-5 z-50 flex flex-col gap-2">
                     <div class="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-2xl border border-white/20 w-fit">
-                        <i class="fa-solid fa-cloud-sun text-amber-500 text-xs"></i>
-                        <span class="text-[10px] font-black text-slate-800 dark:text-white italic uppercase">{{ $temp }}°C | {{ $hmd }}% HR</span>
+                        <i class="fa-solid {{ $icon }} {{ $clima ? 'text-blue-500' : 'text-amber-500' }} text-xs"></i>
+                        <span class="text-[10px] font-black text-slate-800 dark:text-white italic uppercase">
+                            @if($clima)
+                                {{ round($clima->temperatura) }}°C | {{ $clima->humedad }}% HR
+                            @else
+                                S/D
+                            @endif
+                        </span>
                     </div>
                     <!-- IDENTIFICADOR DE LOTE (Agrosys Premium) -->
                     <div class="bg-amber-500 text-white px-4 py-1.5 rounded-xl shadow-2xl border border-white/20 w-fit animate-in slide-in-from-left-2 duration-500">
@@ -315,8 +331,24 @@
             <div class="bg-[#003a38] px-8 py-3 flex justify-between items-center border-b border-white/10">
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center space-x-2 text-white/70">
-                        <i class="fa-solid fa-cloud-sun text-amber-400 text-xs"></i>
-                        <span class="text-[10px] font-black uppercase tracking-widest italic">{{ rand(18,26) }}°C | {{ rand(55,75) }}% HR</span>
+                        @php
+                            $clima = $selectedCropForReport->terreno->latestClima;
+                            $icon = 'fa-sun';
+                            if($clima) {
+                                $cond = strtolower($clima->condicion);
+                                if(str_contains($cond, 'lluvia') || str_contains($cond, 'llovizna')) $icon = 'fa-cloud-showers-heavy';
+                                elseif(str_contains($cond, 'nublado')) $icon = 'fa-cloud';
+                                elseif(str_contains($cond, 'tormenta')) $icon = 'fa-cloud-bolt';
+                            }
+                        @endphp
+                        <i class="fa-solid {{ $icon }} text-amber-400 text-xs"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest italic">
+                            @if($clima)
+                                {{ round($clima->temperatura) }}°C | {{ $clima->humedad }}% HR
+                            @else
+                                S/D
+                            @endif
+                        </span>
                     </div>
                     <div class="h-4 w-px bg-white/10"></div>
                     <span class="text-[9px] font-black text-agri-green uppercase tracking-[0.3em] italic">Informe Técnico de Campaña</span>

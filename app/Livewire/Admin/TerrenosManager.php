@@ -307,6 +307,8 @@ class TerrenosManager extends Component
                   ->orderBy('fecha_vencimiento_alquiler', 'desc')
                   ->orderBy('created_at', 'desc');
 
+        $baseQuery = $baseQuery->with(['latestClima']);
+
         // Clonamos para los totales y mapa antes de paginar
         $allResultsQuery = clone $baseQuery;
         $terrenos = $baseQuery->paginate(12);

@@ -65,9 +65,18 @@ class VentasManager extends Component
 
     // Propiedades de Seguridad
     public $confirmingAction = false;
-    public $actionToPerform = ''; // 'edit' o 'delete'
+    public $actionToPerform = ''; // 'edit', 'delete', 'update', 'bulk_edit', 'bulk_update', 'bulk_delete'
     public $ventaIdToPerform = null;
+    public $ventaIdsToPerform = []; // Para acciones grupales
     public $adminPassword = '';
+    public $confirmText = '';
+
+    // Propiedades para Edición Grupal
+    public $bulkCompradorId = '';
+    public $bulkFechaVenta = '';
+    public $bulkItems = []; // Array de {id (null si nuevo), cantidad, precio, calidad, unidad, cosecha_id, flete}
+    public $bulkCultivoId = null;
+    public $bulkAvailableCosechas = []; // Para el dropdown de "Agregar Calidad"
 
     // Propiedades para Reporte de Detalle
     public $selectedVentaReport = null;
@@ -236,6 +245,28 @@ class VentasManager extends Component
             'ventaPhoto' => 'nullable|image|max:5120'
         ]);
 
+        if ($this->ventaId) {
+            // Es una actualización, solicitamos confirmación de seguridad
+            $this->actionToPerform = 'update';
+            $this->confirmText = '';
+            $this->adminPassword = '';
+
+            // Recopilar resumen de cambios para mostrar en el modal
+            $v = Venta::with('comprador')->find($this->ventaId);
+            $this->reportVentaData['resumen_edicion'] = [
+                'anterior' => "{$v->cantidad_vendida_kg} KG a S/ {$v->precio_por_kg} ({$v->comprador->nombre})",
+                'nuevo' => "{$this->cantidad_vendida_kg} KG a S/ {$this->precio_por_kg}"
+            ];
+
+            $this->dispatch('open-modal', 'modal-confirm-secure-action');
+            return;
+        }
+
+        $this->performSave();
+    }
+
+    protected function performSave()
+    {
         $user = Auth::user();
         $path = $this->currentPhotoPath;
 
@@ -278,30 +309,24 @@ class VentasManager extends Component
             // --- SINCRONIZACIÓN DE REALIDAD (Sustituye estimaciones por datos reales) ---
             $cosecha = Cosecha::find($this->cosecha_id);
             if ($cosecha) {
-                // 1. La unidad de la cosecha ahora es la unidad de venta real
+                // Sincronizar unidad y calidad (si el usuario los editó en el formulario individual)
+                // Nota: Asumimos que unidad_venta es el campo de control
                 $cosecha->unidad_medida = $this->unidad_venta;
+                // Si existiera una propiedad 'calidad_cosecha' en el componente, la usaríamos aquí.
+                // Por ahora usamos la que ya tiene el lote seleccionado, pero la lógica de bulk permite editarla.
 
-                // 2. La cantidad total cosechada se ajusta a la sumatoria de ventas reales
                 $totalRealVendido = Venta::where('cosecha_id', $this->cosecha_id)->sum('cantidad_vendida_kg');
                 $cosecha->cantidad_kg = $totalRealVendido;
                 $cosecha->save();
 
-                // 3. Sincronizar con el Cultivo (Campaña)
                 $cultivo = $cosecha->labor->cultivo;
                 if ($cultivo) {
-                    // Actualizar el rendimiento estadístico por el RENDIMIENTO REAL
-                    // Calculamos: (Total KG vendidos / 1000) / Hectáreas = TN/HA Reales
                     $totalTn = ($totalRealVendido > 0 && $this->unidad_venta === 'tn') ? $totalRealVendido : ($totalRealVendido / 1000);
-
-                    // Si la unidad de venta no era TN ni KG (ej: sacos), intentamos una conversión lógica o mantenemos el valor
                     if (!in_array($this->unidad_venta, ['kg', 'tn'])) {
-                        // Si son sacos/und, asumimos que el peso ya está en el campo cantidad_vendida_kg si el usuario lo ingresó así,
-                        // o simplemente actualizamos el rendimiento basado en la magnitud vendida.
                         $cultivo->rendimiento_esperado_tn_ha = $totalRealVendido / max(0.01, $cultivo->area_destinada);
                     } else {
                         $cultivo->rendimiento_esperado_tn_ha = $totalTn / max(0.01, $cultivo->area_destinada);
                     }
-
                     $cultivo->estado = 'Cosechado';
                     $cultivo->save();
                 }
@@ -310,6 +335,7 @@ class VentasManager extends Component
 
         $this->dispatch('close-modal', 'modal-venta-manager');
         $this->resetForm();
+        if ($this->selectedVentaReport) $this->showVentaReport($this->selectedVentaReport->id);
         session()->flash('status', 'Transacción procesada y datos de cosecha sincronizados.');
     }
 
@@ -317,25 +343,220 @@ class VentasManager extends Component
     public function requestSecureAction($id, $action)
     {
         $this->ventaIdToPerform = $id;
+
+        if ($action === 'edit') {
+            $this->startEditing();
+            return;
+        }
+
         $this->actionToPerform = $action;
         $this->adminPassword = '';
+        $this->confirmText = '';
         $this->dispatch('open-modal', 'modal-confirm-secure-action');
     }
 
     public function verifyPasswordAndPerform()
     {
+        // 1. Verificar Texto de Confirmación según acción
+        if (in_array($this->actionToPerform, ['delete', 'bulk_delete']) && strtolower($this->confirmText) !== 'si eliminar') {
+            $this->addError('confirmText', 'Debe escribir "si eliminar" para proceder.');
+            return;
+        }
+
+        if (in_array($this->actionToPerform, ['update', 'bulk_update']) && strtolower($this->confirmText) !== 'acepto actualizar') {
+            $this->addError('confirmText', 'Debe escribir "acepto actualizar" para guardar los cambios.');
+            return;
+        }
+
+        // 2. Verificar Contraseña
         if (!\Illuminate\Support\Facades\Hash::check($this->adminPassword, Auth::user()->password)) {
             $this->addError('adminPassword', 'Contraseña incorrecta. Acción denegada.');
             return;
         }
 
+        // 3. Ejecutar Acción
         if ($this->actionToPerform === 'edit') {
             $this->startEditing();
         } elseif ($this->actionToPerform === 'delete') {
             $this->deleteVenta();
+        } elseif ($this->actionToPerform === 'update') {
+            $this->performSave();
+        } elseif ($this->actionToPerform === 'bulk_edit') {
+            $this->startBulkEditing();
+        } elseif ($this->actionToPerform === 'bulk_update') {
+            $this->performBulkUpdate();
+        } elseif ($this->actionToPerform === 'bulk_delete') {
+            $this->performBulkDelete();
         }
 
         $this->dispatch('close-modal', 'modal-confirm-secure-action');
+    }
+
+    public function requestSecureGroupAction($ids, $action)
+    {
+        $this->ventaIdsToPerform = is_array($ids) ? $ids : [$ids];
+
+        if ($action === 'bulk_edit') {
+            $this->startBulkEditing();
+            return;
+        }
+
+        $this->actionToPerform = $action;
+        $this->adminPassword = '';
+        $this->confirmText = '';
+        $this->dispatch('open-modal', 'modal-confirm-secure-action');
+    }
+
+    protected function startBulkEditing()
+    {
+        $ventas = Venta::whereIn('id', $this->ventaIdsToPerform)->with(['comprador', 'cosecha.labor'])->get();
+        if ($ventas->isEmpty()) return;
+
+        $first = $ventas->first();
+        $this->bulkCompradorId = $first->comprador_id;
+        $this->bulkFechaVenta = $first->fecha_venta->format('Y-m-d');
+        $this->bulkCultivoId = $first->cosecha->labor->cultivo_id;
+
+        $this->bulkItems = $ventas->map(fn($v) => [
+            'id' => $v->id,
+            'cosecha_id' => $v->cosecha_id,
+            'cantidad' => $v->cantidad_vendida_kg,
+            'precio' => $v->precio_por_kg,
+            'flete' => $v->costo_flete,
+            'calidad' => $v->cosecha->calidad,
+            'unidad' => $v->cosecha->unidad_medida
+        ])->toArray();
+
+        // Cargar cosechas disponibles para este cultivo (para poder agregar calidades faltantes)
+        $this->bulkAvailableCosechas = Cosecha::whereHas('labor', fn($q) => $q->where('cultivo_id', $this->bulkCultivoId))
+            ->get()
+            ->map(fn($c) => [
+                'id' => $c->id,
+                'label' => "CALIDAD: " . strtoupper($c->calidad) . " - " . $c->fecha_cosecha->format('d/m/Y'),
+                'calidad' => $c->calidad,
+                'unidad' => $c->unidad_medida
+            ])->toArray();
+
+        $this->dispatch('open-modal', 'modal-bulk-edit-ventas');
+    }
+
+    public function addBulkItem($cosechaId)
+    {
+        $cosecha = Cosecha::find($cosechaId);
+        if (!$cosecha) return;
+
+        // Verificar si ya existe en la lista para no duplicar filas de la misma cosecha
+        foreach ($this->bulkItems as $item) {
+            if ($item['cosecha_id'] == $cosechaId) {
+                return;
+            }
+        }
+
+        $this->bulkItems[] = [
+            'id' => null, // Es nuevo
+            'cosecha_id' => $cosecha->id,
+            'cantidad' => 0,
+            'precio' => 0,
+            'flete' => 0,
+            'calidad' => $cosecha->calidad,
+            'unidad' => $cosecha->unidad_medida
+        ];
+    }
+
+    public function removeBulkItem($index)
+    {
+        if (isset($this->bulkItems[$index])) {
+            if ($this->bulkItems[$index]['id'] === null) {
+                unset($this->bulkItems[$index]);
+                $this->bulkItems = array_values($this->bulkItems);
+            }
+        }
+    }
+
+    public function saveBulk()
+    {
+        $this->validate([
+            'bulkCompradorId' => 'required',
+            'bulkFechaVenta' => 'required|date',
+            'bulkItems.*.cantidad' => 'required|numeric|min:0',
+            'bulkItems.*.precio' => 'required|numeric|min:0',
+        ]);
+
+        $this->actionToPerform = 'bulk_update';
+        $this->confirmText = '';
+        $this->adminPassword = '';
+
+        // Resumen de edición grupal
+        $this->reportVentaData['resumen_edicion'] = [
+            'anterior' => "GRUPO DE VENTAS",
+            'nuevo' => "TOTAL ACTUALIZADO: S/ " . number_format(collect($this->bulkItems)->sum(fn($i) => $i['cantidad'] * $i['precio']), 2)
+        ];
+
+        $this->dispatch('open-modal', 'modal-confirm-secure-action');
+    }
+
+    protected function performBulkUpdate()
+    {
+        DB::transaction(function() {
+            foreach ($this->bulkItems as $item) {
+                if ($item['id']) {
+                    // Actualizar existente
+                    $v = Venta::find($item['id']);
+                    if ($v) {
+                        $v->update([
+                            'comprador_id' => $this->bulkCompradorId,
+                            'fecha_venta' => $this->bulkFechaVenta,
+                            'cantidad_vendida_kg' => $item['cantidad'],
+                            'precio_por_kg' => $item['precio'],
+                            'costo_flete' => $item['flete'] ?? 0,
+                        ]);
+                    }
+                } elseif ($item['cantidad'] > 0) {
+                    // Crear nuevo item en el grupo
+                    Venta::create([
+                        'cosecha_id' => $item['cosecha_id'],
+                        'comprador_id' => $this->bulkCompradorId,
+                        'fecha_venta' => $this->bulkFechaVenta,
+                        'cantidad_vendida_kg' => $item['cantidad'],
+                        'precio_por_kg' => $item['precio'],
+                        'costo_flete' => $item['flete'] ?? 0,
+                        'impuestos' => 0,
+                        'comprobante_tipo' => 'boleta',
+                        'comprobante_numero' => 'BLOQUE-' . time()
+                    ]);
+                }
+
+                // Sincronizar cosecha
+                $cosecha = Cosecha::find($item['cosecha_id']);
+                if ($cosecha) {
+                    $totalReal = Venta::where('cosecha_id', $cosecha->id)->sum('cantidad_vendida_kg');
+                    $cosecha->update(['cantidad_kg' => $totalReal]);
+                }
+            }
+        });
+
+        $this->dispatch('close-modal', 'modal-bulk-edit-ventas');
+        if ($this->selectedVentaReport) $this->showVentaReport($this->selectedVentaReport->id);
+        session()->flash('status', 'Ventas actualizadas y sincronizadas correctamente.');
+    }
+
+    protected function performBulkDelete()
+    {
+        DB::transaction(function() {
+            $cosechasToSync = Venta::whereIn('id', $this->ventaIdsToPerform)->pluck('cosecha_id')->unique();
+            Venta::whereIn('id', $this->ventaIdsToPerform)->delete();
+
+            foreach ($cosechasToSync as $cid) {
+                $cosecha = Cosecha::find($cid);
+                if ($cosecha) {
+                    $totalReal = Venta::where('cosecha_id', $cid)->sum('cantidad_vendida_kg');
+                    $cosecha->update(['cantidad_kg' => $totalReal]);
+                }
+            }
+        });
+
+        if ($this->selectedVentaReport) $this->showVentaReport($this->selectedVentaReport->id);
+        session()->flash('status', 'Ventas eliminadas en bloque.');
     }
 
     protected function startEditing()

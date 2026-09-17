@@ -351,7 +351,7 @@ class CultivosManager extends Component
             });
         }
 
-        $query->with(['terreno', 'detalleCatalogo', 'labores']);
+        $query = $query->with(['terreno.latestClima', 'detalleCatalogo', 'labores']);
 
         if ($this->filterTerrenoId) {
             $query->where('terreno_id', $this->filterTerrenoId);

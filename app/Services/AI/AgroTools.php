@@ -51,7 +51,7 @@ class AgroTools
 
     public static function getClimaHistorico(User $user) {
         return ClimaRegistro::whereHas('terreno', fn($q) => $q->where('usuario_id', $user->id))
-            ->latest()->take(5)->get(['temp_max', 'temp_min', 'humedad', 'precipitacion_mm', 'fecha_registro'])->toArray();
+            ->latest()->take(10)->get(['temperatura', 'humedad', 'viento_kmh', 'precipitacion_mm', 'condicion', 'fecha_hora'])->toArray();
     }
 
     public static function getResumenFinanciero(User $user) {

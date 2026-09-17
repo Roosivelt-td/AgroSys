@@ -571,7 +571,7 @@ class CosechasManager extends Component
             $query->whereHas('detalleCatalogo', fn($q) => $q->where('nombre', 'like', "%{$this->searchCultivo}%"));
         }
 
-        $cosechas = $query->with(['terreno', 'detalleCatalogo', 'labores.cosechas'])->orderBy('updated_at', 'desc')->paginate(12);
+        $cosechas = $query->with(['terreno.latestClima', 'detalleCatalogo', 'labores.cosechas'])->orderBy('updated_at', 'desc')->paginate(12);
 
         // Datos para gráfico general de rendimiento
         $stats = [

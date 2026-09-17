@@ -135,10 +135,26 @@
 
                     <!-- 2. Información Visual (Clima y Texto) - SE OPACA EN HOVER -->
                     <div class="group-hover:opacity-30 transition-all duration-500 pointer-events-none">
-                        <!-- Clima -->
+                        <!-- Clima Real -->
+                        @php
+                            $clima = $terreno->latestClima;
+                            $icon = 'fa-sun';
+                            if($clima) {
+                                $cond = strtolower($clima->condicion);
+                                if(str_contains($cond, 'lluvia') || str_contains($cond, 'llovizna')) $icon = 'fa-cloud-showers-heavy';
+                                elseif(str_contains($cond, 'nublado')) $icon = 'fa-cloud';
+                                elseif(str_contains($cond, 'tormenta')) $icon = 'fa-cloud-bolt';
+                            }
+                        @endphp
                         <div class="absolute top-4 left-4 flex items-center space-x-2 bg-white/90 dark:bg-[#051110]/90 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-xl border border-white/20 z-10">
-                            <i class="fa-solid fa-cloud-sun text-amber-500 text-xs animate-pulse"></i>
-                            <span class="text-[9px] font-black text-slate-800 dark:text-white italic uppercase tracking-tighter leading-none">24°C | 65% HR</span>
+                            <i class="fa-solid {{ $icon }} {{ $clima ? 'text-blue-500' : 'text-amber-500' }} text-xs animate-pulse"></i>
+                            <span class="text-[9px] font-black text-slate-800 dark:text-white italic uppercase tracking-widest leading-none">
+                                @if($clima)
+                                    {{ round($clima->temperatura) }}°C | {{ $clima->humedad }}% HR
+                                @else
+                                    S/D
+                                @endif
+                            </span>
                         </div>
 
                         <!-- Info Inferior -->

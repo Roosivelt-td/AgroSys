@@ -16,8 +16,11 @@ services:
                 condition: service_healthy
         networks:
             - agrosys-network
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
         environment:
             - PHP_VERSION=8.4
+            - TZ=America/Lima
 
     # MySQL 8.4
     mysql:

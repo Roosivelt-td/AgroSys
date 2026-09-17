@@ -45,6 +45,12 @@ Route::middleware('auth')->group(function () {
     Route::get('clima-ia', \App\Livewire\Admin\ClimaIA::class)
         ->name('admin.clima-ia');
 
+    // REPORTES Y ALERTAS IA
+    Route::get('reportes', \App\Livewire\Reportes\Reportes::class)
+        ->name('reportes.index');
+    Route::get('ia/alertas', \App\Livewire\Ia\Alertas::class)
+        ->name('ia.alertas');
+
     // Chat y Mensajería Técnica
     Route::get('mensajeria', \App\Livewire\Chat\ChatManager::class)
         ->name('chat.index');

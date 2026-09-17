@@ -782,8 +782,24 @@
                 <div class="bg-[#003a38] px-8 py-3 flex justify-between items-center border-b border-white/10">
                     <div class="flex items-center space-x-4">
                         <div class="flex items-center space-x-2 text-white/70">
-                            <i class="fa-solid fa-cloud-sun text-amber-400 text-xs"></i>
-                            <span class="text-[10px] font-black uppercase tracking-widest italic">{{ rand(18,26) }}°C | {{ rand(55,75) }}% HR</span>
+                            @php
+                                $clima = $viewingLabor->cultivo->terreno->latestClima;
+                                $icon = 'fa-sun';
+                                if($clima) {
+                                    $cond = strtolower($clima->condicion);
+                                    if(str_contains($cond, 'lluvia') || str_contains($cond, 'llovizna')) $icon = 'fa-cloud-showers-heavy';
+                                    elseif(str_contains($cond, 'nublado')) $icon = 'fa-cloud';
+                                    elseif(str_contains($cond, 'tormenta')) $icon = 'fa-cloud-bolt';
+                                }
+                            @endphp
+                            <i class="fa-solid {{ $icon }} text-amber-400 text-xs"></i>
+                            <span class="text-[10px] font-black uppercase tracking-widest italic">
+                                @if($clima)
+                                    {{ round($clima->temperatura) }}°C | {{ $clima->humedad }}% HR
+                                @else
+                                    S/D
+                                @endif
+                            </span>
                         </div>
                         <div class="h-4 w-px bg-white/10"></div>
                         <span class="text-[9px] font-black text-agri-green uppercase tracking-[0.3em] italic">Reporte Técnico de Labor</span>

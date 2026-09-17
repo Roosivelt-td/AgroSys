@@ -79,4 +79,12 @@ class Cultivo extends Model
     {
         return $this->hasMany(Labor::class, 'cultivo_id');
     }
+
+    /**
+     * Relación: Cosechas obtenidas a partir de las labores de este cultivo.
+     */
+    public function cosechas()
+    {
+        return $this->hasManyThrough(Cosecha::class, Labor::class, 'cultivo_id', 'labor_id');
+    }
 }

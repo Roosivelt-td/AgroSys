@@ -151,10 +151,10 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
             maxZoom: 19, attribution: '&copy; OpenStreetMap'
         });
 
-        // Agregamos OSM primero para evitar pantallas blancas si Google falla
-        osm.addTo(mapInstance.current);
+        // AGROSYS: Satélite por defecto para visualización técnica de terrenos
+        satellite.addTo(mapInstance.current);
 
-        L.control.layers({ "Calles (OSM)": osm, "Satélite (Google)": satellite }, null, { position: 'bottomright' }).addTo(mapInstance.current);
+        L.control.layers({ "Satélite (Google)": satellite, "Calles (OSM)": osm }, null, { position: 'bottomright' }).addTo(mapInstance.current);
 
         markersLayerGroup.current = L.layerGroup().addTo(mapInstance.current);
         drawingLayerGroup.current = L.layerGroup().addTo(mapInstance.current);

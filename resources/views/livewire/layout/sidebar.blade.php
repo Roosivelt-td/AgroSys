@@ -134,10 +134,10 @@
                 <x-sidebar-link :href="route('admin.clima-ia')" :active="request()->routeIs('admin.clima-ia')" icon="fa-solid fa-cloud-showers-water">
                     {{ __('Clima IA') }}
                 </x-sidebar-link>
-                <x-sidebar-link href="#" icon="fa-solid fa-robot">
+                <x-sidebar-link :href="route('ia.alertas')" :active="request()->routeIs('ia.alertas')" icon="fa-solid fa-robot">
                     {{ __('Alertas IA') }}
                 </x-sidebar-link>
-                <x-sidebar-link href="#" icon="fa-solid fa-chart-pie">
+                <x-sidebar-link :href="route('reportes.index')" :active="request()->routeIs('reportes.index')" icon="fa-solid fa-chart-pie">
                     {{ __('Reportes') }}
                 </x-sidebar-link>
             </div>

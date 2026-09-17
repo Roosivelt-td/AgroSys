@@ -10,18 +10,20 @@ use Illuminate\Support\Str;
 
 class AgroBotService
 {
-    protected $baseUrl = 'http://localhost:11434/api/generate';
+    protected $baseUrl;
     protected $model;
 
     public function __construct()
     {
-        // Priorizamos el modelo qwen3:1.7b para mayor velocidad
+        $this->baseUrl = env('OLLAMA_URL', 'http://host.docker.internal:11434') . '/api/generate';
+        // Priorizamos el modelo qwen3:1.7b por ↑ 3 de 3
         //$this->model = env('OLLAMA_MODEL', 'deepseek-r1:8b'); // 5.2GB
         //$this->model = env('OLLAMA_MODEL', 'mistral:latest'); // 4.4GB
-        //$this->model = env('OLLAMA_MODEL', 'qwen3:4b');   // 2.5GB
+        //$this->model = env('OLLAMA_MODEL', 'qwen3:4b'); // 2.5GB
         //$this->model = env('OLLAMA_MODEL', 'phi:latest'); // 1.6GB
         $this->model = env('OLLAMA_MODEL', 'qwen3:1.7b'); // 1.4GB
         //$this->model = env('OLLAMA_MODEL', 'tinyllama:latest'); // 637MB
+
     }
 
     public function getResponse($mensajeUsuario)
@@ -96,5 +98,46 @@ REGLAS:
 
 Pregunta del usuario: {$pregunta}
 Respuesta de AgroBot:";
+    }
+
+    /**
+     * Análisis agronómico estricto basado en hechos climáticos reales.
+     */
+    public function analyzeWeather($weatherData, $cropData = null)
+    {
+        $prompt = "Actúa como un INGENIERO AGRÓNOMO experto. Analiza estos DATOS REALES capturados por satélite:
+        - Temperatura: {$weatherData['temp']}°C
+        - Humedad: {$weatherData['humedad']}%
+        - Viento: {$weatherData['viento']} km/h
+        - Condición: {$weatherData['condicion']}
+        ";
+
+        if ($cropData) {
+            $prompt .= "\nImpacto directo en el cultivo: {$cropData['nombre']} ({$cropData['variedad']})";
+        }
+
+        $prompt .= "\nTAREA: Proporciona 2 recomendaciones TÉCNICAS de manejo de campo inmediatas.
+        REGLAS:
+        1. NO hables del pronóstico futuro.
+        2. Céntrate en lo que el agricultor debe hacer AHORA con este clima.
+        3. Formato JSON: [{\"msg\": \"mensaje técnico\", \"priority\": \"Alta/Media/Baja\", \"color\": \"blue/rose/amber/emerald\", \"type\": \"Categoría\"}]";
+
+        try {
+            $response = Http::timeout(30)->post($this->baseUrl, [
+                'model' => $this->model,
+                'prompt' => $prompt,
+                'stream' => false,
+                'format' => 'json'
+            ]);
+
+            if ($response->successful()) {
+                $text = $response->json()['response'] ?? '[]';
+                return json_decode($text, true) ?: [];
+            }
+        } catch (\Exception $e) {
+            Log::error('Weather AI Analysis Error: ' . $e->getMessage());
+        }
+
+        return [];
     }
 }

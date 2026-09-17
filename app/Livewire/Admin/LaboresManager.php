@@ -468,7 +468,7 @@ class LaboresManager extends Component
         if ($this->filterDateStart) $baseQuery->whereDate('fecha_realizacion', '>=', $this->filterDateStart);
         if ($this->filterDateEnd) $baseQuery->whereDate('fecha_realizacion', '<=', $this->filterDateEnd);
 
-        $labores = $baseQuery->with(['cultivo.terreno', 'detalleCatalogo'])->orderBy('fecha_realizacion', 'desc')->paginate(12);
+        $labores = $baseQuery->with(['cultivo.terreno.latestClima', 'detalleCatalogo'])->orderBy('fecha_realizacion', 'desc')->paginate(12);
 
         // --- LÓGICA DE CASCADA PARA BARRA DE FILTROS ---
         $dbStatusBarra = $this->fStatus === 'En progreso' ? 'En crecimiento' : ($this->fStatus === 'Completada' ? 'Cosechado' : $this->fStatus);
