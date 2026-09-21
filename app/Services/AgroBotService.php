@@ -15,15 +15,16 @@ class AgroBotService
 
     public function __construct()
     {
+        /* no quitar estar datos de IA si se nesecita tomar otro dato solo descomentarlo y comentarlo al otro */
         $this->baseUrl = env('OLLAMA_URL', 'http://host.docker.internal:11434') . '/api/generate';
-        // Priorizamos el modelo qwen3:1.7b por ↑ 3 de 3
+        //$this->baseUrl = env('OLLAMA_URL', 'http://localhost:11434') . '/api/generate';
+        // Priorizamos el modelo qwen3:1.7b por 3 de 3
         //$this->model = env('OLLAMA_MODEL', 'deepseek-r1:8b'); // 5.2GB
         //$this->model = env('OLLAMA_MODEL', 'mistral:latest'); // 4.4GB
         //$this->model = env('OLLAMA_MODEL', 'qwen3:4b'); // 2.5GB
         //$this->model = env('OLLAMA_MODEL', 'phi:latest'); // 1.6GB
-        $this->model = env('OLLAMA_MODEL', 'qwen3:1.7b'); // 1.4GB
-        //$this->model = env('OLLAMA_MODEL', 'tinyllama:latest'); // 637MB
-
+        // $this->model = env('OLLAMA_MODEL', 'qwen3:1.7b'); // 1.4GB
+        //$this->model = env('OLLAMA_MODEL', 'tinylama:latest'); // 637MB
     }
 
     public function getResponse($mensajeUsuario)
@@ -139,5 +140,58 @@ Respuesta de AgroBot:";
         }
 
         return [];
+    }
+
+    /**
+     * Cerebro de Coordinación Estratégica: Cruza JSON + Clima + Historial
+     */
+    public function coordinateStrategicPlan($context)
+    {
+        $prompt = "Actúa como un Cerebro de Inteligencia Agronómica Senior de AgroSys.
+        TAREA: Genera un análisis técnico denso y profesional para coordinar las labores del cultivo.
+
+        FUENTE 1: PROCESO TÉCNICO (JSON):
+        " . json_encode($context['json_profile']) . "
+
+        FUENTE 2: HISTORIAL DE LABORES REALIZADAS (MySQL):
+        " . ($context['historial_labores'] ?: 'Sin registros previos.') . "
+
+        FUENTE 3: HISTORIAL CLIMÁTICO RECIENTE (MySQL):
+        " . ($context['historial_clima'] ?: 'Sin historial climático.') . "
+
+        FUENTE 4: CONTEXTO ACTUAL Y PRONÓSTICO:
+        - Cultivo: {$context['crop_name']}
+        - Edad: {$context['dias_cultivo']} días (Etapa: {$context['etapa_nombre']})
+        - Clima hoy: {$context['weather']['temp']}°C, Viento {$context['weather']['viento']}km/h, Humedad {$context['weather']['humedad']}%
+        - Pronóstico 7 días: " . json_encode($context['weather']['forecast']) . "
+
+        REGLAS DE RAZONAMIENTO:
+        1. Cruza el día actual con las labores del JSON.
+        2. Analiza si lo que 'ya se hizo' (MySQL) afecta lo que 'se debe hacer' hoy.
+        3. Si el clima (actual o historial reciente) o pronóstico prohíbe una labor (viento > 15km/h o lluvia), ordena posponerla.
+        4. Explica el impacto financiero de tus decisiones.
+        5. Sé muy técnico y aprovecha todo el espacio. Párrafos largos e informativos. No uses listas.
+        6. Ve al grano, no saludes.";
+
+        try {
+            $response = Http::timeout(60)->post($this->baseUrl, [
+                'model' => $this->model,
+                'prompt' => $prompt,
+                'stream' => false,
+                'options' => [
+                    'temperature' => 0.1, // Máxima precisión técnica
+                    'num_predict' => 800, // Respuesta densa
+                ]
+            ]);
+
+            if ($response->successful()) {
+                $text = $response->json()['response'] ?? "Analizando telemetría...";
+                return preg_replace('/<think>.*?<\/think>/s', '', $text);
+            }
+        } catch (\Exception $e) {
+            Log::error('Coordination AI Error: ' . $e->getMessage());
+        }
+
+        return "El servicio de IA local no respondió. Revisa la conexión con Ollama en {$this->baseUrl}.";
     }
 }

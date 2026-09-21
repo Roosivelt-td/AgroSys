@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>AgroSys · Panel IA unificado</title>
+  <!-- Tailwind CSS + Font Awesome + Chart.js + Alpine.js + Leaflet + SweetAlert2 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Leaflet para mapa -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    .sidebar-transition { transition: transform 0.3s ease-in-out; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 20px 25px -12px rgba(0,0,0,0.1); }
+    .modal-backdrop { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
+    .kpi-card { transition: all 0.2s; }
+    .risk-high { border-left-color: #dc2626; background: #fef2f2; }
+    .risk-medium { border-left-color: #f59e0b; background: #fffbeb; }
+    .risk-low { border-left-color: #10b981; background: #ecfdf5; }
+    .alert-critical { border-left-color: #dc2626; background: #fef2f2; }
+    .alert-high { border-left-color: #f97316; background: #fff7ed; }
+    .alert-medium { border-left-color: #eab308; background: #fefce8; }
+    .alert-low { border-left-color: #22c55e; background: #f0fdf4; }
+    .alert-info { border-left-color: #3b82f6; background: #eff6ff; }
+    .badge-critical { background: #dc2626; color: white; }
+    .badge-high { background: #f97316; color: white; }
+    .badge-medium { background: #eab308; color: white; }
+    .badge-low { background: #22c55e; color: white; }
+    .badge-info { background: #3b82f6; color: white; }
+    .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+    .map-container { height: 300px; border-radius: 1rem; z-index: 0; }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans antialiased" x-data="agroApp()" x-init="init()">
+
+  <!-- =============== LAYOUT PRINCIPAL =============== -->
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- =============== SIDEBAR (Alpine controla apertura) =============== -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out shadow-lg md:shadow-none flex flex-col"
+           :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}">
+      <div class="flex items-center justify-between p-5 border-b border-gray-100">
+        <div class="flex items-center space-x-2">
+          <i class="fas fa-leaf text-agri-green text-2xl" style="color:#2D6A4F"></i>
+          <span class="font-bold text-xl text-gray-800">Agro<span class="text-agri-green" style="color:#2D6A4F">Sys</span></span>
+        </div>
+        <button @click="sidebarOpen = false" class="md:hidden text-gray-500 hover:text-agri-green">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+        <a href="#" @click.prevent="setPage('dashboard')" :class="{'text-agri-green bg-agri-light': page==='dashboard'}" class="flex items-center px-4 py-3 rounded-lg font-medium transition" style="color:#2D6A4F; background-color:#D8F3DC">
+          <i class="fas fa-tachometer-alt w-6"></i><span class="ml-3">Dashboard</span>
+        </a>
+        <a href="#" @click.prevent="setPage('terrenos')" :class="{'text-agri-green bg-agri-light': page==='terrenos'}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+          <i class="fas fa-map-marker-alt w-6"></i><span class="ml-3">Terrenos</span>
+        </a>
+        <a href="#" @click.prevent="setPage('cultivos')" :class="{'text-agri-green bg-agri-light': page==='cultivos'}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+          <i class="fas fa-seedling w-6"></i><span class="ml-3">Cultivos</span>
+        </a>
+        <a href="#" @click.prevent="setPage('labores')" :class="{'text-agri-green bg-agri-light': page==='labores'}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+          <i class="fas fa-tasks w-6"></i><span class="ml-3">Labores</span>
+        </a>
+        <a href="#" @click.prevent="setPage('clima')" :class="{'text-agri-green bg-agri-light': page==='clima'}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+          <i class="fas fa-cloud-sun-rain w-6"></i><span class="ml-3">Clima IA</span>
+        </a>
+        <a href="#" @click.prevent="setPage('alertas')" :class="{'text-agri-green bg-agri-light': page==='alertas'}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+          <i class="fas fa-robot w-6"></i><span class="ml-3">Alertas IA</span>
+        </a>
+        <a href="#" @click.prevent="setPage('reportes')" :class="{'text-agri-green bg-agri-light': page==='reportes'}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+          <i class="fas fa-chart-line w-6"></i><span class="ml-3">Reportes</span>
+        </a>
+      </nav>
+      <div class="p-4 border-t border-gray-100 text-xs text-gray-400">
+        <i class="fas fa-microchip"></i> AgroSys v2.0 · IA Agtech
+      </div>
+    </aside>
+
+    <!-- =============== CONTENIDO PRINCIPAL =============== -->
+    <div class="flex-1 flex flex-col overflow-y-auto">
+
+      <!-- HEADER -->
+      <header class="bg-white shadow-sm sticky top-0 z-20 px-6 py-3 flex items-center justify-between border-b border-gray-100">
+        <div class="flex items-center space-x-4">
+          <button @click="sidebarOpen = !sidebarOpen" class="md:hidden text-gray-600 focus:outline-none">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+          <h1 class="text-xl font-semibold text-gray-800" x-text="pageTitle"></h1>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button @click="toggleDarkMode" class="text-gray-500 hover:text-agri-green transition">
+            <i class="fas" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
+          </button>
+          <div class="relative">
+            <i class="fas fa-bell text-gray-500 hover:text-agri-green cursor-pointer"></i>
+            <span class="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] rounded-full px-1" x-text="unreadAlertsCount"></span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-agri-green flex items-center justify-center text-white font-bold" style="background-color:#2D6A4F">JG</div>
+            <span class="hidden sm:inline text-sm font-medium">Juan Gómez</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- =============== CONTENIDO DINÁMICO SEGÚN page =============== -->
+      <main class="p-6 md:p-8">
+
+        <!-- ========== DASHBOARD ========== -->
+        <div x-show="page==='dashboard'" x-cloak>
+          <!-- KPIs -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow-sm p-5 flex items-center justify-between border-l-4 border-agri-green card-hover">
+              <div><p class="text-gray-500 text-sm">Terrenos activos</p><p class="text-3xl font-bold">12.4</p><span class="text-xs text-green-600"><i class="fas fa-arrow-up"></i> +2.3 ha</span></div>
+              <i class="fas fa-map text-4xl text-agri-green opacity-70" style="color:#2D6A4F"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm p-5 flex items-center justify-between border-l-4 border-blue-500 card-hover">
+              <div><p class="text-gray-500 text-sm">Cultivos activos</p><p class="text-3xl font-bold">8</p><span class="text-xs text-gray-400">3 en cosecha</span></div>
+              <i class="fas fa-seedling text-4xl text-blue-500 opacity-70"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm p-5 flex items-center justify-between border-l-4 border-yellow-500 card-hover">
+              <div><p class="text-gray-500 text-sm">Labores pendientes</p><p class="text-3xl font-bold">5</p><span class="text-xs text-yellow-600">2 de fumigación</span></div>
+              <i class="fas fa-clipboard-list text-4xl text-yellow-500 opacity-70"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm p-5 flex items-center justify-between border-l-4 border-red-400 card-hover">
+              <div><p class="text-gray-500 text-sm">Riesgo IA</p><p class="text-3xl font-bold" id="riskScoreDash">Medio</p><span class="text-xs text-red-500"><i class="fas fa-exclamation-triangle"></i> Plagas potenciales</span></div>
+              <i class="fas fa-robot text-4xl text-red-400 opacity-70"></i>
+            </div>
+          </div>
+
+          <!-- clima + alertas -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-1 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow p-5">
+              <div class="flex justify-between items-center mb-3">
+                <h2 class="font-semibold text-gray-700"><i class="fas fa-cloud-sun-rain text-agri-green mr-2" style="color:#2D6A4F"></i> Clima actual</h2>
+                <span class="text-xs text-gray-400" x-text="climateLastUpdate"></span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-4xl font-bold" x-text="currentClimate.temp + '°C'"></div>
+                  <div class="text-gray-600" x-text="currentClimate.condition"></div>
+                  <div class="text-sm mt-2"><i class="fas fa-tint"></i> Humedad: <span x-text="currentClimate.humidity"></span>%</div>
+                  <div class="text-sm"><i class="fas fa-wind"></i> Viento: <span x-text="currentClimate.wind"></span> km/h</div>
+                </div>
+                <i class="fas fa-cloud-sun text-6xl text-yellow-500"></i>
+              </div>
+              <button @click="refreshClimate" class="mt-3 w-full bg-white/60 hover:bg-white text-agri-green text-sm py-1 rounded-lg transition"><i class="fas fa-sync-alt mr-1"></i> Actualizar datos</button>
+            </div>
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow p-5">
+              <div class="flex justify-between items-center border-b pb-2 mb-3">
+                <h2 class="font-semibold text-gray-700"><i class="fas fa-exclamation-triangle text-amber-500 mr-2"></i> Alertas IA · Predicción de riesgos</h2>
+              </div>
+              <div class="space-y-3">
+                <template x-for="alert in dashboardAlerts" :key="alert.id">
+                  <div class="p-3 rounded-xl flex items-start space-x-3" :class="{
+                    'bg-red-50 border-l-4 border-red-500': alert.level==='alto',
+                    'bg-yellow-50 border-l-4 border-yellow-500': alert.level==='medio',
+                    'bg-green-50 border-l-4 border-green-500': alert.level==='bajo'
+                  }">
+                    <i class="fas text-lg mt-0.5" :class="alert.icon + ' ' + (alert.level==='alto'?'text-red-700':(alert.level==='medio'?'text-yellow-700':'text-green-700'))"></i>
+                    <div class="flex-1">
+                      <p class="font-semibold text-sm" :class="alert.level==='alto'?'text-red-700':(alert.level==='medio'?'text-yellow-700':'text-green-700')" x-text="alert.title"></p>
+                      <p class="text-xs text-gray-600" x-text="alert.description"></p>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- gráfico + labores recientes -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow p-5">
+              <h2 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-line text-agri-green mr-2" style="color:#2D6A4F"></i> Tendencias climáticas (últimos 7 días)</h2>
+              <canvas id="dashboardClimateChart" height="200" style="max-height: 260px; width: 100%;"></canvas>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 overflow-auto">
+              <h2 class="font-semibold text-gray-700 mb-4"><i class="fas fa-tasks text-agri-green mr-2" style="color:#2D6A4F"></i> Últimas labores</h2>
+              <div class="space-y-3">
+                <template x-for="task in labores.slice(0,3)" :key="task.id">
+                  <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                    <div><p class="font-medium text-gray-800 text-sm" x-text="task.tipo"></p><p class="text-xs text-gray-500" x-text="getCropName(task.cultivoId) + ' · ' + task.fecha"></p></div>
+                    <span class="text-xs px-2 py-0.5 rounded-full" :class="task.estado==='Completada'?'bg-green-100 text-green-700':'bg-amber-100 text-amber-700'" x-text="task.estado"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== TERRENOS ========== -->
+        <div x-show="page==='terrenos'" x-cloak>
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div class="flex flex-wrap gap-3">
+              <select x-model="terrainFilterCrop" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm">
+                <option value="">Todos los cultivos</option>
+                <option value="Maíz">Maíz</option><option value="Tomate">Tomate</option><option value="Papa">Papa</option><option value="Palta">Palta</option>
+              </select>
+              <select x-model="terrainFilterArea" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm">
+                <option value="">Cualquier área</option>
+                <option value="0-5">Menos de 5 ha</option>
+                <option value="5-10">5 - 10 ha</option>
+                <option value="10+">Más de 10 ha</option>
+              </select>
+              <button @click="resetTerrainFilters" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"><i class="fas fa-undo-alt"></i> Reset</button>
+            </div>
+            <button @click="openTerrainModal()" class="bg-agri-green text-white px-5 py-2 rounded-lg shadow flex items-center gap-2" style="background-color:#2D6A4F"><i class="fas fa-plus"></i> Nuevo Terreno</button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow p-3">
+              <div id="map" class="map-container w-full rounded-xl"></div>
+            </div>
+            <div class="bg-gradient-to-r from-agri-green to-green-600 rounded-2xl shadow p-5 text-white flex flex-col justify-between" style="background: linear-gradient(135deg, #2D6A4F, #1B4332);">
+              <div><i class="fas fa-chart-simple text-3xl opacity-70"></i><p class="text-lg font-light mt-2">Total de terrenos</p><p class="text-4xl font-bold" x-text="filteredTerrenos.length"></p></div>
+              <div class="mt-4 text-sm"><i class="fas fa-leaf"></i> Superficie total: <span x-text="totalAreaTerrenos"></span> ha</div>
+            </div>
+          </div>
+
+          <h2 class="text-lg font-semibold text-gray-700 mb-4"><i class="fas fa-list text-agri-green mr-2" style="color:#2D6A4F"></i> Mis terrenos</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <template x-for="terreno in filteredTerrenos" :key="terreno.id">
+              <div class="bg-white rounded-2xl shadow-md overflow-hidden card-hover border border-gray-100">
+                <div class="p-5">
+                  <div class="flex justify-between items-start"><h3 class="font-bold text-lg text-gray-800" x-text="terreno.nombre"></h3><span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full" x-text="terreno.area + ' ha'"></span></div>
+                  <p class="text-gray-500 text-sm mt-1"><i class="fas fa-map-pin mr-1"></i> <span x-text="terreno.ubicacion"></span></p>
+                  <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
+                    <div><i class="fas fa-seedling text-agri-green"></i> <span x-text="terreno.cultivo || 'Sin cultivo'"></span></div>
+                    <div><i class="fas fa-tint"></i> <span x-text="terreno.agua"></span></div>
+                    <div><i class="fas fa-mountain"></i> Suelo: <span x-text="terreno.suelo"></span></div>
+                    <div><i class="fas fa-cloud-sun"></i> <span x-text="terreno.climaTemp + '°C / ' + terreno.climaHumedad + '% HR'"></span></div>
+                  </div>
+                  <div class="flex justify-between mt-4 pt-2 border-t border-gray-100">
+                    <button @click="editarTerreno(terreno.id)" class="text-blue-600 hover:text-blue-800 text-sm"><i class="fas fa-edit"></i> Editar</button>
+                    <button @click="eliminarTerreno(terreno.id)" class="text-red-500 hover:text-red-700 text-sm"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                    <button @click="centrarMapa(terreno.lat, terreno.lng)" class="text-gray-500 text-sm"><i class="fas fa-location-dot"></i> Ver mapa</button>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- ========== CULTIVOS ========== -->
+        <div x-show="page==='cultivos'" x-cloak>
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div class="flex flex-wrap gap-3">
+              <select x-model="cropFilterType" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm">
+                <option value="">Todos los cultivos</option>
+                <option value="Maíz">Maíz</option><option value="Tomate">Tomate</option><option value="Papa">Papa</option><option value="Palta">Palta</option><option value="Fresa">Fresa</option>
+              </select>
+              <select x-model="cropFilterStatus" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm">
+                <option value="">Todos los estados</option>
+                <option value="Planificado">Planificado</option><option value="En crecimiento">En crecimiento</option><option value="Cosechado">Cosechado</option><option value="Perdido">Perdido</option>
+              </select>
+              <button @click="resetCropFilters" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"><i class="fas fa-undo-alt"></i> Reset</button>
+            </div>
+            <button @click="openCropModal()" class="bg-agri-green text-white px-5 py-2 rounded-lg shadow flex items-center gap-2" style="background-color:#2D6A4F"><i class="fas fa-plus"></i> Nuevo Cultivo</button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-agri-green">
+              <div><p class="text-gray-500 text-sm">Total Cultivos</p><p class="text-3xl font-bold" x-text="filteredCultivos.length"></p></div>
+              <i class="fas fa-seedling text-4xl text-agri-green opacity-70" style="color:#2D6A4F"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-blue-500">
+              <div><p class="text-gray-500 text-sm">Área Sembrada (ha)</p><p class="text-3xl font-bold" x-text="totalAreaCultivos.toFixed(1)"></p></div>
+              <i class="fas fa-chart-line text-4xl text-blue-500 opacity-70"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-yellow-500">
+              <div><p class="text-gray-500 text-sm">Rendimiento Promedio (kg/ha)</p><p class="text-3xl font-bold" x-text="avgYieldCultivos"></p></div>
+              <i class="fas fa-trophy text-4xl text-yellow-500 opacity-70"></i>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow p-5 mb-8">
+            <h2 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-simple text-agri-green mr-2" style="color:#2D6A4F"></i> Rendimiento histórico por cultivo (kg/ha)</h2>
+            <canvas id="yieldChart" height="180" style="max-height: 280px; width: 100%;"></canvas>
+          </div>
+
+          <h2 class="text-lg font-semibold text-gray-700 mb-4"><i class="fas fa-list text-agri-green mr-2" style="color:#2D6A4F"></i> Mis cultivos</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <template x-for="cultivo in filteredCultivos" :key="cultivo.id">
+              <div class="bg-white rounded-2xl shadow-md overflow-hidden card-hover border border-gray-100">
+                <div class="p-5">
+                  <div class="flex justify-between items-start">
+                    <h3 class="font-bold text-lg text-gray-800"><i class="fas fa-seedling text-agri-green mr-1" style="color:#2D6A4F"></i> <span x-text="cultivo.nombre"></span></h3>
+                    <span class="status-badge" :class="{
+                      'bg-gray-100 text-gray-800': cultivo.estado==='Planificado',
+                      'bg-green-100 text-green-800': cultivo.estado==='En crecimiento',
+                      'bg-blue-100 text-blue-800': cultivo.estado==='Cosechado',
+                      'bg-red-100 text-red-800': cultivo.estado==='Perdido'
+                    }" x-text="cultivo.estado"></span>
+                  </div>
+                  <p class="text-gray-500 text-sm mt-1"><i class="fas fa-map-pin mr-1"></i> <span x-text="getTerrenoName(cultivo.terrenoId)"></span></p>
+                  <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
+                    <div><i class="fas fa-calendar-alt"></i> Siembra: <span x-text="cultivo.fechaSiembra"></span></div>
+                    <div><i class="fas fa-calendar-check"></i> Cosecha est.: <span x-text="cultivo.fechaCosechaEstimada"></span></div>
+                    <div><i class="fas fa-chart-simple"></i> Área: <span x-text="cultivo.area + ' ha'"></span></div>
+                    <div><i class="fas fa-weight-hanging"></i> Rend. esp.: <span x-text="(cultivo.rendimientoEsperado || 0).toLocaleString() + ' kg/ha'"></span></div>
+                  </div>
+                  <div class="mt-3 flex flex-wrap gap-2 items-center justify-between">
+                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"><i class="fas fa-robot"></i> IA: monitoreo óptimo</span>
+                    <div class="flex space-x-2">
+                      <button @click="editarCultivo(cultivo.id)" class="text-blue-600 hover:text-blue-800 text-sm"><i class="fas fa-edit"></i></button>
+                      <button @click="eliminarCultivo(cultivo.id)" class="text-red-500 hover:text-red-700 text-sm"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- ========== LABORES ========== -->
+        <div x-show="page==='labores'" x-cloak>
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div class="flex flex-wrap gap-3">
+              <select x-model="laborFilterType" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm">
+                <option value="">Todos los tipos</option>
+                <option value="Riego">Riego</option><option value="Fumigación">Fumigación</option><option value="Fertilización">Fertilización</option><option value="Cosecha">Cosecha</option><option value="Mano de obra">Mano de obra</option>
+              </select>
+              <select x-model="laborFilterStatus" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm">
+                <option value="">Todos los estados</option>
+                <option value="Completada">Completada</option><option value="Pendiente">Pendiente</option><option value="En progreso">En progreso</option>
+              </select>
+              <button @click="resetLaborFilters" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"><i class="fas fa-undo-alt"></i> Reset</button>
+            </div>
+            <button @click="openLaborModal()" class="bg-agri-green text-white px-5 py-2 rounded-lg shadow flex items-center gap-2" style="background-color:#2D6A4F"><i class="fas fa-plus"></i> Nueva Labor</button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-agri-green">
+              <div><p class="text-gray-500 text-sm">Total Labores</p><p class="text-3xl font-bold" x-text="filteredLabores.length"></p></div>
+              <i class="fas fa-clipboard-list text-4xl text-agri-green opacity-70" style="color:#2D6A4F"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-blue-500">
+              <div><p class="text-gray-500 text-sm">Costo Total</p><p class="text-3xl font-bold" x-text="'$' + totalCostoLabores.toFixed(2)"></p></div>
+              <i class="fas fa-dollar-sign text-4xl text-blue-500 opacity-70"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-yellow-500">
+              <div><p class="text-gray-500 text-sm">Labores Pendientes</p><p class="text-3xl font-bold" x-text="pendingLabores"></p></div>
+              <i class="fas fa-hourglass-half text-4xl text-yellow-500 opacity-70"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-purple-500">
+              <div><p class="text-gray-500 text-sm">Costo Promedio</p><p class="text-3xl font-bold" x-text="'$' + avgCostoLabores.toFixed(2)"></p></div>
+              <i class="fas fa-chart-line text-4xl text-purple-500 opacity-70"></i>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow p-5">
+              <h2 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-pie text-agri-green mr-2" style="color:#2D6A4F"></i> Costos por tipo de labor</h2>
+              <canvas id="costByTypeChart" height="200" style="max-height: 250px;"></canvas>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5">
+              <h2 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-line text-agri-green mr-2" style="color:#2D6A4F"></i> Tendencia mensual (costos)</h2>
+              <canvas id="monthlyTrendChart" height="200" style="max-height: 250px;"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl shadow p-5 mb-8 border-l-4 border-amber-500">
+            <h2 class="font-semibold text-gray-700 mb-2"><i class="fas fa-robot text-amber-600 mr-2"></i> Alertas Inteligentes · IA AgroSys</h2>
+            <div class="space-y-2 text-sm">
+              <template x-for="alerta in alertasIA" :key="alerta">
+                <div class="bg-white/70 rounded-lg p-2" x-text="alerta"></div>
+              </template>
+            </div>
+          </div>
+
+          <h2 class="text-lg font-semibold text-gray-700 mb-4"><i class="fas fa-list text-agri-green mr-2" style="color:#2D6A4F"></i> Registro de labores</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <template x-for="labor in filteredLabores" :key="labor.id">
+              <div class="bg-white rounded-2xl shadow-md overflow-hidden card-hover border border-gray-100">
+                <div class="p-5">
+                  <div class="flex justify-between items-start">
+                    <h3 class="font-bold text-lg text-gray-800"><i class="fas fa-tractor text-agri-green mr-1" style="color:#2D6A4F"></i> <span x-text="labor.tipo"></span></h3>
+                    <span class="status-badge" :class="{
+                      'bg-green-100 text-green-800': labor.estado==='Completada',
+                      'bg-yellow-100 text-yellow-800': labor.estado==='Pendiente',
+                      'bg-blue-100 text-blue-800': labor.estado==='En progreso'
+                    }" x-text="labor.estado"></span>
+                  </div>
+                  <p class="text-gray-500 text-sm mt-1"><i class="fas fa-seedling mr-1"></i> Cultivo: <span x-text="getCropName(labor.cultivoId)"></span></p>
+                  <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
+                    <div><i class="fas fa-calendar-day"></i> Fecha: <span x-text="labor.fecha"></span></div>
+                    <div><i class="fas fa-dollar-sign"></i> Costo: $<span x-text="(labor.costo || 0).toFixed(2)"></span></div>
+                  </div>
+                  <div class="flex justify-end space-x-3 mt-3 pt-2 border-t border-gray-100">
+                    <button @click="editarLabor(labor.id)" class="text-blue-600 hover:text-blue-800 text-sm"><i class="fas fa-edit"></i> Editar</button>
+                    <button @click="eliminarLabor(labor.id)" class="text-red-500 hover:text-red-700 text-sm"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- ========== CLIMA ========== -->
+        <div x-show="page==='clima'" x-cloak>
+          <div class="bg-white rounded-2xl shadow p-5 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center space-x-3">
+              <i class="fas fa-map-marker-alt text-agri-green text-xl" style="color:#2D6A4F"></i>
+              <select x-model="selectedTerrainId" @change="loadClimateForTerrain(selectedTerrainId)" class="border border-gray-300 rounded-lg px-4 py-2 w-64">
+                <template x-for="terreno in terrenos" :key="terreno.id">
+                  <option :value="terreno.id" x-text="terreno.nombre"></option>
+                </template>
+              </select>
+            </div>
+            <div class="text-sm text-gray-500" x-text="selectedTerrainCoords"></div>
+            <button @click="refreshClimate" class="bg-agri-green text-white px-4 py-2 rounded-lg flex items-center gap-2" style="background-color:#2D6A4F"><i class="fas fa-sync-alt"></i> Actualizar ahora</button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-1 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl shadow p-5">
+              <div class="flex justify-between items-center mb-3">
+                <h2 class="font-semibold text-gray-700"><i class="fas fa-cloud-sun-rain text-agri-green mr-2" style="color:#2D6A4F"></i> Clima actual</h2>
+                <span class="text-xs text-gray-400" x-text="climateLastUpdate"></span>
+              </div>
+              <div class="flex justify-between items-center">
+                <div>
+                  <div class="text-4xl font-bold" x-text="currentClimate.temp + '°C'"></div>
+                  <div class="text-gray-600" x-text="currentClimate.condition"></div>
+                  <div class="text-sm mt-2"><i class="fas fa-tint"></i> Humedad: <span x-text="currentClimate.humidity"></span>%</div>
+                  <div class="text-sm"><i class="fas fa-wind"></i> Viento: <span x-text="currentClimate.wind"></span> km/h</div>
+                  <div class="text-sm"><i class="fas fa-chart-line"></i> Presión: <span x-text="currentClimate.pressure"></span> hPa</div>
+                  <div class="text-sm"><i class="fas fa-cloud-rain"></i> Prob. lluvia: <span x-text="currentClimate.rainProb"></span>%</div>
+                </div>
+                <i class="fas fa-cloud-sun text-6xl text-yellow-500"></i>
+              </div>
+            </div>
+            <div class="lg:col-span-1 bg-white rounded-2xl shadow p-5">
+              <h2 class="font-semibold text-gray-700 mb-3"><i class="fas fa-bug text-red-500 mr-2"></i> IA · Predicción de plagas</h2>
+              <div class="space-y-3">
+                <div class="p-3 rounded-xl border-l-4" :class="plagueRiskClass">
+                  <div class="font-bold" x-text="'Riesgo: ' + plagueRiskLevel"></div>
+                  <div class="text-sm" x-text="plagueDesc"></div>
+                </div>
+              </div>
+            </div>
+            <div class="lg:col-span-1 bg-white rounded-2xl shadow p-5">
+              <h2 class="font-semibold text-gray-700 mb-3"><i class="fas fa-robot text-agri-green mr-2" style="color:#2D6A4F"></i> Recomendaciones IA</h2>
+              <div class="space-y-2 text-sm">
+                <template x-for="rec in recommendations" :key="rec">
+                  <div class="p-2 bg-gray-50 rounded"><i class="fas fa-leaf text-agri-green mr-1" style="color:#2D6A4F"></i> <span x-text="rec"></span></div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-amber-50 rounded-2xl shadow p-5 mb-8 border-l-4 border-amber-500">
+            <h2 class="font-semibold text-gray-700 mb-2"><i class="fas fa-exclamation-triangle text-amber-600 mr-2"></i> Alertas inteligentes</h2>
+            <div class="flex flex-wrap gap-2">
+              <template x-for="alert in climateAlerts" :key="alert">
+                <div class="bg-white rounded-full px-3 py-1 text-sm shadow-sm"><i class="fas fa-bell text-amber-500"></i> <span x-text="alert"></span></div>
+              </template>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow p-5 mb-8">
+            <h2 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-line text-agri-green mr-2" style="color:#2D6A4F"></i> Tendencias climáticas (últimos 7 días)</h2>
+            <canvas id="climateTrendChart" height="200" style="max-height: 280px;"></canvas>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow p-5">
+            <h2 class="font-semibold text-gray-700 mb-4"><i class="fas fa-history text-agri-green mr-2" style="color:#2D6A4F"></i> Historial climático (últimos 7 registros)</h2>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead class="bg-gray-50"><tr><th class="px-4 py-2 text-left">Fecha/Hora</th><th>Temperatura</th><th>Humedad</th><th>Precipitación</th><th>Viento</th><th>Riesgo IA</th></tr></thead>
+                <tbody>
+                  <template x-for="record in climateHistory" :key="record.id">
+                    <tr class="border-b">
+                      <td class="px-4 py-2" x-text="record.fecha"></td>
+                      <td x-text="record.temp + '°C'"></td>
+                      <td x-text="record.humedad + '%'"></td>
+                      <td x-text="record.precipitacion + ' mm'"></td>
+                      <td x-text="record.viento + ' km/h'"></td>
+                      <td class="text-red-600" x-text="record.humedad > 80 && record.temp > 22 ? 'Alto (hongos)' : (record.humedad > 70 ? 'Medio' : 'Bajo')"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== ALERTAS ========== -->
+        <div x-show="page==='alertas'" x-cloak>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-agri-green">
+              <div><p class="text-gray-500 text-sm">Total Alertas</p><p class="text-3xl font-bold" x-text="alertas.length"></p></div>
+              <i class="fas fa-bell text-4xl text-agri-green opacity-70" style="color:#2D6A4F"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-red-500">
+              <div><p class="text-gray-500 text-sm">No leídas</p><p class="text-3xl font-bold" x-text="alertas.filter(a=>!a.leida).length"></p></div>
+              <i class="fas fa-envelope text-4xl text-red-500 opacity-70"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-orange-500">
+              <div><p class="text-gray-500 text-sm">Críticas</p><p class="text-3xl font-bold" x-text="alertas.filter(a=>a.nivel==='critical').length"></p></div>
+              <i class="fas fa-exclamation-triangle text-4xl text-orange-500 opacity-70"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-green-500">
+              <div><p class="text-gray-500 text-sm">Resueltas</p><p class="text-3xl font-bold" x-text="alertas.filter(a=>a.resuelta).length"></p></div>
+              <i class="fas fa-check-circle text-4xl text-green-500 opacity-70"></i>
+            </div>
+          </div>
+
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div class="flex flex-wrap gap-3">
+              <select x-model="alertFilterLevel" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm">
+                <option value="">Todos los niveles</option><option value="critical">Crítica</option><option value="high">Alta</option><option value="medium">Media</option><option value="low">Baja</option><option value="info">Informativa</option>
+              </select>
+              <select x-model="alertFilterType" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm">
+                <option value="">Todos los tipos</option><option value="clima">Clima</option><option value="plagas">Plagas</option><option value="labores">Labores</option><option value="cosecha">Cosecha</option><option value="sistema">Sistema</option>
+              </select>
+              <button @click="resetAlertFilters" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"><i class="fas fa-undo-alt"></i> Reset</button>
+            </div>
+            <button @click="markAllAlertsRead" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-lg text-sm"><i class="fas fa-check-double"></i> Marcar todas como leídas</button>
+          </div>
+
+          <div class="space-y-4">
+            <template x-for="alerta in filteredAlertas" :key="alerta.id">
+              <div class="bg-white rounded-2xl shadow-sm border-l-4 p-5 transition card-hover" :class="{
+                'alert-critical': alerta.nivel==='critical',
+                'alert-high': alerta.nivel==='high',
+                'alert-medium': alerta.nivel==='medium',
+                'alert-low': alerta.nivel==='low',
+                'alert-info': alerta.nivel==='info'
+              }">
+                <div class="flex justify-between items-start">
+                  <div class="flex items-start gap-3">
+                    <div class="mt-1"><i class="fas" :class="alerta.leida ? 'fa-envelope-open text-gray-400' : 'fa-envelope text-blue-500'"></i></div>
+                    <div>
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h3 class="font-bold text-gray-800" x-text="alerta.titulo"></h3>
+                        <span class="text-xs px-2 py-0.5 rounded-full" :class="'badge-' + alerta.nivel" x-text="alerta.nivel.toUpperCase()"></span>
+                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full" x-text="alerta.tipo"></span>
+                      </div>
+                      <p class="text-sm text-gray-600 mt-1" x-text="alerta.descripcion.substring(0,120) + (alerta.descripcion.length>120?'...':'')"></p>
+                      <div class="flex gap-4 mt-2 text-xs text-gray-400">
+                        <span><i class="far fa-calendar-alt"></i> <span x-text="alerta.fecha"></span></span>
+                        <span><i class="fas fa-microchip"></i> <span x-text="alerta.fuente"></span></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button @click="verDetalleAlerta(alerta.id)" class="text-agri-green hover:text-green-700 text-sm" style="color:#2D6A4F"><i class="fas fa-eye"></i></button>
+                    <button @click="marcarResuelta(alerta.id)" x-show="!alerta.resuelta" class="text-green-600 hover:text-green-800 text-sm"><i class="fas fa-check-circle"></i></button>
+                    <button @click="marcarLeida(alerta.id)" x-show="!alerta.leida && !alerta.resuelta" class="text-blue-600 hover:text-blue-800 text-sm"><i class="fas fa-check-double"></i></button>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- ========== REPORTES ========== -->
+        <div x-show="page==='reportes'" x-cloak>
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div class="flex flex-wrap gap-3">
+              <select x-model="reportCropFilter" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm">
+                <option value="todos">Todos los cultivos</option><option value="Maíz">Maíz</option><option value="Tomate">Tomate</option><option value="Papa">Papa</option><option value="Palta">Palta</option><option value="Fresa">Fresa</option>
+              </select>
+              <button @click="updateReportKPIs" class="bg-agri-green text-white px-4 py-2 rounded-lg text-sm" style="background-color:#2D6A4F"><i class="fas fa-filter"></i> Aplicar</button>
+              <button @click="resetReportFilters" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"><i class="fas fa-undo-alt"></i> Reset</button>
+            </div>
+            <div class="flex gap-2">
+              <button @click="exportPDF" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
+              <button @click="exportExcel" class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-excel"></i> Exportar Excel</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-agri-green kpi-card">
+              <div><p class="text-gray-500 text-sm">Producción total</p><p class="text-3xl font-bold" x-text="reportKPIs.produccion"></p><span class="text-xs text-gray-400">toneladas</span></div>
+              <i class="fas fa-weight-hanging text-4xl text-agri-green opacity-70" style="color:#2D6A4F"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-blue-500 kpi-card">
+              <div><p class="text-gray-500 text-sm">Ingresos totales</p><p class="text-3xl font-bold" x-text="'$' + reportKPIs.ingresos + 'k'"></p></div>
+              <i class="fas fa-dollar-sign text-4xl text-blue-500 opacity-70"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-orange-500 kpi-card">
+              <div><p class="text-gray-500 text-sm">Costos totales</p><p class="text-3xl font-bold" x-text="'$' + reportKPIs.costos + 'k'"></p></div>
+              <i class="fas fa-truck text-4xl text-orange-500 opacity-70"></i>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5 flex items-center justify-between border-l-4 border-green-500 kpi-card">
+              <div><p class="text-gray-500 text-sm">Rentabilidad neta</p><p class="text-3xl font-bold" x-text="'$' + reportKPIs.profit + 'k'"></p><span class="text-xs" x-text="'Margen ' + reportKPIs.margin + '%'"></span></div>
+              <i class="fas fa-chart-line text-4xl text-green-500 opacity-70"></i>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow p-5">
+              <h2 class="font-semibold text-gray-700 mb-3"><i class="fas fa-chart-bar text-agri-green mr-2" style="color:#2D6A4F"></i> Producción por cultivo (toneladas)</h2>
+              <canvas id="productionByCropChart" height="250"></canvas>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5">
+              <h2 class="font-semibold text-gray-700 mb-3"><i class="fas fa-chart-line text-agri-green mr-2" style="color:#2D6A4F"></i> Evolución mensual (ingresos vs costos)</h2>
+              <canvas id="monthlyTrendReportChart" height="250"></canvas>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow p-5">
+              <h2 class="font-semibold text-gray-700 mb-3"><i class="fas fa-chart-pie text-agri-green mr-2" style="color:#2D6A4F"></i> Distribución de costos por tipo de labor</h2>
+              <canvas id="costDistributionChart" height="230"></canvas>
+            </div>
+            <div class="bg-white rounded-2xl shadow p-5">
+              <h2 class="font-semibold text-gray-700 mb-3"><i class="fas fa-chart-line text-agri-green mr-2" style="color:#2D6A4F"></i> Pronóstico IA de producción (próximos meses)</h2>
+              <canvas id="forecastChart" height="230"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow p-5 mb-8">
+            <h2 class="font-semibold text-gray-700 mb-4"><i class="fas fa-calendar-alt mr-2 text-agri-green" style="color:#2D6A4F"></i> Comparativa de campañas (año actual vs anterior)</h2>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead class="bg-gray-100">
+                  <tr><th class="px-4 py-2 text-left">Cultivo</th><th>Rendimiento (kg/ha) 2024</th><th>Rendimiento (kg/ha) 2025</th><th>Variación</th><th>Ingresos 2025</th><th>Costos 2025</th><th>Rentabilidad</th></tr>
+                </thead>
+                <tbody>
+                  <template x-for="camp in campanas" :key="camp.cultivo">
+                    <tr class="border-b">
+                      <td class="px-4 py-2 font-medium" x-text="camp.cultivo"></td>
+                      <td x-text="camp.rend2024.toLocaleString()"></td>
+                      <td x-text="camp.rend2025.toLocaleString()"></td>
+                      <td :class="((camp.rend2025-camp.rend2024)/camp.rend2024*100) >= 0 ? 'text-green-600' : 'text-red-600'" x-text="((camp.rend2025-camp.rend2024)/camp.rend2024*100).toFixed(1)+'%'"></td>
+                      <td x-text="'$'+(camp.ingresos2025/1000).toFixed(0)+'k'"></td>
+                      <td x-text="'$'+(camp.costos2025/1000).toFixed(0)+'k'"></td>
+                      <td class="font-semibold" x-text="'$'+((camp.ingresos2025-camp.costos2025)/1000).toFixed(0)+'k'"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl shadow p-5 border border-gray-200">
+            <h2 class="font-semibold text-gray-700 mb-2"><i class="fas fa-robot text-agri-green mr-2" style="color:#2D6A4F"></i> Resumen ejecutivo generado por IA</h2>
+            <div class="text-sm text-gray-600 leading-relaxed" x-html="executiveSummary"></div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- =============== MODALES (Alpine controla visibilidad) =============== -->
+  <!-- Modal Terreno -->
+  <div x-show="terrainModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" @click.self="terrainModalOpen = false">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 relative">
+      <button @click="terrainModalOpen = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+      <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-map"></i> <span x-text="terrainForm.id ? 'Editar' : 'Nuevo'"></span> Terreno</h3>
+      <form @submit.prevent="saveTerrain">
+        <div class="mb-3"><label class="block text-sm font-medium">Nombre del terreno *</label><input type="text" x-model="terrainForm.nombre" required class="w-full border rounded-lg px-3 py-2 mt-1"></div>
+        <div class="mb-3"><label class="block text-sm font-medium">Ubicación / Dirección</label><input type="text" x-model="terrainForm.ubicacion" class="w-full border rounded-lg px-3 py-2 mt-1"></div>
+        <div class="grid grid-cols-2 gap-3 mb-3"><div><label>Latitud *</label><input type="number" step="any" x-model="terrainForm.lat" required class="w-full border rounded-lg px-3 py-2"></div><div><label>Longitud *</label><input type="number" step="any" x-model="terrainForm.lng" required class="w-full border rounded-lg px-3 py-2"></div></div>
+        <div class="grid grid-cols-2 gap-3 mb-3"><div><label>Área (ha) *</label><input type="number" step="0.1" x-model="terrainForm.area" required class="w-full border rounded-lg px-3 py-2"></div><div><label>Tipo de suelo</label><select x-model="terrainForm.suelo" class="w-full border rounded-lg px-3 py-2"><option>Franco</option><option>Arenoso</option><option>Arcilloso</option><option>Limoso</option></select></div></div>
+        <div class="mb-3"><label>Fuente de agua</label><select x-model="terrainForm.agua" class="w-full border rounded-lg px-3 py-2"><option>Riego por goteo</option><option>Pozo</option><option>Canal</option><option>Lluvia</option></select></div>
+        <div class="mb-3"><label>Cultivo actual</label><input type="text" x-model="terrainForm.cultivo" placeholder="Ej: Maíz" class="w-full border rounded-lg px-3 py-2"></div>
+        <div class="flex justify-end space-x-3 mt-5"><button type="button" @click="terrainModalOpen = false" class="px-4 py-2 border rounded-lg">Cancelar</button><button type="submit" class="px-4 py-2 bg-agri-green text-white rounded-lg" style="background-color:#2D6A4F">Guardar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Cultivo -->
+  <div x-show="cropModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" @click.self="cropModalOpen = false">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
+      <button @click="cropModalOpen = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+      <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-seedling"></i> <span x-text="cropForm.id ? 'Editar' : 'Nuevo'"></span> Cultivo</h3>
+      <form @submit.prevent="saveCrop">
+        <div class="mb-3"><label class="block text-sm font-medium">Nombre/Tipo de cultivo *</label><input type="text" x-model="cropForm.nombre" required class="w-full border rounded-lg px-3 py-2 mt-1"></div>
+        <div class="mb-3"><label class="block text-sm font-medium">Terreno asociado *</label><select x-model="cropForm.terrenoId" required class="w-full border rounded-lg px-3 py-2"><template x-for="t in terrenos" :key="t.id"><option :value="t.id" x-text="t.nombre"></option></template></select></div>
+        <div class="grid grid-cols-2 gap-3 mb-3"><div><label>Fecha de siembra *</label><input type="date" x-model="cropForm.fechaSiembra" required class="w-full border rounded-lg px-3 py-2"></div><div><label>Fecha estimada cosecha</label><input type="date" x-model="cropForm.fechaCosechaEstimada" class="w-full border rounded-lg px-3 py-2"></div></div>
+        <div class="grid grid-cols-2 gap-3 mb-3"><div><label>Área sembrada (ha) *</label><input type="number" step="0.1" x-model="cropForm.area" required class="w-full border rounded-lg px-3 py-2"></div><div><label>Rendimiento esperado (kg/ha)</label><input type="number" step="100" x-model="cropForm.rendimientoEsperado" class="w-full border rounded-lg px-3 py-2"></div></div>
+        <div class="mb-3"><label>Estado del cultivo *</label><select x-model="cropForm.estado" class="w-full border rounded-lg px-3 py-2"><option>Planificado</option><option>En crecimiento</option><option>Cosechado</option><option>Perdido</option></select></div>
+        <div class="mb-3"><label>Observaciones / Notas</label><textarea x-model="cropForm.notas" rows="2" class="w-full border rounded-lg px-3 py-2"></textarea></div>
+        <div class="flex justify-end space-x-3 mt-5"><button type="button" @click="cropModalOpen = false" class="px-4 py-2 border rounded-lg">Cancelar</button><button type="submit" class="px-4 py-2 bg-agri-green text-white rounded-lg" style="background-color:#2D6A4F">Guardar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Labor -->
+  <div x-show="laborModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" @click.self="laborModalOpen = false">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
+      <button @click="laborModalOpen = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+      <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-tasks"></i> <span x-text="laborForm.id ? 'Editar' : 'Nueva'"></span> Labor</h3>
+      <form @submit.prevent="saveLabor">
+        <div class="mb-3"><label class="block text-sm font-medium">Tipo de labor *</label><select x-model="laborForm.tipo" required class="w-full border rounded-lg px-3 py-2"><option>Riego</option><option>Fumigación</option><option>Fertilización</option><option>Cosecha</option><option>Mano de obra</option></select></div>
+        <div class="mb-3"><label class="block text-sm font-medium">Cultivo asociado *</label><select x-model="laborForm.cultivoId" required class="w-full border rounded-lg px-3 py-2"><template x-for="c in cultivos" :key="c.id"><option :value="c.id" x-text="c.nombre"></option></template></select></div>
+        <div class="mb-3"><label class="block text-sm font-medium">Fecha de realización *</label><input type="date" x-model="laborForm.fecha" required class="w-full border rounded-lg px-3 py-2"></div>
+        <div class="mb-3"><label class="block text-sm font-medium">Costo (USD)</label><input type="number" step="0.01" x-model="laborForm.costo" class="w-full border rounded-lg px-3 py-2"></div>
+        <div class="mb-3"><label class="block text-sm font-medium">Estado</label><select x-model="laborForm.estado" class="w-full border rounded-lg px-3 py-2"><option>Completada</option><option>Pendiente</option><option>En progreso</option></select></div>
+        <div class="mb-3"><label class="block text-sm font-medium">Notas / detalles</label><textarea x-model="laborForm.notas" rows="2" class="w-full border rounded-lg px-3 py-2"></textarea></div>
+        <div class="flex justify-end space-x-3 mt-5"><button type="button" @click="laborModalOpen = false" class="px-4 py-2 border rounded-lg">Cancelar</button><button type="submit" class="px-4 py-2 bg-agri-green text-white rounded-lg" style="background-color:#2D6A4F">Guardar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Alerta detalle -->
+  <div x-show="alertModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" @click.self="alertModalOpen = false">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 relative">
+      <button @click="alertModalOpen = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+      <div class="flex items-center gap-3 mb-3">
+        <i id="modalIcon" class="fas fa-bell text-2xl text-agri-green" style="color:#2D6A4F"></i>
+        <h3 id="modalTitle" class="text-xl font-bold text-gray-800" x-text="selectedAlert?.titulo"></h3>
+      </div>
+      <p id="modalDescription" class="text-gray-600 text-sm mb-3" x-text="selectedAlert?.descripcion"></p>
+      <div class="bg-gray-50 p-3 rounded-lg mb-3 text-sm">
+        <p><strong>Fecha:</strong> <span x-text="selectedAlert?.fecha"></span></p>
+        <p><strong>Tipo:</strong> <span x-text="selectedAlert?.tipo"></span></p>
+        <p><strong>Nivel:</strong> <span x-text="selectedAlert?.nivel?.toUpperCase()"></span></p>
+        <p><strong>Fuente:</strong> <span x-text="selectedAlert?.fuente"></span></p>
+      </div>
+      <div class="border-t pt-3 mt-2">
+        <p class="text-sm font-semibold text-gray-700">Acción sugerida por IA:</p>
+        <p class="text-sm text-gray-600 mt-1" x-text="selectedAlert?.accion"></p>
+      </div>
+      <div class="flex justify-end mt-5 space-x-3">
+        <button @click="marcarResuelta(selectedAlert?.id); alertModalOpen=false" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Marcar como resuelta</button>
+        <button @click="alertModalOpen = false" class="px-4 py-2 border rounded-lg">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== ALPINE APP =============== -->
+  <script>
+    function agroApp() {
+      return {
+        // UI state
+        page: 'dashboard',
+        sidebarOpen: false,
+        darkMode: false,
+        pageTitle: 'Panel de Control',
+
+        // Datos compartidos (simulados)
+        terrenos: [
+          { id: 1, nombre: "Parcela Chupas", ubicacion: "Distrito de Chupas, Huamanga", lat: -13.1587, lng: -74.2254, area: 8.5, suelo: "Franco", agua: "Riego por goteo", cultivo: "Maíz", climaTemp: 18, climaHumedad: 65 },
+          { id: 2, nombre: "Fundo Quinua", ubicacion: "Distrito de Quinua, Huamanga", lat: -13.0369, lng: -74.1386, area: 12.3, suelo: "Arenoso", agua: "Pozo", cultivo: "Papa", climaTemp: 16, climaHumedad: 70 },
+          { id: 3, nombre: "Huerta Acocro", ubicacion: "Distrito de Acocro, Huamanga", lat: -13.2214, lng: -74.0403, area: 3.2, suelo: "Arcilloso", agua: "Canal", cultivo: "Habas", climaTemp: 19, climaHumedad: 58 },
+          { id: 4, nombre: "Agrícola Tambo", ubicacion: "Distrito de Tambo, Huamanga", lat: -13.2309, lng: -74.1400, area: 20.0, suelo: "Franco", agua: "Riego por goteo", cultivo: "Quinua", climaTemp: 17, climaHumedad: 72 }
+        ],
+        cultivos: [
+          { id: 1, nombre: "Maíz", terrenoId: 1, fechaSiembra: "2025-02-10", fechaCosechaEstimada: "2025-06-15", area: 5.2, rendimientoEsperado: 8500, estado: "En crecimiento", notas: "Variedad DK-390" },
+          { id: 2, nombre: "Tomate", terrenoId: 2, fechaSiembra: "2025-01-20", fechaCosechaEstimada: "2025-04-25", area: 3.0, rendimientoEsperado: 42000, estado: "En crecimiento", notas: "Riego por goteo" },
+          { id: 3, nombre: "Papa", terrenoId: 3, fechaSiembra: "2025-03-01", fechaCosechaEstimada: "2025-07-10", area: 2.5, rendimientoEsperado: 28000, estado: "Planificado", notas: "Variedad única" },
+          { id: 4, nombre: "Palta", terrenoId: 4, fechaSiembra: "2024-11-05", fechaCosechaEstimada: "2025-09-20", area: 15.0, rendimientoEsperado: 12000, estado: "En crecimiento", notas: "Hass" },
+          { id: 5, nombre: "Fresa", terrenoId: 1, fechaSiembra: "2025-03-15", fechaCosechaEstimada: "2025-05-30", area: 1.2, rendimientoEsperado: 25000, estado: "Planificado", notas: "Bajo invernadero" }
+        ],
+        labores: [
+          { id: 1, tipo: "Riego", cultivoId: 1, fecha: "2025-03-10", costo: 150.00, estado: "Completada", notas: "Riego por goteo, 2 horas" },
+          { id: 2, tipo: "Fumigación", cultivoId: 2, fecha: "2025-03-12", costo: 320.50, estado: "Completada", notas: "Contra pulgón" },
+          { id: 3, tipo: "Fertilización", cultivoId: 1, fecha: "2025-03-15", costo: 210.00, estado: "Completada", notas: "Nitrógeno" },
+          { id: 4, tipo: "Riego", cultivoId: 4, fecha: "2025-03-18", costo: 200.00, estado: "Pendiente", notas: "Programado para mañana" },
+          { id: 5, tipo: "Mano de obra", cultivoId: 3, fecha: "2025-03-20", costo: 450.00, estado: "Pendiente", notas: "Deshierbe" },
+          { id: 6, tipo: "Cosecha", cultivoId: 2, fecha: "2025-03-25", costo: 800.00, estado: "En progreso", notas: "Inicio cosecha temprana" }
+        ],
+        alertas: [
+          { id: 1, titulo: "Riesgo alto de tizón tardío", descripcion: "Condiciones de humedad >85% y temperatura 22°C en los últimos 3 días.", nivel: "critical", tipo: "plagas", fuente: "IA · Predicción climática", fecha: "2025-03-18 08:30", leida: false, resuelta: false, accion: "Aplicar mancozeb 2kg/ha antes de 24h" },
+          { id: 2, titulo: "Alerta de helada para esta noche", descripcion: "Pronóstico de temperatura bajo cero en el sector norte.", nivel: "high", tipo: "clima", fuente: "API Climática + IA", fecha: "2025-03-18 10:15", leida: false, resuelta: false, accion: "Activar riego por aspersión nocturno" },
+          { id: 3, titulo: "Próxima cosecha de tomate", descripcion: "El cultivo de tomate alcanzó madurez óptima.", nivel: "medium", tipo: "cosecha", fuente: "IA · Análisis de madurez", fecha: "2025-03-17 14:20", leida: true, resuelta: false, accion: "Organizar cuadrilla de cosecha" },
+          { id: 4, titulo: "Fertilización recomendada para maíz", descripcion: "Fase de crecimiento vegetativo. IA sugiere aplicación de nitrógeno.", nivel: "low", tipo: "labores", fuente: "Recomendación IA", fecha: "2025-03-16 09:00", leida: true, resuelta: true, accion: "Aplicar 150 kg/ha de urea" },
+          { id: 5, titulo: "Detección temprana de pulgón", descripcion: "Imágenes satelitales indican focos iniciales de pulgón.", nivel: "high", tipo: "plagas", fuente: "Visión IA", fecha: "2025-03-15 11:45", leida: false, resuelta: false, accion: "Inspeccionar 10 plantas por hectárea" }
+        ],
+
+        // Clima
+        selectedTerrainId: 1,
+        currentClimate: { temp: 24, condition: 'Parcialmente nublado', humidity: 68, wind: 12, pressure: 1012, rainProb: 20 },
+        climateLastUpdate: '',
+        climateHistory: [],
+        selectedTerrainCoords: '',
+        recommendations: [],
+        climateAlerts: [],
+        plagueRiskLevel: 'Bajo',
+        plagueRiskClass: 'risk-low',
+        plagueDesc: 'Condiciones favorables.',
+
+        // Filtros
+        terrainFilterCrop: '',
+        terrainFilterArea: '',
+        cropFilterType: '',
+        cropFilterStatus: '',
+        laborFilterType: '',
+        laborFilterStatus: '',
+        alertFilterLevel: '',
+        alertFilterType: '',
+        reportCropFilter: 'todos',
+
+        // Modales
+        terrainModalOpen: false,
+        terrainForm: {},
+        cropModalOpen: false,
+        cropForm: {},
+        laborModalOpen: false,
+        laborForm: {},
+        alertModalOpen: false,
+        selectedAlert: null,
+
+        // Reportes
+        reportKPIs: { produccion: 0, ingresos: 0, costos: 0, profit: 0, margin: 0 },
+        campanas: [
+          { cultivo: "Maíz", rend2024: 7800, rend2025: 8200, ingresos2025: 24500, costos2025: 18200 },
+          { cultivo: "Tomate", rend2024: 38500, rend2025: 41200, ingresos2025: 67800, costos2025: 42300 },
+          { cultivo: "Papa", rend2024: 26500, rend2025: 28100, ingresos2025: 35200, costos2025: 24100 },
+          { cultivo: "Palta", rend2024: 11200, rend2025: 11800, ingresos2025: 89400, costos2025: 51200 },
+          { cultivo: "Fresa", rend2024: 23800, rend2025: 25200, ingresos2025: 76300, costos2025: 48400 }
+        ],
+        executiveSummary: 'Analizando datos...',
+
+        // Inicialización
+        init() {
+          this.$watch('page', (val) => {
+            const titles = { dashboard: 'Panel de Control', terrenos: 'Gestión de Terrenos', cultivos: 'Gestión de Cultivos', labores: 'Labores Agrícolas', clima: 'Clima IA', alertas: 'Alertas Inteligentes IA', reportes: 'Reportes y Analítica' };
+            this.pageTitle = titles[val] || 'AgroSys';
+            if (val === 'terrenos') this.$nextTick(() => this.initMap());
+            if (val === 'cultivos') this.$nextTick(() => this.renderYieldChart());
+            if (val === 'labores') this.$nextTick(() => { this.updateLaborCharts(); this.generateAlertasIA(); });
+            if (val === 'clima') this.$nextTick(() => { this.loadClimateForTerrain(this.selectedTerrainId); });
+            if (val === 'dashboard') this.$nextTick(() => this.renderDashboardChart());
+            if (val === 'reportes') this.$nextTick(() => { this.updateReportKPIs(); this.renderReportCharts(); });
+          });
+
+          // Datos iniciales clima
+          this.climateHistory = this.generateClimateHistory(this.selectedTerrainId);
+          this.climateLastUpdate = new Date().toLocaleTimeString();
+          this.updateCurrentClimateFromHistory();
+          this.updateRecommendations();
+
+          // Suscripciones para filtros
+          this.$watch('terrainFilterCrop', () => this.updateMapMarkers());
+          this.$watch('terrainFilterArea', () => this.updateMapMarkers());
+
+          // Gráficos según página
+          this.$nextTick(() => {
+            if (this.page === 'dashboard') this.renderDashboardChart();
+          });
+        },
+
+        // ---- Utilidades ----
+        getCropName(id) {
+          const c = this.cultivos.find(c => c.id === id);
+          return c ? c.nombre : 'Desconocido';
+        },
+        getTerrenoName(id) {
+          const t = this.terrenos.find(t => t.id === id);
+          return t ? t.nombre : 'Desconocido';
+        },
+
+        // ---- Clima ----
+        generateClimateHistory(terrainId) {
+          const arr = [];
+          const baseTemp = 20 + (terrainId * 2);
+          for (let i = 0; i < 8; i++) {
+            const d = new Date(); d.setDate(d.getDate() - i);
+            const temp = (baseTemp + (Math.random()-0.5)*6).toFixed(1);
+            const hum = Math.floor(55 + Math.random()*30);
+            arr.push({
+              id: i,
+              fecha: `${d.toISOString().slice(0,10)} ${10+Math.floor(Math.random()*8)}:00`,
+              temp: parseFloat(temp),
+              humedad: hum,
+              precipitacion: (Math.random()*5).toFixed(1),
+              viento: (5+Math.random()*20).toFixed(0),
+              presion: (1010+Math.random()*15).toFixed(0),
+              probLluvia: Math.floor(Math.random()*80)
+            });
+          }
+          return arr;
+        },
+        loadClimateForTerrain(id) {
+          this.selectedTerrainId = id;
+          const t = this.terrenos.find(t => t.id === id);
+          if (t) this.selectedTerrainCoords = `${t.lat}, ${t.lng} | Altitud: ${t.altitud || 30}m`;
+          this.climateHistory = this.generateClimateHistory(id);
+          this.updateCurrentClimateFromHistory();
+          this.updateRecommendations();
+          this.$nextTick(() => this.renderClimateTrendChart());
+        },
+        updateCurrentClimateFromHistory() {
+          const latest = this.climateHistory[0];
+          if (latest) {
+            this.currentClimate = {
+              temp: latest.temp,
+              humidity: latest.humedad,
+              wind: latest.viento,
+              pressure: latest.presion,
+              rainProb: latest.probLluvia,
+              condition: latest.humedad > 75 ? 'Nublado' : (latest.temp > 26 ? 'Soleado' : 'Parcialmente nublado')
+            };
+            this.climateLastUpdate = new Date().toLocaleTimeString();
+            // Predicción plagas
+            const hum = latest.humedad, temp = latest.temp;
+            if (hum > 80 && temp > 20 && temp < 28) {
+              this.plagueRiskLevel = 'ALTO';
+              this.plagueDesc = '⚠️ Riesgo alto de hongos (tizón tardío, mildiu).';
+              this.plagueRiskClass = 'risk-high';
+            } else if (hum > 70 || temp > 28) {
+              this.plagueRiskLevel = 'MEDIO';
+              this.plagueDesc = '⚠️ Posible aparición de pulgón o roya.';
+              this.plagueRiskClass = 'risk-medium';
+            } else {
+              this.plagueRiskLevel = 'BAJO';
+              this.plagueDesc = '✅ Condiciones favorables.';
+              this.plagueRiskClass = 'risk-low';
+            }
+            // Alertas climáticas
+            this.climateAlerts = [];
+            if (temp < 5) this.climateAlerts.push('❄️ Alerta de helada');
+            if (hum > 85) this.climateAlerts.push('💧 Exceso de humedad');
+            if (latest.probLluvia > 70) this.climateAlerts.push('🌧️ Alta probabilidad de lluvia');
+            if (temp > 32) this.climateAlerts.push('🔥 Ola de calor');
+            if (this.climateAlerts.length === 0) this.climateAlerts.push('✅ Sin alertas climáticas activas');
+          }
+        },
+        updateRecommendations() {
+          const temp = this.currentClimate.temp;
+          const hum = this.currentClimate.humidity;
+          const recos = [];
+          if (temp < 15) recos.push('❄️ Temperatura baja: proteger cultivos sensibles');
+          if (hum > 75) recos.push('💧 Humedad alta: evitar riego excesivo');
+          if (this.currentClimate.rainProb > 60) recos.push('🌧️ Probable lluvia: programar fumigación después');
+          if (temp > 28 && hum < 40) recos.push('🔥 Estrés hídrico: aumentar riego temprano');
+          if (recos.length === 0) recos.push('📊 Condiciones normales. Sigue con el plan');
+          this.recommendations = recos;
+        },
+        refreshClimate() {
+          // Simular nueva lectura
+          const newRec = {
+            id: Date.now(),
+            fecha: `${new Date().toISOString().slice(0,10)} ${new Date().getHours()}:00`,
+            temp: (20 + Math.random()*8).toFixed(1),
+            humedad: Math.floor(55 + Math.random()*30),
+            precipitacion: (Math.random()*5).toFixed(1),
+            viento: (5+Math.random()*20).toFixed(0),
+            presion: (1010+Math.random()*15).toFixed(0),
+            probLluvia: Math.floor(Math.random()*80)
+          };
+          this.climateHistory.unshift(newRec);
+          if (this.climateHistory.length > 8) this.climateHistory.pop();
+          this.updateCurrentClimateFromHistory();
+          this.updateRecommendations();
+          this.$nextTick(() => this.renderClimateTrendChart());
+          Swal.fire('Actualizado', 'Datos climáticos y predicciones IA actualizados', 'success');
+        },
+
+        // ---- MAPA (Leaflet) ----
+        map: null,
+        markersLayer: {},
+        initMap() {
+          if (this.map) return;
+          this.map = L.map('map').setView([-13.1587, -74.2254], 12);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OSM & CartoDB'
+          }).addTo(this.map);
+          this.updateMapMarkers();
+        },
+        updateMapMarkers() {
+          if (!this.map) return;
+          Object.values(this.markersLayer).forEach(m => this.map.removeLayer(m));
+          this.markersLayer = {};
+          const filtered = this.filteredTerrenos;
+          filtered.forEach(t => {
+            const marker = L.marker([t.lat, t.lng]).bindPopup(`<b>${t.nombre}</b><br>${t.area} ha · ${t.cultivo}`).addTo(this.map);
+            this.markersLayer[t.id] = marker;
+          });
+          if (filtered.length > 0) {
+            const bounds = L.latLngBounds(filtered.map(t => [t.lat, t.lng]));
+            this.map.fitBounds(bounds);
+          }
+        },
+        centrarMapa(lat, lng) {
+          if (this.map) this.map.setView([lat, lng], 15);
+        },
+
+        // ---- TERRENOS CRUD ----
+        get filteredTerrenos() {
+          let filtered = [...this.terrenos];
+          if (this.terrainFilterCrop) filtered = filtered.filter(t => t.cultivo === this.terrainFilterCrop);
+          if (this.terrainFilterArea) {
+            if (this.terrainFilterArea === '0-5') filtered = filtered.filter(t => t.area < 5);
+            else if (this.terrainFilterArea === '5-10') filtered = filtered.filter(t => t.area >= 5 && t.area <= 10);
+            else if (this.terrainFilterArea === '10+') filtered = filtered.filter(t => t.area > 10);
+          }
+          return filtered;
+        },
+        get totalAreaTerrenos() {
+          return this.filteredTerrenos.reduce((sum, t) => sum + t.area, 0).toFixed(1);
+        },
+        openTerrainModal(terreno = null) {
+          if (terreno) {
+            this.terrainForm = { ...terreno };
+          } else {
+            this.terrainForm = { nombre: '', ubicacion: '', lat: '', lng: '', area: '', suelo: 'Franco', agua: 'Riego por goteo', cultivo: '' };
+          }
+          this.terrainModalOpen = true;
+        },
+        saveTerrain() {
+          if (this.terrainForm.id) {
+            const idx = this.terrenos.findIndex(t => t.id === this.terrainForm.id);
+            if (idx !== -1) this.terrenos[idx] = { ...this.terrainForm };
+            Swal.fire('Actualizado', 'Terreno modificado', 'success');
+          } else {
+            const newId = Math.max(...this.terrenos.map(t => t.id), 0) + 1;
+            this.terrenos.push({ ...this.terrainForm, id: newId, climaTemp: 20, climaHumedad: 60 });
+            Swal.fire('Agregado', 'Nuevo terreno registrado', 'success');
+          }
+          this.terrainModalOpen = false;
+          this.$nextTick(() => this.updateMapMarkers());
+        },
+        editarTerreno(id) {
+          const t = this.terrenos.find(t => t.id === id);
+          if (t) this.openTerrainModal(t);
+        },
+        async eliminarTerreno(id) {
+          const res = await Swal.fire({ title: '¿Eliminar terreno?', icon: 'warning', showCancelButton: true });
+          if (res.isConfirmed) {
+            this.terrenos = this.terrenos.filter(t => t.id !== id);
+            this.$nextTick(() => this.updateMapMarkers());
+            Swal.fire('Eliminado', '', 'success');
+          }
+        },
+        resetTerrainFilters() {
+          this.terrainFilterCrop = '';
+          this.terrainFilterArea = '';
+        },
+
+        // ---- CULTIVOS ----
+        get filteredCultivos() {
+          let filtered = [...this.cultivos];
+          if (this.cropFilterType) filtered = filtered.filter(c => c.nombre === this.cropFilterType);
+          if (this.cropFilterStatus) filtered = filtered.filter(c => c.estado === this.cropFilterStatus);
+          return filtered;
+        },
+        get totalAreaCultivos() {
+          return this.filteredCultivos.reduce((sum, c) => sum + c.area, 0);
+        },
+        get avgYieldCultivos() {
+          const total = this.filteredCultivos.length;
+          if (total === 0) return 0;
+          return Math.round(this.filteredCultivos.reduce((sum, c) => sum + (c.rendimientoEsperado || 0), 0) / total).toLocaleString();
+        },
+        openCropModal(cultivo = null) {
+          if (cultivo) {
+            this.cropForm = { ...cultivo };
+          } else {
+            const today = new Date().toISOString().split('T')[0];
+            const threeMonths = new Date(); threeMonths.setMonth(threeMonths.getMonth()+3);
+            this.cropForm = { nombre: '', terrenoId: this.terrenos[0]?.id, fechaSiembra: today, fechaCosechaEstimada: threeMonths.toISOString().split('T')[0], area: '', rendimientoEsperado: 0, estado: 'Planificado', notas: '' };
+          }
+          this.cropModalOpen = true;
+        },
+        saveCrop() {
+          if (this.cropForm.id) {
+            const idx = this.cultivos.findIndex(c => c.id === this.cropForm.id);
+            if (idx !== -1) this.cultivos[idx] = { ...this.cropForm };
+            Swal.fire('Actualizado', 'Cultivo modificado', 'success');
+          } else {
+            const newId = Math.max(...this.cultivos.map(c => c.id), 0) + 1;
+            this.cultivos.push({ ...this.cropForm, id: newId });
+            Swal.fire('Agregado', 'Nuevo cultivo registrado', 'success');
+          }
+          this.cropModalOpen = false;
+          this.$nextTick(() => this.renderYieldChart());
+        },
+        editarCultivo(id) {
+          const c = this.cultivos.find(c => c.id === id);
+          if (c) this.openCropModal(c);
+        },
+        async eliminarCultivo(id) {
+          const res = await Swal.fire({ title: '¿Eliminar cultivo?', icon: 'warning', showCancelButton: true });
+          if (res.isConfirmed) {
+            this.cultivos = this.cultivos.filter(c => c.id !== id);
+            this.$nextTick(() => this.renderYieldChart());
+            Swal.fire('Eliminado', '', 'success');
+          }
+        },
+        resetCropFilters() {
+          this.cropFilterType = '';
+          this.cropFilterStatus = '';
+        },
+
+        // ---- LABORES ----
+        get filteredLabores() {
+          let filtered = [...this.labores];
+          if (this.laborFilterType) filtered = filtered.filter(l => l.tipo === this.laborFilterType);
+          if (this.laborFilterStatus) filtered = filtered.filter(l => l.estado === this.laborFilterStatus);
+          return filtered;
+        },
+        get totalCostoLabores() {
+          return this.filteredLabores.reduce((sum, l) => sum + (l.costo || 0), 0);
+        },
+        get pendingLabores() {
+          return this.filteredLabores.filter(l => l.estado === 'Pendiente' || l.estado === 'En progreso').length;
+        },
+        get avgCostoLabores() {
+          const total = this.filteredLabores.length;
+          return total > 0 ? this.totalCostoLabores / total : 0;
+        },
+        get alertasIA() {
+          const alertas = [];
+          const today = new Date().toISOString().split('T')[0];
+          this.cultivos.forEach(crop => {
+            const laboresCultivo = this.labores.filter(l => l.cultivoId === crop.id && l.fecha >= today);
+            if (crop.estado === 'En crecimiento' && laboresCultivo.length === 0) {
+              alertas.push(`🔔 ${crop.nombre}: No hay labores registradas. IA recomienda programar riego o monitoreo.`);
+            }
+          });
+          const pendingSoon = this.labores.filter(l => l.estado === 'Pendiente' && l.fecha >= today).slice(0,2);
+          pendingSoon.forEach(l => {
+            alertas.push(`⏰ ${l.tipo} en ${this.getCropName(l.cultivoId)} programada para ${l.fecha}`);
+          });
+          if (alertas.length === 0) alertas.push('✅ No hay alertas activas. Todas las labores están al día.');
+          return alertas;
+        },
+        openLaborModal(labor = null) {
+          if (labor) {
+            this.laborForm = { ...labor };
+          } else {
+            this.laborForm = { tipo: 'Riego', cultivoId: this.cultivos[0]?.id, fecha: new Date().toISOString().split('T')[0], costo: 0, estado: 'Pendiente', notas: '' };
+          }
+          this.laborModalOpen = true;
+        },
+        saveLabor() {
+          if (this.laborForm.id) {
+            const idx = this.labores.findIndex(l => l.id === this.laborForm.id);
+            if (idx !== -1) this.labores[idx] = { ...this.laborForm };
+            Swal.fire('Actualizado', 'Labor modificada', 'success');
+          } else {
+            const newId = Math.max(...this.labores.map(l => l.id), 0) + 1;
+            this.labores.push({ ...this.laborForm, id: newId });
+            Swal.fire('Agregado', 'Labor registrada', 'success');
+          }
+          this.laborModalOpen = false;
+          this.$nextTick(() => { this.updateLaborCharts(); this.generateAlertasIA(); });
+        },
+        editarLabor(id) {
+          const l = this.labores.find(l => l.id === id);
+          if (l) this.openLaborModal(l);
+        },
+        async eliminarLabor(id) {
+          const res = await Swal.fire({ title: '¿Eliminar labor?', icon: 'warning', showCancelButton: true });
+          if (res.isConfirmed) {
+            this.labores = this.labores.filter(l => l.id !== id);
+            this.$nextTick(() => { this.updateLaborCharts(); this.generateAlertasIA(); });
+            Swal.fire('Eliminado', '', 'success');
+          }
+        },
+        resetLaborFilters() {
+          this.laborFilterType = '';
+          this.laborFilterStatus = '';
+        },
+        generateAlertasIA() {},
+
+        // ---- ALERTAS ----
+        get filteredAlertas() {
+          let filtered = [...this.alertas];
+          if (this.alertFilterLevel) filtered = filtered.filter(a => a.nivel === this.alertFilterLevel);
+          if (this.alertFilterType) filtered = filtered.filter(a => a.tipo === this.alertFilterType);
+          return filtered;
+        },
+        get unreadAlertsCount() {
+          return this.alertas.filter(a => !a.leida).length;
+        },
+        verDetalleAlerta(id) {
+          this.selectedAlert = this.alertas.find(a => a.id === id);
+          if (this.selectedAlert && !this.selectedAlert.leida) this.selectedAlert.leida = true;
+          this.alertModalOpen = true;
+        },
+        marcarLeida(id) {
+          const a = this.alertas.find(a => a.id === id);
+          if (a) a.leida = true;
+        },
+        marcarResuelta(id) {
+          const a = this.alertas.find(a => a.id === id);
+          if (a) { a.resuelta = true; a.leida = true; }
+        },
+        markAllAlertsRead() {
+          this.alertas.forEach(a => { if (!a.resuelta) a.leida = true; });
+          Swal.fire('Marcadas como leídas', '', 'info');
+        },
+        resetAlertFilters() {
+          this.alertFilterLevel = '';
+          this.alertFilterType = '';
+        },
+
+        // ---- REPORTES ----
+        updateReportKPIs() {
+          const prodTotal = 120+135+140+150+160+170+180 + 80+85+90+100+110+115+120+125+130 + 50+55+60+65+70+75+80+85+90 + 30+32+35+38+40+42+45+48+50+52+55+58 + 15+18+20+22+25+28+30+32+35+38+40+42;
+          const ingresos = 15+18+22+20+25+30+35+40+45+50+55+60;
+          const costos = 10+12+14+13+16+18+22+25+28+30+33+35;
+          const profit = ingresos - costos;
+          this.reportKPIs = {
+            produccion: prodTotal.toFixed(1),
+            ingresos: ingresos,
+            costos: costos,
+            profit: profit,
+            margin: ((profit/ingresos)*100).toFixed(1)
+          };
+          // Resumen ejecutivo
+          const mejor = this.campanas.reduce((best, c) => c.rend2025 > best.rend2025 ? c : best, this.campanas[0]);
+          this.executiveSummary = `<p><i class="fas fa-chart-line text-agri-green mr-1" style="color:#2D6A4F"></i> <strong>Análisis general:</strong> La producción total alcanzó <strong>${this.reportKPIs.produccion} toneladas</strong> con rentabilidad neta de $${this.reportKPIs.profit}k. </p>
+          <p class="mt-2"><i class="fas fa-trophy text-yellow-500 mr-1"></i> <strong>Cultivo destacado:</strong> ${mejor.cultivo} con rendimiento de ${mejor.rend2025.toLocaleString()} kg/ha, superando en ${((mejor.rend2025-mejor.rend2024)/mejor.rend2024*100).toFixed(1)}% al año anterior.</p>
+          <p class="mt-2"><i class="fas fa-robot text-agri-green mr-1" style="color:#2D6A4F"></i> <strong>Recomendación IA:</strong> Optimizar distribución de costos (mano de obra y fertilización) para mejorar margen.</p>`;
+        },
+        resetReportFilters() {
+          this.reportCropFilter = 'todos';
+          this.updateReportKPIs();
+        },
+        exportPDF() {
+          Swal.fire('Exportando PDF', 'El reporte se está generando... (simulación)', 'info');
+          setTimeout(() => Swal.fire('Exportación completada', 'El archivo PDF ha sido descargado.', 'success'), 1500);
+        },
+        exportExcel() {
+          let csv = "Cultivo,Rendimiento2024,Rendimiento2025,Ingresos2025,Costos2025\n";
+          this.campanas.forEach(c => { csv += `${c.cultivo},${c.rend2024},${c.rend2025},${c.ingresos2025},${c.costos2025}\n`; });
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'reporte_agrosys.csv'; link.click();
+          Swal.fire('Exportación CSV', 'Se ha descargado el archivo CSV.', 'success');
+        },
+
+        // ---- GRÁFICOS ----
+        renderDashboardChart() {
+          const ctx = document.getElementById('dashboardClimateChart')?.getContext('2d');
+          if (!ctx) return;
+          if (this.dashboardChart) this.dashboardChart.destroy();
+          const labels = ['18/03','17/03','16/03','15/03','14/03','13/03','12/03'];
+          this.dashboardChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets: [
+              { label: 'Temperatura (°C)', data: [23.2,24.1,22.8,21.5,20.9,22.0,23.4], borderColor: '#e11d48', tension: 0.3, fill: true },
+              { label: 'Humedad (%)', data: [72,68,74,77,80,75,70], borderColor: '#3b82f6', tension: 0.3, fill: true }
+            ]},
+            options: { responsive: true, maintainAspectRatio: true }
+          });
+        },
+        renderYieldChart() {
+          const ctx = document.getElementById('yieldChart')?.getContext('2d');
+          if (!ctx) return;
+          if (this.yieldChart) this.yieldChart.destroy();
+          const unique = [...new Map(this.cultivos.map(c => [c.nombre, c])).values()];
+          this.yieldChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: unique.map(c => c.nombre), datasets: [{ label: 'Rendimiento esperado (kg/ha)', data: unique.map(c => c.rendimientoEsperado || 0), backgroundColor: '#2D6A4F', borderRadius: 8 }] },
+            options: { responsive: true, maintainAspectRatio: true }
+          });
+        },
+        updateLaborCharts() {
+          // Gráfico costos por tipo
+          const ctx1 = document.getElementById('costByTypeChart')?.getContext('2d');
+          if (ctx1) {
+            if (this.costByTypeChart) this.costByTypeChart.destroy();
+            const typeMap = new Map();
+            this.labores.forEach(l => { if (l.costo) typeMap.set(l.tipo, (typeMap.get(l.tipo) || 0) + l.costo); });
+            this.costByTypeChart = new Chart(ctx1, {
+              type: 'bar', data: { labels: Array.from(typeMap.keys()), datasets: [{ label: 'Costo total (USD)', data: Array.from(typeMap.values()), backgroundColor: '#2D6A4F', borderRadius: 6 }] },
+              options: { responsive: true, maintainAspectRatio: true }
+            });
+          }
+          // Tendencia mensual
+          const ctx2 = document.getElementById('monthlyTrendChart')?.getContext('2d');
+          if (ctx2) {
+            if (this.monthlyTrendChart) this.monthlyTrendChart.destroy();
+            const monthly = new Map();
+            this.labores.forEach(l => { if (l.costo && l.fecha) monthly.set(l.fecha.substring(0,7), (monthly.get(l.fecha.substring(0,7)) || 0) + l.costo); });
+            this.monthlyTrendChart = new Chart(ctx2, {
+              type: 'line', data: { labels: Array.from(monthly.keys()).sort(), datasets: [{ label: 'Costo mensual (USD)', data: Array.from(monthly.values()), borderColor: '#2D6A4F', fill: true, tension: 0.3 }] },
+              options: { responsive: true, maintainAspectRatio: true }
+            });
+          }
+        },
+        renderClimateTrendChart() {
+          const ctx = document.getElementById('climateTrendChart')?.getContext('2d');
+          if (!ctx) return;
+          if (this.climateTrendChart) this.climateTrendChart.destroy();
+          const records = this.climateHistory.slice(0,7).reverse();
+          this.climateTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: records.map(r => r.fecha.split(' ')[0]), datasets: [
+              { label: 'Temperatura (°C)', data: records.map(r => r.temp), borderColor: '#e11d48', tension: 0.3, fill: true },
+              { label: 'Humedad (%)', data: records.map(r => r.humedad), borderColor: '#3b82f6', tension: 0.3, fill: true }
+            ]},
+            options: { responsive: true, maintainAspectRatio: true }
+          });
+        },
+        renderReportCharts() {
+          // Producción por cultivo
+          const ctx1 = document.getElementById('productionByCropChart')?.getContext('2d');
+          if (ctx1) {
+            if (this.prodChart) this.prodChart.destroy();
+            const labels = ['Maíz','Tomate','Papa','Palta','Fresa'];
+            const data = [1050, 850, 455, 525, 345];
+            this.prodChart = new Chart(ctx1, { type: 'bar', data: { labels, datasets: [{ label: 'Producción (t)', data, backgroundColor: '#2D6A4F', borderRadius: 6 }] }, options: { responsive: true } });
+          }
+          // Evolución mensual
+          const ctx2 = document.getElementById('monthlyTrendReportChart')?.getContext('2d');
+          if (ctx2) {
+            if (this.monthlyReportChart) this.monthlyReportChart.destroy();
+            const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            this.monthlyReportChart = new Chart(ctx2, { type: 'line', data: { labels: months, datasets: [
+              { label: 'Ingresos', data: [15,18,22,20,25,30,35,40,45,50,55,60], borderColor: '#22c55e' },
+              { label: 'Costos', data: [10,12,14,13,16,18,22,25,28,30,33,35], borderColor: '#f97316' }
+            ]}, options: { responsive: true } });
+          }
+          // Dona costos
+          const ctx3 = document.getElementById('costDistributionChart')?.getContext('2d');
+          if (ctx3) {
+            if (this.distChart) this.distChart.destroy();
+            this.distChart = new Chart(ctx3, { type: 'doughnut', data: { labels: ['Riego','Fumigación','Fertilización','Mano de obra','Cosecha'], datasets: [{ data: [12500,8700,11200,18400,9500], backgroundColor: ['#2D6A4F','#40916C','#52B788','#74C69D','#95D5B2'] }] }, options: { responsive: true } });
+          }
+          // Pronóstico
+          const ctx4 = document.getElementById('forecastChart')?.getContext('2d');
+          if (ctx4) {
+            if (this.forecastChart) this.forecastChart.destroy();
+            const labels = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene(p)','Feb(p)','Mar(p)'];
+            const data = [395,425,445,460,480,500,520,540,560,580,600,620,640,660,680];
+            this.forecastChart = new Chart(ctx4, { type: 'line', data: { labels, datasets: [{ label: 'Producción total (t)', data, borderColor: '#3b82f6', fill: true, tension: 0.3 }] }, options: { responsive: true } });
+          }
+        },
+
+        // ---- DARK MODE ----
+        toggleDarkMode() {
+          this.darkMode = !this.darkMode;
+          document.documentElement.classList.toggle('dark');
+          if (this.darkMode) {
+            document.body.classList.add('bg-gray-900', 'text-gray-200');
+          } else {
+            document.body.classList.remove('bg-gray-900', 'text-gray-200');
+          }
+        },
+
+        setPage(p) {
+          this.page = p;
+          this.sidebarOpen = false;
+        }
+      };
+    }
+  </script>
+</body>
+</html>

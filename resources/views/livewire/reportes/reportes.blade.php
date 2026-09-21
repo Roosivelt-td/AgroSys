@@ -54,19 +54,19 @@
                     </div>
                 </div>
 
-                <!-- 2. LOTE / CAMPAÑA -->
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-blue-500 uppercase tracking-widest ml-1">Lote / Campaña</label>
-                    <select wire:model.live="cultivoId" class="w-full rounded-2xl border-2 border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10 dark:text-white text-[11px] font-black py-3 px-4 shadow-sm focus:ring-2 focus:ring-blue-500 transition-all italic cursor-pointer">
-                        <option value="">RESUMEN GENERAL</option>@foreach($listaCultivos as $c) <option value="{{ $c->id }}">{{ strtoupper($c->nombre_lote) }}</option> @endforeach
-                    </select>
-                </div>
-
-                <!-- 3. TIPO DE CULTIVO -->
+                <!-- 2. TIPO DE CULTIVO -->
                 <div class="space-y-2">
                     <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tipo de Cultivo</label>
                     <select wire:model.live="catalogoCultivoId" class="w-full rounded-2xl border-none bg-slate-50 dark:bg-slate-900/50 dark:text-white text-xs font-bold py-3 shadow-inner focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
                         <option value="">TODOS LOS TIPOS</option>@foreach($listaCatalogo as $cat) <option value="{{ $cat->id }}">{{ strtoupper($cat->nombre) }}</option> @endforeach
+                    </select>
+                </div>
+
+                <!-- 3. LOTE / CAMPAÑA -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-blue-500 uppercase tracking-widest ml-1">Lote / Campaña</label>
+                    <select wire:model.live="cultivoId" class="w-full rounded-2xl border-2 border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10 dark:text-white text-[11px] font-black py-3 px-4 shadow-sm focus:ring-2 focus:ring-blue-500 transition-all italic cursor-pointer">
+                        <option value="">RESUMEN GENERAL</option>@foreach($listaCultivos as $c) <option value="{{ $c->id }}">{{ strtoupper($c->nombre_lote) }} - {{ strtoupper($c->detalleCatalogo->nombre) }} ({{ strtoupper($c->variedad) }})</option> @endforeach
                     </select>
                 </div>
 
@@ -78,7 +78,13 @@
                     </select>
                 </div>
 
-                <!-- 5. HASTA -->
+                <!-- 5. DESDE -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Desde</label>
+                    <input type="date" wire:model.live="fechaInicio" class="w-full rounded-2xl border-none bg-slate-50 dark:bg-slate-900/50 dark:text-white text-xs font-bold py-3 shadow-inner focus:ring-2 focus:ring-blue-500/30" @if($cultivoId) disabled @endif>
+                </div>
+
+                <!-- 6. HASTA -->
                 <div class="space-y-2">
                     <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hasta</label>
                     <input type="date" wire:model.live="fechaFin" class="w-full rounded-2xl border-none bg-slate-50 dark:bg-slate-900/50 dark:text-white text-xs font-bold py-3 shadow-inner focus:ring-2 focus:ring-blue-500/30" @if($cultivoId) disabled @endif>
@@ -397,15 +403,6 @@
                 </div>
 
                 <!-- TABLA 2: RESUMEN EJECUTIVO DE RENTABILIDAD FINAL DETALLADO -->
-                <div class="bg-slate-900 rounded-[1.5rem] shadow-2xl border border-white/5 overflow-hidden">
-                    <div class="bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white border-b border-white/5">
-                        <h3 class="text-xs font-black uppercase tracking-[0.3em] italic flex items-center gap-3">
-                            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg"><i class="fa-solid fa-calculator"></i></div>
-                            RESUMEN EJECUTIVO DE RENTABILIDAD FINAL DETALLADO
-                        </h3>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-[11px] text-left border-collapse min-w-[1000px]">
                 <!-- TABLA 2: RESUMEN EJECUTIVO DE RENTABILIDAD FINAL DETALLADO -->
                 <div class="bg-white dark:bg-gray-800 rounded-[2rem] shadow-xl border border-gray-300 dark:border-white/10 overflow-hidden">
                     <div class="p-6 flex items-center gap-4 bg-slate-50 dark:bg-white/5 border-b border-gray-300 dark:border-white/5">

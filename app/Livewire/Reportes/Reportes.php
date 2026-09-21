@@ -42,13 +42,16 @@ class Reportes extends Component
     {
         $user = Auth::user();
 
-        // Cargar solo los tipos de cultivo (Catálogo) que el usuario realmente ha sembrado
+        // Cargar los tipos de cultivo (Catálogo) filtrando opcionalmente por búsqueda si es necesario o manteniéndolo limpio
         $this->listaCatalogo = CatalogoCultivo::whereHas('cultivosRealizados', function($q) use ($user) {
             $q->whereHas('terreno', fn($t) => $t->where('usuario_id', $user->id));
         })->orderBy('nombre')->get();
 
         $this->listaCultivos = Cultivo::whereHas('terreno', fn($q) => $q->where('usuario_id', $user->id))
             ->with('detalleCatalogo')
+            ->when($this->catalogoCultivoId, function($q) {
+                $q->where('catalogo_cultivo_id', $this->catalogoCultivoId);
+            })
             ->when($this->search, function($q) {
                 $q->where(function($sq) {
                     $sq->where('nombre_lote', 'like', '%' . $this->search . '%')
@@ -61,11 +64,39 @@ class Reportes extends Component
     public function updated($propertyName)
     {
         if (in_array($propertyName, ['filtro', 'fechaInicio', 'fechaFin', 'catalogoCultivoId', 'cultivoId', 'search'])) {
+            if ($propertyName === 'catalogoCultivoId') {
+                // Al cambiar el tipo de cultivo, si el cultivo actualmente seleccionado no pertenece a este tipo, lo reseteamos
+                if ($this->cultivoId) {
+                    $cultivoActual = Cultivo::find($this->cultivoId);
+                    if ($cultivoActual && $this->catalogoCultivoId && $cultivoActual->catalogo_cultivo_id != $this->catalogoCultivoId) {
+                        $this->cultivoId = '';
+                    }
+                }
+                $this->cargarListas();
+            }
+            if ($propertyName === 'cultivoId' && $this->cultivoId) {
+                // Al seleccionar un cultivo/lote específico, autoseleccionar su tipo correspondiente
+                $cultivoSeleccionado = Cultivo::find($this->cultivoId);
+                if ($cultivoSeleccionado) {
+                    $this->catalogoCultivoId = $cultivoSeleccionado->catalogo_cultivo_id;
+                }
+                $this->cargarListas();
+            }
             if ($propertyName === 'search') {
                 $this->cargarListas();
             }
-            if ($propertyName === 'filtro' && $this->filtro !== 'personalizado') {
-                $this->ajustarFechasPorPredefinido();
+            if ($propertyName === 'filtro') {
+                if ($this->filtro !== 'personalizado') {
+                    $this->ajustarFechasPorPredefinido();
+                } else {
+                    // Si cambia a personalizado, inicializamos con el inicio del mes y el día de hoy
+                    $this->fechaInicio = now()->startOfMonth()->format('Y-m-d');
+                    $this->fechaFin = now()->format('Y-m-d');
+                }
+            }
+            if (in_array($propertyName, ['fechaInicio', 'fechaFin']) && $this->filtro !== 'personalizado') {
+                // Si el usuario modifica las fechas manualmente desde los inputs de fecha, forzar a periodo 'personalizado'
+                $this->filtro = 'personalizado';
             }
             $this->actualizarDatos();
         }
@@ -171,6 +202,9 @@ class Reportes extends Component
     {
         $cultivos = Cultivo::with(['terreno', 'detalleCatalogo', 'labores.detalleCatalogo', 'cosechas.ventas'])
             ->whereHas('terreno', fn($q) => $q->where('usuario_id', $user->id))
+            ->when($this->catalogoCultivoId, function($q) {
+                $q->where('catalogo_cultivo_id', $this->catalogoCultivoId);
+            })
             ->where(function($q) use ($inicio, $fin) {
                 $q->whereBetween('fecha_siembra', [$inicio, $fin])
                   ->orWhereBetween('fecha_cosecha_finalizada', [$inicio, $fin])

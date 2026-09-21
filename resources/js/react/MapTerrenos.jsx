@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, initialPoints = [], center = null, editingId = null, tenure = 'propio' }) => {
+const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, initialPoints = [], center = null, zoom = 15, editingId = null, tenure = 'propio' }) => {
     const mapRef = useRef(null);
     const mapInstance = useRef(null);
     const markersLayerGroup = useRef(null);
@@ -178,14 +178,44 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
                 mapInstance.current.flyTo([data.lat, data.lng], 17, { animate: true, duration: 1.5 });
             }
         };
+
+        const zoomInHandler = () => {
+            console.log("[AgroMap] Zoom In event received");
+            if (mapInstance.current) {
+                mapInstance.current.zoomIn();
+            } else {
+                console.warn("[AgroMap] Zoom In failed: mapInstance not ready");
+            }
+        };
+
+        const zoomOutHandler = () => {
+            console.log("[AgroMap] Zoom Out event received");
+            if (mapInstance.current) {
+                mapInstance.current.zoomOut();
+            } else {
+                console.warn("[AgroMap] Zoom Out failed: mapInstance not ready");
+            }
+        };
+
         window.addEventListener('map-fly-to', flyHandler);
+        window.addEventListener('map-zoom-in', zoomInHandler);
+        window.addEventListener('map-zoom-out', zoomOutHandler);
 
         setIsInitialized(true);
 
         // Corrección de tamaño después del montaje
-        setTimeout(() => mapInstance.current?.invalidateSize(), 500);
+        setTimeout(() => {
+            if (mapInstance.current) {
+                mapInstance.current.invalidateSize();
+                console.log("[AgroMap] Map instance invalidated and ready.");
+            }
+        }, 500);
 
-        return () => window.removeEventListener('map-fly-to', flyHandler);
+        return () => {
+            window.removeEventListener('map-fly-to', flyHandler);
+            window.removeEventListener('map-zoom-in', zoomInHandler);
+            window.removeEventListener('map-zoom-out', zoomOutHandler);
+        };
     }, []);
 
     // FIX DISTORSIÓN MODAL
@@ -319,9 +349,9 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
         if (!isInitialized) return;
         const targetCenter = center || (points.length > 0 ? points[0] : null);
         if (targetCenter && mapInstance.current) {
-            setTimeout(() => mapInstance.current?.setView([targetCenter.lat, targetCenter.lng], 18), 500);
+            setTimeout(() => mapInstance.current?.setView([targetCenter.lat, targetCenter.lng], zoom), 500);
         }
-    }, [isInitialized, !!center, drawMode]);
+    }, [isInitialized, !!center, zoom, drawMode]);
 
     // RENDERIZAR TERRENOS EXISTENTES
     useEffect(() => {

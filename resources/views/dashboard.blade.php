@@ -5,8 +5,8 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-[1600px] mx-auto sm:px-6 lg:px-8">
             <!-- Mensajes de estatus de sesión (éxito al crear empresa, etc) -->
             @if (session('status'))
                 <div class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 shadow-sm rounded-r-lg">

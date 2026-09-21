@@ -1,0 +1,107 @@
+{
+  "version": "1.3",
+  "descripcion": "Cerebro Estratégico AgroSys - Modelado de Ciclos de Vida y Procesos para IA",
+  "cultivos": [
+    {
+      "id": "lechuga",
+      "nombre": "Lechuga",
+      "duracion_dias": { "min": 60, "max": 90 },
+      "etapas": [
+        { "id": "prep", "nombre": "Preparación", "inicio_dia": -14, "fin_dia": -1, "objetivo": "Acondicionamiento de suelo", "labores": [{ "labor_id": "preparar", "nombre": "Preparar Terreno", "aplica": true, "tipo": "programada", "inicio_dia": -10, "frecuencia": "una_vez", "depende_de_clima": true, "variables_climaticas": ["precipitacion"], "accion_si_clima_no_adecuado": "posponer" }] },
+        { "id": "siembra", "nombre": "Siembra/Trasplante", "inicio_dia": 0, "fin_dia": 7, "objetivo": "Establecimiento", "labores": [{ "labor_id": "siembra", "nombre": "Trasplante", "aplica": true, "tipo": "programada", "inicio_dia": 0, "frecuencia": "una_vez", "depende_de_clima": true, "variables_climaticas": ["temperatura"], "accion_si_clima_no_adecuado": "reevaluar" }] },
+        { "id": "desarrollo", "nombre": "Desarrollo", "inicio_dia": 8, "fin_dia": 55, "objetivo": "Crecimiento foliar", "labores": [{ "labor_id": "riego", "nombre": "Riego Frecuente", "aplica": true, "tipo": "clima_dependiente", "inicio_dia": 8, "frecuencia": "segun_necesidad", "depende_de_clima": true, "variables_climaticas": ["precipitacion", "temperatura"], "accion_si_clima_no_adecuado": "reevaluar" }] },
+        { "id": "cosecha", "nombre": "Cosecha", "inicio_dia": 60, "fin_dia": 90, "objetivo": "Recolección", "labores": [{ "labor_id": "cosechar", "nombre": "Cosecha", "aplica": true, "tipo": "estado_dependiente", "inicio_dia": 60, "frecuencia": "una_vez", "depende_de_clima": true, "variables_climaticas": ["precipitacion"], "accion_si_clima_no_adecuado": "posponer" }] }
+      ]
+    },
+    {
+      "id": "papa",
+      "nombre": "Papa",
+      "duracion_dias": { "min": 90, "max": 150 },
+      "etapas": [
+        { "id": "prep", "nombre": "Preparación", "inicio_dia": -30, "fin_dia": -1, "labores": [{ "labor_id": "preparar", "nombre": "Surcado", "aplica": true, "tipo": "programada", "inicio_dia": -15, "depende_de_clima": true, "variables_climaticas": ["precipitacion"], "accion_si_clima_no_adecuado": "posponer" }] },
+        { "id": "siembra", "nombre": "Siembra", "inicio_dia": 0, "fin_dia": 15, "labores": [{ "labor_id": "siembra", "nombre": "Siembra", "aplica": true, "tipo": "programada", "inicio_dia": 0, "depende_de_clima": true, "variables_climaticas": ["precipitacion"], "accion_si_clima_no_adecuado": "posponer" }] },
+        { "id": "desarrollo", "nombre": "Desarrollo", "inicio_dia": 16, "fin_dia": 100, "labores": [{ "labor_id": "aporque", "nombre": "Aporque", "aplica": true, "tipo": "estado_dependiente", "inicio_dia": 30, "depende_de_clima": true, "variables_climaticas": ["precipitacion"], "accion_si_clima_no_adecuado": "posponer" }, { "labor_id": "fumigar", "nombre": "Sanidad", "aplica": true, "tipo": "condicional", "inicio_dia": 20, "depende_de_clima": true, "variables_climaticas": ["viento", "humedad"], "accion_si_clima_no_adecuado": "posponer" }] },
+        { "id": "cosecha", "nombre": "Cosecha", "inicio_dia": 120, "fin_dia": 150, "labores": [{ "labor_id": "cosechar", "nombre": "Cosecha", "aplica": true, "tipo": "estado_dependiente", "inicio_dia": 120, "depende_de_clima": true, "variables_climaticas": ["precipitacion"], "accion_si_clima_no_adecuado": "posponer" }] }
+      ]
+    },
+    {
+      "id": "maiz",
+      "nombre": "Maíz",
+      "duracion_dias": { "min": 100, "max": 180 },
+      "etapas": [
+        { "id": "siembra", "nombre": "Siembra", "inicio_dia": 0, "fin_dia": 20, "labores": [{ "labor_id": "siembra", "nombre": "Siembra", "aplica": true, "tipo": "programada", "inicio_dia": 0, "depende_de_clima": true, "variables_climaticas": ["precipitacion"], "accion_si_clima_no_adecuado": "posponer" }] },
+        { "id": "vegetativo", "nombre": "Crecimiento", "inicio_dia": 21, "fin_dia": 80, "labores": [{ "labor_id": "abonar", "nombre": "Abonado", "aplica": true, "tipo": "programada", "inicio_dia": 30, "depende_de_clima": true, "variables_climaticas": ["precipitacion"], "accion_si_clima_no_adecuado": "posponer" }] },
+        { "id": "reproductivo", "nombre": "Floración", "inicio_dia": 81, "fin_dia": 140, "labores": [{ "labor_id": "riego", "nombre": "Riego Crítico", "aplica": true, "tipo": "clima_dependiente", "inicio_dia": 81, "depende_de_clima": true, "variables_climaticas": ["precipitacion", "temperatura"], "accion_si_clima_no_adecuado": "reevaluar" }] }
+      ]
+    },
+    {
+      "id": "mango",
+      "nombre": "Mango",
+      "duracion_dias": { "min": 365, "max": 365 },
+      "etapas": [
+        { "id": "induccion", "nombre": "Inducción Floral", "inicio_dia": 0, "fin_dia": 60, "objetivo": "Preparar la floración mediante estrés hídrico controlado", "labores": [{ "labor_id": "riego", "nombre": "Riego de Estrés", "aplica": true, "tipo": "clima_dependiente", "inicio_dia": 10, "depende_de_clima": true, "variables_climaticas": ["temperatura", "precipitacion"], "accion_si_clima_no_adecuado": "posponer" }] },
+        { "id": "floracion", "nombre": "Floración y Cuajado", "inicio_dia": 61, "fin_dia": 120, "labores": [{ "labor_id": "fumigar", "nombre": "Control de Oidium/Antracnosis", "aplica": true, "tipo": "condicional", "inicio_dia": 70, "depende_de_clima": true, "variables_climaticas": ["humedad", "viento"] }] },
+        { "id": "desarrollo", "nombre": "Desarrollo del Fruto", "inicio_dia": 121, "fin_dia": 280, "labores": [{ "labor_id": "riego", "nombre": "Riego de Sostenimiento", "aplica": true, "tipo": "clima_dependiente", "inicio_dia": 130, "depende_de_clima": true, "variables_climaticas": ["evapotranspiracion"] }, { "labor_id": "abonar", "nombre": "Abonado Potásico", "aplica": true, "tipo": "programada", "inicio_dia": 180, "depende_de_clima": true }] },
+        { "id": "cosecha", "nombre": "Recolección", "inicio_dia": 281, "fin_dia": 365, "labores": [{ "labor_id": "cosechar", "nombre": "Cosecha por Calibres", "aplica": true, "tipo": "estado_dependiente", "inicio_dia": 300, "depende_de_clima": true, "variables_climaticas": ["precipitacion"] }] }
+      ]
+    },
+    {
+      "id": "palta",
+      "nombre": "Palta",
+      "duracion_dias": { "min": 180, "max": 240 },
+      "etapas": [
+        { "id": "floracion", "nombre": "Floración", "inicio_dia": 0, "fin_dia": 60, "labores": [{ "labor_id": "riego", "nombre": "Riego Floración", "aplica": true, "tipo": "clima_dependiente", "inicio_dia": 5, "variables_climaticas": ["temperatura", "humedad"] }] },
+        { "id": "desarrollo", "nombre": "Crecimiento Fruto", "inicio_dia": 61, "fin_dia": 180, "labores": [{ "labor_id": "abonar", "nombre": "Fertirriego", "aplica": true, "tipo": "continua", "variables_climaticas": ["precipitacion"] }] },
+        { "id": "cosecha", "nombre": "Recolección", "inicio_dia": 181, "fin_dia": 240, "labores": [{ "labor_id": "cosechar", "nombre": "Cosecha Manual", "aplica": true, "tipo": "estado_dependiente" }] }
+      ]
+    },
+    {
+      "id": "uva",
+      "nombre": "Uva",
+      "duracion_dias": { "min": 120, "max": 150 },
+      "etapas": [
+        { "id": "brotacion", "nombre": "Brotación", "inicio_dia": 0, "fin_dia": 30, "labores": [{ "labor_id": "riego", "nombre": "Riego inicial", "aplica": true, "tipo": "clima_dependiente" }] },
+        { "id": "desarrollo", "nombre": "Crecimiento de Racimos", "inicio_dia": 31, "fin_dia": 120, "labores": [{ "labor_id": "fumigar", "nombre": "Control fitosanitario", "aplica": true, "tipo": "condicional", "variables_climaticas": ["viento", "humedad"] }] },
+        { "id": "cosecha", "nombre": "Vendimia", "inicio_dia": 121, "fin_dia": 150, "labores": [{ "labor_id": "cosechar", "nombre": "Vendimia", "aplica": true, "tipo": "estado_dependiente" }] }
+      ]
+    },
+    {
+      "id": "aji",
+      "nombre": "Ají",
+      "duracion_dias": { "min": 120, "max": 180 },
+      "etapas": [
+        { "id": "inicio", "nombre": "Trasplante", "inicio_dia": 0, "fin_dia": 20, "labores": [{ "labor_id": "siembra", "nombre": "Trasplante", "aplica": true, "tipo": "programada" }] },
+        { "id": "desarrollo", "nombre": "Fructificación", "inicio_dia": 21, "fin_dia": 130, "labores": [{ "labor_id": "riego", "nombre": "Riego tecnificado", "aplica": true, "tipo": "clima_dependiente" }, { "labor_id": "abonar", "nombre": "Abonado producción", "aplica": true, "tipo": "programada" }] },
+        { "id": "cosecha", "nombre": "Recolección", "inicio_dia": 131, "fin_dia": 180, "labores": [{ "labor_id": "cosechar", "nombre": "Cosecha manual", "aplica": true, "tipo": "estado_dependiente" }] }
+      ]
+    },
+    {
+      "id": "arandano",
+      "nombre": "Arándano",
+      "duracion_dias": { "min": 90, "max": 120 },
+      "etapas": [
+        { "id": "crecimiento", "nombre": "Formación bayas", "inicio_dia": 0, "fin_dia": 60, "labores": [{ "labor_id": "riego", "nombre": "Riego por goteo", "aplica": true, "tipo": "continua" }] },
+        { "id": "cosecha", "nombre": "Recolección", "inicio_dia": 61, "fin_dia": 120, "labores": [{ "labor_id": "cosechar", "nombre": "Cosecha fina", "aplica": true, "tipo": "estado_dependiente" }] }
+      ]
+    },
+    {
+      "id": "tomate",
+      "nombre": "Tomate",
+      "duracion_dias": { "min": 90, "max": 180 },
+      "etapas": [
+        { "id": "inicio", "nombre": "Establecimiento", "inicio_dia": 0, "fin_dia": 15, "labores": [{ "labor_id": "siembra", "nombre": "Trasplante", "aplica": true, "tipo": "programada" }] },
+        { "id": "desarrollo", "nombre": "Desarrollo", "inicio_dia": 16, "fin_dia": 120, "labores": [{ "labor_id": "riego", "nombre": "Riego", "aplica": true, "tipo": "clima_dependiente" }, { "labor_id": "otros", "nombre": "Tutorado", "aplica": true, "tipo": "estado_dependiente" }] },
+        { "id": "cosecha", "nombre": "Producción", "inicio_dia": 121, "fin_dia": 180, "labores": [{ "labor_id": "cosechar", "nombre": "Cosecha", "aplica": true, "tipo": "estado_dependiente" }] }
+      ]
+    },
+    {
+      "id": "cebolla",
+      "nombre": "Cebolla",
+      "duracion_dias": { "min": 120, "max": 180 },
+      "etapas": [
+        { "id": "crecimiento", "nombre": "Desarrollo de bulbo", "inicio_dia": 0, "fin_dia": 110, "labores": [{ "labor_id": "riego", "nombre": "Riego controlado", "aplica": true, "tipo": "clima_dependiente" }, { "labor_id": "abonar", "nombre": "Fertilización", "aplica": true, "tipo": "programada" }] },
+        { "id": "cosecha", "nombre": "Cosecha", "inicio_dia": 140, "fin_dia": 180, "labores": [{ "labor_id": "cosechar", "nombre": "Cosecha", "aplica": true, "tipo": "estado_dependiente" }] }
+      ]
+    }
+  ]
+}

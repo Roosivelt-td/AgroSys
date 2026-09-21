@@ -61,27 +61,72 @@ class ClimaIA extends Component
         }
     }
 
-    public function selectTerreno($id)
+    public function updatedFTerrenoId($value)
     {
-        $this->useGPS = false;
-        $this->selectedTerrenoId = $id;
-        $this->fTerrenoId = $id; // Sincronizar filtro
-        $this->updatedSelectedTerrenoId($id);
+        // 1 -> Prepara 2, 3 y 4 (Reset de cascada)
+        $this->fCultivoId = '';
+        $this->fVariedad = '';
+        $this->selectedCropId = null;
+        $this->selectedTerrenoId = $value ?: null;
+
+        if ($value) {
+            $this->updatedSelectedTerrenoId($value);
+        }
+    }
+
+    public function updatedFCultivoId($value)
+    {
+        // 2 -> Prepara 3 y 4
+        $this->fVariedad = '';
+        $this->selectedCropId = null;
+    }
+
+    public function updatedFVariedad($value)
+    {
+        // 3 -> Prepara 4
+        $this->selectedCropId = null;
+    }
+
+    public function updatedFFecha($value)
+    {
+        $this->selectedCropId = null;
+    }
+
+    public function selectCrop($id)
+    {
+        // 4 -> Selección final
+        if (!$id) {
+            $this->selectedCropId = null;
+            return;
+        }
+
+        $this->selectedCropId = $id;
+        $crop = Cultivo::find($id);
+        if ($crop) {
+            // Sincronización inversa para que los selects reflejen la realidad del lote
+            $this->fTerrenoId = (string)$crop->terreno_id;
+            $this->fCultivoId = (string)$crop->catalogo_cultivo_id;
+            $this->fVariedad = $crop->variedad;
+            $this->selectedTerrenoId = $crop->terreno_id;
+
+            // Disparar actualización de UI y Mapas
+            $this->updatedSelectedCropId($id);
+        }
     }
 
     public function updatedSelectedCropId($value)
     {
         if (!$value) return;
+        $this->aiAnalysis = "Esperando análisis de IA..."; // Reset para disparar carga en render
 
         $this->selectedCropId = $value;
         $crop = Cultivo::find($value);
         if ($crop) {
             $this->useGPS = false;
             $this->selectedTerrenoId = $crop->terreno_id;
-            $this->fTerrenoId = $crop->terreno_id;
             $this->viewTimestamp = now()->getPreciseTimestamp(3);
 
-            // Forzar actualización de clima si es necesario
+            // Forzar actualización de clima
             $weatherService = new \App\Services\WeatherService();
             $terreno = Terreno::find($crop->terreno_id);
             if ($terreno) {
@@ -95,11 +140,6 @@ class ClimaIA extends Component
             }
         }
         $this->dispatch('refreshChart');
-    }
-
-    public function selectCrop($id)
-    {
-        $this->updatedSelectedCropId($id);
     }
 
     public function resetFilters()
@@ -260,20 +300,44 @@ class ClimaIA extends Component
             ];
         }
 
-        // 2. Query de Cultivos ACTIVOS (Excluye Cosechados/Perdidos)
-        $queryCrops = Cultivo::query()
-            ->whereIn('estado', ['En crecimiento', 'Planificado'])
+        // 2. Query Base de Cultivos ACTIVOS
+        $baseQuery = Cultivo::query()
+            ->whereIn('estado', ['En crecimiento', 'Planificado', 'Cosecha'])
             ->whereHas('terreno', function($q) use ($allowedIds) {
                 $q->whereIn('usuario_id', $allowedIds)
                   ->when($this->selectedOrgId, fn($sq) => $sq->orWhere('organizacion_id', $this->selectedOrgId));
             });
 
-        // 3. Datos para Selects (Solo lo que existe y está activo para este usuario)
-        $idsCatalogosActivos = (clone $queryCrops)->pluck('catalogo_cultivo_id')->unique();
-        $catalogosExistentes = \App\Models\CatalogoCultivo::whereIn('id', $idsCatalogosActivos)->get();
-        $variedadesExistentes = (clone $queryCrops)->whereNotNull('variedad')->pluck('variedad')->unique();
+        // 3. Datos Dinámicos Multidireccionales (Filtros Cruzados 1 -> 2 -> 3 -> 4)
 
-        // 4. Aplicar Filtros
+        // Select 1 (TERRENO): Filtrado por Cultivo y Variedad
+        $terrenoSelectQuery = Terreno::whereIn('usuario_id', $allowedIds)
+            ->where('nombre', '!=', '📍 Escáner GPS')
+            ->when($this->selectedOrgId, fn($q) => $q->orWhere('organizacion_id', $this->selectedOrgId));
+        if ($this->fCultivoId || $this->fVariedad) {
+            $terrenoSelectQuery->whereHas('cultivos', function($q) {
+                if ($this->fCultivoId) $q->where('catalogo_cultivo_id', $this->fCultivoId);
+                if ($this->fVariedad) $q->where('variedad', $this->fVariedad);
+                $q->whereIn('estado', ['En crecimiento', 'Planificado', 'Cosecha']);
+            });
+        }
+        $terrenosOptions = $terrenoSelectQuery->get();
+
+        // Select 2 (CULTIVO): Depende de la selección de Terreno (1) y Variedad (3)
+        $catalogQuery = clone $baseQuery;
+        if ($this->fTerrenoId) $catalogQuery->where('terreno_id', $this->fTerrenoId);
+        if ($this->fVariedad) $catalogQuery->where('variedad', $this->fVariedad);
+        $idsCatalogosActivos = $catalogQuery->pluck('catalogo_cultivo_id')->unique();
+        $catalogosExistentes = \App\Models\CatalogoCultivo::whereIn('id', $idsCatalogosActivos)->get();
+
+        // Select 3 (VARIEDAD): Depende de Terreno (1) y Cultivo (2)
+        $variedadQuery = clone $baseQuery;
+        if ($this->fTerrenoId) $variedadQuery->where('terreno_id', $this->fTerrenoId);
+        if ($this->fCultivoId) $variedadQuery->where('catalogo_cultivo_id', $this->fCultivoId);
+        $variedadesExistentes = $variedadQuery->whereNotNull('variedad')->pluck('variedad')->unique();
+
+        // Select 4 (LOTES): Aplicación de todos los filtros acumulados
+        $queryCrops = clone $baseQuery;
         if ($this->search) {
             $queryCrops->where(fn($q) =>
                 $q->where('nombre_lote', 'like', "%{$this->search}%")
@@ -291,7 +355,7 @@ class ClimaIA extends Component
 
         $cultivosActivos = $queryCrops->with(['detalleCatalogo', 'terreno.latestClima'])->get();
 
-        // 5. Determinar Terreno para Clima Real
+        // Determinar Terreno para Clima Real (Sincronización de Contexto)
         if ($this->selectedCropId) {
             $crop = Cultivo::find($this->selectedCropId);
             if ($crop) $this->selectedTerrenoId = $crop->terreno_id;
@@ -387,56 +451,206 @@ class ClimaIA extends Component
             'cultivo' => 'Zona Activa'
         ])->toArray();
 
-        $actionPlan = [];
+        // Datos de Inversión y Detalles para el Bloque 4 (Calculados antes de la IA para Insights)
+        $investmentStats = null;
         if ($this->selectedCropId) {
-            $c = $cultivosActivos->find($this->selectedCropId);
-            if ($c) {
-                // 1. RIEGO (Hoy)
-                if ($currentWeather['humedad'] < 45 && $currentWeather['temp'] > 26) {
-                    $actionPlan[] = ['icon' => 'fa-droplet', 'title' => 'Riego Urgente', 'desc' => 'Estrés hídrico detectado hoy. Se recomienda activar riego de auxilio.', 'color' => 'blue'];
-                }
+            $crop = Cultivo::with(['labores.insumos.detalleCatalogo', 'labores.manoDeObra', 'labores.maquinaria', 'detalleCatalogo'])->find($this->selectedCropId);
+            if ($crop) {
+                $totalInversion = $crop->labores->sum('costo_total');
+                $costoInsumos = 0;
+                $costoPersonal = $crop->labores->sum('costo_mano_obra_total');
+                $costoMaquinaria = $crop->labores->sum('costo_maquinaria_total');
+                $costoAlquiler = $crop->terreno->costo_alquiler_anual ?? 0;
 
-                // 2. FUMIGACIÓN (Próximos días)
-                $nextDaysRain = $currentWeather['daily_pronosticos']->where('prob_lluvia', '>', 60)->first();
-                if ($nextDaysRain) {
-                    $actionPlan[] = ['icon' => 'fa-cloud-rain', 'title' => 'Alerta Lluvia', 'desc' => 'Lluvia detectada para el ' . $nextDaysRain->fecha->format('d/m') . '. Adelantar fumigaciones sistémicas.', 'color' => 'rose'];
-                } elseif ($currentWeather['viento'] < 10) {
-                    $actionPlan[] = ['icon' => 'fa-spray-can-sparkles', 'title' => 'Fumigar ahora', 'desc' => 'Vientos en calma (<10km/h). Momento ideal para aplicaciones foliares.', 'color' => 'emerald'];
-                }
-
-                // 3. SANIDAD (Pasado y Presente)
-                if ($currentWeather['temp'] >= 18 && $currentWeather['temp'] <= 24 && $currentWeather['humedad'] > 75) {
-                    $actionPlan[] = ['icon' => 'fa-microscope', 'title' => 'Alerta Rancha', 'desc' => 'Condiciones críticas de humedad para hongos. Aplicar preventivo.', 'color' => 'rose'];
-                }
-
-                // 4. COSECHA (Futuro)
-                if ($c->fecha_cosecha_estimada) {
-                    if ($c->fecha_cosecha_estimada->isPast()) {
-                        $actionPlan[] = ['icon' => 'fa-basket-shopping', 'title' => 'Iniciar Cosecha', 'desc' => 'Cronograma técnico completado. Organizar logística de salida.', 'color' => 'amber'];
-                    } elseif ($c->fecha_cosecha_estimada->diffInDays(now()) < 7) {
-                        $actionPlan[] = ['icon' => 'fa-truck-fast', 'title' => 'Pre-Cosecha', 'desc' => 'Faltan ' . $c->fecha_cosecha_estimada->diffInDays(now()) . ' días. Suspender aplicaciones químicas de carencia.', 'color' => 'blue'];
+                $desgloseInsumos = ['fertilizantes' => 0, 'plaguicidas' => 0, 'otros' => 0];
+                foreach ($crop->labores as $labor) {
+                    foreach ($labor->insumos as $insumo) {
+                        $costo = $insumo->cantidad * $insumo->precio_unitario;
+                        $costoInsumos += $costo;
+                        $cat = strtolower($insumo->detalleCatalogo->categoria ?? 'otros');
+                        if (str_contains($cat, 'fertiliz')) $desgloseInsumos['fertilizantes'] += $costo;
+                        elseif (str_contains($cat, 'plagui') || str_contains($cat, 'insecti')) $desgloseInsumos['plaguicidas'] += $costo;
+                        else $desgloseInsumos['otros'] += $costo;
                     }
+                }
+
+                $totalGlobal = $totalInversion + $costoAlquiler;
+                $investmentStats = [
+                    'total' => $totalGlobal,
+                    'insumos' => $costoInsumos,
+                    'personal' => $costoPersonal,
+                    'maquinaria' => $costoMaquinaria,
+                    'alquiler' => $costoAlquiler,
+                    'desglose_insumos' => $desgloseInsumos,
+                    'plantas' => $crop->plantas_estimadas,
+                    'rendimiento_esperado' => $crop->rendimiento_esperado_tn_ha,
+                    'dias_cultivo' => $crop->fecha_siembra ? (int)floor($crop->fecha_siembra->diffInDays(now())) : 0,
+                    'dias_totales' => $crop->fecha_siembra && $crop->fecha_cosecha_estimada ? (int)floor($crop->fecha_siembra->diffInDays($crop->fecha_cosecha_estimada)) : 120,
+                ];
+            }
+        }
+
+        $actionPlan = [
+            'critico' => [],   // Riesgos Inmediatos
+            'pendiente' => [],  // Estrategia Siguiente (Basado en JSON)
+            'restriccion' => [], // Prevención (Lo que el clima prohíbe)
+            'ia_insights' => []  // Análisis Predictivo
+        ];
+
+        if ($this->selectedCropId) {
+            $c = Cultivo::with(['detalleCatalogo', 'terreno'])->find($this->selectedCropId);
+            if ($c) {
+                // 1. CARGAR CEREBRO ESTRATÉGICO (JSON)
+                $jsonPath = database_path('migrations/procesos_cultivos_ia.json');
+                $procesosData = json_decode(file_get_contents($jsonPath), true);
+
+                $cultivoJson = null;
+                $etapaActual = null;
+
+                $nombreBusqueda = strtolower($c->detalleCatalogo->nombre);
+                $cultivoJson = collect($procesosData['cultivos'])->first(fn($item) => str_contains($nombreBusqueda, strtolower($item['id'])));
+
+                if ($cultivoJson) {
+                    $edadDias = $c->fecha_siembra ? (int)floor($c->fecha_siembra->diffInDays(now())) : 0;
+
+                    $etapaActual = collect($cultivoJson['etapas'])->first(function($etapa) use ($edadDias) {
+                        return $edadDias >= $etapa['inicio_dia'] && $edadDias <= $etapa['fin_dia'];
+                    });
+
+                    if ($etapaActual) {
+                        foreach($etapaActual['labores'] as $labor) {
+                            $debeHacerse = true;
+                            $motivoRestriccion = "";
+
+                            if ($labor['depende_de_clima'] ?? false) {
+                                foreach(($labor['variables_climaticas'] ?? []) as $var) {
+                                    if ($var == 'viento' && $currentWeather['viento'] > 15) {
+                                        $debeHacerse = false;
+                                        $motivoRestriccion = "Vientos de ".round($currentWeather['viento'])." km/h detectados. Riesgo de deriva.";
+                                    }
+                                    if ($var == 'precipitacion') {
+                                        $probLluvia = $currentWeather['prob_lluvia'] ?? 0;
+                                        $lluviaFutura = collect($currentWeather['forecast'])->where('prob_lluvia', '>', 60)->first();
+                                        if ($probLluvia > 50 || $lluviaFutura) {
+                                            $debeHacerse = false;
+                                            $motivoRestriccion = "Probabilidad de lluvia alta (" . ($lluviaFutura ? $lluviaFutura['day_name'] : 'hoy') . ").";
+                                        }
+                                    }
+                                }
+                            }
+
+                            if ($debeHacerse) {
+                                $actionPlan['pendiente'][] = [
+                                    'icon' => $this->getLaborIcon($labor['labor_id']),
+                                    'title' => strtoupper($labor['nombre']),
+                                    'desc' => "Día {$edadDias}: Etapa de {$etapaActual['nombre']}. La IA recomienda iniciar esta labor aprovechando las condiciones climáticas actuales.",
+                                    'color' => 'blue'
+                                ];
+                            } else {
+                                $actionPlan['restriccion'][] = [
+                                    'icon' => 'fa-hand-dots',
+                                    'title' => 'PAUSAR: ' . strtoupper($labor['nombre']),
+                                    'desc' => "RESTRICCIÓN: {$motivoRestriccion} Según el proceso de {$cultivoJson['nombre']}, se debe " . ($labor['accion_si_clima_no_adecuado'] ?? 'reevaluar') . ".",
+                                    'color' => 'amber'
+                                ];
+                            }
+                        }
+                    }
+                }
+
+                // 4. ESTRATEGIA DE COORDINACIÓN (CEREBRO AGROBOT)
+                // Ejecutar solo si no tenemos un análisis reciente para evitar bucles infinitos en render
+                if ($this->aiAnalysis === "Esperando análisis de IA...") {
+                    $this->askLocalAI($c, $cultivoJson, $etapaActual, $currentWeather, $investmentStats, $history);
+                }
+
+                // 5. ALERTAS CRÍTICAS DE SUPERVIVENCIA (INDIFERENTE AL JSON)
+                if ($currentWeather['temp'] > 28) {
+                    $actionPlan['critico'][] = ['icon' => 'fa-fire-orange', 'title' => 'ESTRÉS TÉRMICO', 'desc' => 'Calor extremo detectado. Riesgo de marchitamiento. Aumentar frecuencia de monitoreo hídrico.', 'color' => 'rose'];
+                }
+
+                // INSIGHTS DE RENDIMIENTO
+                $porcentajeCiclo = $investmentStats ? round(($investmentStats['dias_cultivo'] / max(1, $investmentStats['dias_totales'])) * 100) : 0;
+                if ($porcentajeCiclo > 0) {
+                    $diasRestantes = (int)floor($investmentStats['dias_totales'] - $investmentStats['dias_cultivo']);
+                    $actionPlan['ia_insights'][] = [
+                        'icon' => 'fa-microchip',
+                        'title' => 'ESTADO DEL CICLO',
+                        'desc' => "Progreso biológico: {$porcentajeCiclo}%. La IA proyecta la cosecha para dentro de {$diasRestantes} días aproximadamente.",
+                        'color' => 'emerald'
+                    ];
                 }
             }
         }
 
-        if (empty($actionPlan)) {
-            $actionPlan[] = ['icon' => 'fa-circle-check', 'title' => 'Planificación', 'desc' => 'Sin alertas urgentes. Seguir cronograma de manejo habitual.', 'color' => 'blue'];
+        // Fetch Labores for the selected crop
+        $laboresCultivo = collect();
+        if ($this->selectedCropId) {
+            $laboresCultivo = \App\Models\Labor::with('detalleCatalogo')
+                ->where('cultivo_id', $this->selectedCropId)
+                ->orderBy('fecha_realizacion', 'desc')
+                ->get();
         }
 
         return view('livewire.admin.clima-i-a', [
-            'terrenos' => $terrenos,
-            'cultivos' => $cultivosActivos,
+            'terrenosOptions' => $terrenosOptions,
             'catalogos' => $catalogosExistentes,
             'variedades' => $variedadesExistentes,
+            'cultivos' => $cultivosActivos,
             'mapTerrenos' => $mapTerrenos,
             'current' => $currentWeather,
             'generalRecs' => $generalRecs,
             'cropRecs' => $cropRecs,
             'actionPlan' => $actionPlan,
             'trendData' => $trendData,
-            'history' => $history
+            'history' => $history,
+            'investmentStats' => $investmentStats,
+            'laboresCultivo' => $laboresCultivo,
+            'aiAnalysis' => $this->aiAnalysis
         ]);
+    }
+
+    public $aiAnalysis = "Esperando análisis de IA...";
+
+
+
+    private function askLocalAI($crop, $jsonProfile, $stage, $weather, $stats, $climateHistory)
+    {
+        $agroBot = new \App\Services\AgroBotService();
+
+        // 1. Historial de Labores (MySQL)
+        $historialLabores = $crop->labores()->where('estado', 'Completada')->orderBy('fecha_realizacion', 'desc')->take(5)->get()
+            ->map(fn($l) => "- {$l->fecha_realizacion->format('d/m/Y')}: {$l->detalleCatalogo->nombre}")->implode("\n");
+
+        // 2. Historial de Clima (Últimos días registrados)
+        $historialClima = $climateHistory->map(fn($h) => "- " . \Carbon\Carbon::parse($h->fecha_hora)->format('d/m/Y H:i') . ": {$h->temperatura}°C, {$h->humedad}%, {$h->viento_kmh}km/h ({$h->condicion})")->implode("\n");
+
+        $context = [
+            'json_profile' => $jsonProfile,
+            'historial_labores' => $historialLabores,
+            'historial_clima' => $historialClima,
+            'crop_name' => "{$crop->detalleCatalogo->nombre} ({$crop->variedad})",
+            'dias_cultivo' => (int)floor($stats['dias_cultivo'] ?? 0),
+            'etapa_nombre' => $stage['nombre'] ?? 'Desconocida',
+            'weather' => $weather,
+        ];
+
+        $this->aiAnalysis = $agroBot->coordinateStrategicPlan($context);
+    }
+
+    private function getLaborIcon($id)
+    {
+        $icons = [
+            'preparar' => 'fa-tractor',
+            'siembra' => 'fa-seedling',
+            'riego' => 'fa-droplet',
+            'fumigar' => 'fa-spray-can-sparkles',
+            'aporque' => 'fa-mountain',
+            'deshierbe' => 'fa-hand-holding-plant',
+            'abonar' => 'fa-vial-virus',
+            'cosechar' => 'fa-basket-shopping'
+        ];
+        return $icons[$id] ?? 'fa-circle-dot';
     }
 
     private function getWeatherIcon($condition)
