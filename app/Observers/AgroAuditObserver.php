@@ -29,7 +29,8 @@ class AgroAuditObserver
     protected function log(Model $model, string $accion, string $descripcion, $previos = null)
     {
         // En registros iniciales o consola, Auth puede ser null
-        $userId = Auth::check() ? Auth::id() : 1; // Default to Super Admin if not logged in (e.g. seeders)
+        $userId = Auth::check() ? Auth::id() : (\App\Models\User::value('id'));
+        if (!$userId) return; // Si no hay usuarios en la BD aún, no se puede auditar con FK
 
         $orgId = null;
         if (isset($model->organizacion_id)) {

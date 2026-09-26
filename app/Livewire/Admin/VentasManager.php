@@ -214,8 +214,11 @@ class VentasManager extends Component
     public function saveQuickComprador()
     {
         $this->validate([
-            'newCompNombre' => 'required|string|max:200',
+            'newCompNombre' => 'required|string|min:3|max:150',
             'newCompRucDni' => 'nullable|string|max:20',
+            'newCompTelf' => 'nullable|string|max:20',
+            'newCompEmail' => 'nullable|email|max:150',
+            'newCompDir' => 'nullable|string|max:255',
         ]);
 
         $comprador = \App\Models\Comprador::create([
@@ -236,13 +239,17 @@ class VentasManager extends Component
     public function save()
     {
         $this->validate([
-            'cosecha_id' => 'required',
-            'comprador_id' => 'required',
+            'cosecha_id' => 'required|exists:cosechas,id',
+            'comprador_id' => 'required|exists:compradores,id',
             'fecha_venta' => 'required|date',
-            'cantidad_vendida_kg' => 'required|numeric|min:0.01',
-            'precio_por_kg' => 'required|numeric|min:0.01',
-            'comprobante_tipo' => 'required',
-            'ventaPhoto' => 'nullable|image|max:5120'
+            'cantidad_vendida_kg' => 'required|numeric|min:0.01|max:1000000',
+            'precio_por_kg' => 'required|numeric|min:0.01|max:10000',
+            'costo_flete' => 'nullable|numeric|min:0|max:100000',
+            'impuestos' => 'nullable|numeric|min:0|max:100000',
+            'comprobante_tipo' => 'required|string|max:50',
+            'comprobante_numero' => 'nullable|string|max:50',
+            'observaciones' => 'nullable|string|max:1000',
+            'ventaPhoto' => 'nullable|image|max:10240'
         ]);
 
         if ($this->ventaId) {
@@ -658,13 +665,22 @@ class VentasManager extends Component
 
     public function render()
     {
-        // 1. Obtener los IDs de los cultivos que tienen ventas (considerando organización/usuario)
-        $orgFilter = function($q) {
-            if ($this->selectedOrgId) {
-                $q->where('organizacion_id', $this->selectedOrgId)
-                  ->orWhere('usuario_id', Auth::id());
+        $user = Auth::user();
+
+        // 1. Filtro de Organización / Usuario (Lógica Global para Super Admin)
+        $orgFilter = function($q) use ($user) {
+            if ($user->rol_id === 1) {
+                if ($this->selectedOrgId) {
+                    $q->where('organizacion_id', $this->selectedOrgId);
+                }
+                // Si no hay org seleccionada para Super Admin, no filtramos (ve todo)
             } else {
-                $q->where('usuario_id', Auth::id());
+                if ($this->selectedOrgId) {
+                    $q->where('organizacion_id', $this->selectedOrgId)
+                      ->orWhere('usuario_id', Auth::id());
+                } else {
+                    $q->where('usuario_id', Auth::id());
+                }
             }
         };
 

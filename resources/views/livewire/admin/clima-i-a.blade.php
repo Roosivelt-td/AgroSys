@@ -268,7 +268,7 @@
                                     </div>
                                     <div class="text-right">
                                         <span class="text-[8px] font-black text-slate-400 uppercase block mb-1">LUGAR</span>
-                                        <p class="text-[10px] font-bold text-white italic leading-tight truncate">{{ $c_active->terreno->nombre }}</p>
+                                        <p class="text-[10px] font-bold text-white italic leading-tight truncate" title="{{ $c_active->terreno->ubicacion ?: $c_active->terreno->nombre }}">{{ $c_active->terreno->ubicacion ?: $c_active->terreno->nombre }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -278,6 +278,8 @@
                         <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-white/5 shadow-2xl overflow-hidden relative min-h-[400px]">
                             @php
                                 $mapCenter = ['lat' => (float)$c_active->terreno->latitud, 'lng' => (float)$c_active->terreno->longitud];
+                                $direccionExacta = $c_active->terreno->ubicacion ?: $c_active->terreno->nombre;
+                                $direccionRef = $c_active->terreno->direccion_referencia;
                             @endphp
                             <div data-react-component="agro-map-terrenos"
                                  data-props="{{ json_encode([
@@ -289,10 +291,28 @@
                                  wire:key="map-premium-focus-{{ $selectedCropId }}-{{ $viewTimestamp }}"
                                  wire:ignore
                                  class="w-full h-full absolute inset-0"></div>
-                            <div class="absolute bottom-8 right-8 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-6 py-3 rounded-md border border-black/5 shadow-2xl text-right">
-                                <span class="text-[9px] font-black text-slate-400 uppercase block mb-1 italic tracking-widest leading-none">Extensión Estimada</span>
-                                <p class="text-4xl font-black italic text-agri-green leading-none">
-                                    {{ number_format($c_active->area_destinada, 2) }} <span class="text-lg opacity-40 uppercase tracking-tighter">HA</span>
+
+                            <!-- BADGES FLOTANTES DE REFERENCIA Y GOOGLE MAPS (ARRIBA A LA DERECHA, EN FILAS APILADAS) -->
+                            <div class="absolute top-3 right-3 z-20 flex flex-col items-end gap-1.5">
+                                @if($direccionRef)
+                                    <div class="flex items-center gap-1.5 bg-slate-900/90 text-amber-300 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 shadow-2xl text-[11px] font-bold italic">
+                                        <i class="fa-solid fa-map-pin text-amber-400 text-[10px]"></i>
+                                        <span>Ref: {{ $direccionRef }}</span>
+                                    </div>
+                                @endif
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ $c_active->terreno->latitud }},{{ $c_active->terreno->longitud }}"
+                                   target="_blank"
+                                   class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] rounded-lg flex items-center gap-1.5 uppercase tracking-wider transition-all shadow-2xl active:scale-95 border border-blue-400/30">
+                                    <span>Google Maps</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+                                </a>
+                            </div>
+
+                            <!-- TARJETA DE EXTENSIÓN ESTIMADA -->
+                            <div class="absolute bottom-4 right-16 z-20 bg-slate-900/90 text-white backdrop-blur-md px-5 py-2.5 rounded-xl border border-white/20 shadow-2xl text-right">
+                                <span class="text-[9px] font-black text-slate-400 uppercase block mb-0.5 italic tracking-widest leading-none">Extensión Estimada</span>
+                                <p class="text-3xl font-black italic text-emerald-400 leading-none">
+                                    {{ number_format($c_active->area_destinada, 2) }} <span class="text-base text-slate-400 uppercase font-bold tracking-tighter">HA</span>
                                 </p>
                             </div>
                         </div>
@@ -440,21 +460,19 @@
                             </div>
                             @endif
 
-                            <!-- ANÁLISIS ESTRATÉGICO DE IA LOCAL (OLLAMA) -->
+                            <!-- ANÁLISIS ESTRATÉGICO DE IA (GEMINI / LOCAL) -->
                             <div class="space-y-3">
-                                <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic border-b border-emerald-500/20 pb-1 block w-full">Cerebro AgroSys (IA Local)</span>
+                                <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic border-b border-emerald-500/20 pb-1 block w-full">Cerebro AgroSys (IA Generativa)</span>
                                 <div class="bg-slate-50 dark:bg-white/5 p-5 rounded-xl border border-emerald-500/10 shadow-inner relative overflow-hidden group">
                                     <div class="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
                                         <i class="fa-solid fa-brain text-5xl text-emerald-500"></i>
                                     </div>
-                                    <div class="relative z-10">
-                                        <p class="text-[11px] font-bold text-slate-700 dark:text-slate-200 leading-relaxed italic">
-                                            {{ $aiAnalysis }}
-                                        </p>
+                                    <div class="relative z-10 ai-markdown-output text-[11px] font-medium text-slate-700 dark:text-slate-200 leading-relaxed space-y-2">
+                                        {!! \Illuminate\Support\Str::markdown($aiAnalysis ?? 'Cargando análisis estratégico...') !!}
                                     </div>
                                     <div class="mt-3 flex items-center gap-2">
                                         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                                        <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Análisis en tiempo real ejecutado vía Ollama</span>
+                                        <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Análisis en tiempo real ejecutado vía IA</span>
                                     </div>
                                 </div>
                             </div>
@@ -687,4 +705,43 @@
             }
         });
     </script>
+
+    <style>
+        .ai-markdown-output h3 {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            color: #059669;
+            border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+            padding-bottom: 3px;
+        }
+        .ai-markdown-output h3:first-child {
+            margin-top: 0;
+        }
+        .ai-markdown-output ul {
+            list-style-type: disc;
+            padding-left: 18px;
+            margin-top: 4px;
+            margin-bottom: 8px;
+        }
+        .ai-markdown-output li {
+            margin-bottom: 5px;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+        .ai-markdown-output strong {
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .dark .ai-markdown-output strong {
+            color: #f8fafc;
+        }
+        .dark .ai-markdown-output h3 {
+            color: #34d399;
+            border-bottom-color: rgba(52, 211, 153, 0.15);
+        }
+    </style>
 </div>

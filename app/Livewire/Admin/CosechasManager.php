@@ -313,10 +313,11 @@ class CosechasManager extends Component
     {
         $this->validate([
             'fecha_cosecha_edit' => 'required|date',
-            'itemsCosecha.*.cantidad' => 'required|numeric|min:0.01',
-            'itemsCosecha.*.unidad' => 'required',
-            'itemsCosecha.*.calidad' => 'required',
-            'costo_total' => 'required|numeric'
+            'itemsCosecha.*.cantidad' => 'required|numeric|min:0.01|max:1000000',
+            'itemsCosecha.*.unidad' => 'required|string|max:20',
+            'itemsCosecha.*.calidad' => 'required|string|max:50',
+            'costo_total' => 'required|numeric|min:0|max:10000000',
+            'observaciones_cosecha' => 'nullable|string|max:1000',
         ]);
 
         DB::transaction(function() {
@@ -528,16 +529,36 @@ class CosechasManager extends Component
         $user = Auth::user();
         $query = Cultivo::where('estado', 'Cosechado');
 
+        // Lógica de visibilidad Global para Super Admin
+        if ($user->rol_id === 1) {
+            if ($this->selectedOrgId) {
+                $query->whereHas('terreno', fn($q) => $q->where('organizacion_id', $this->selectedOrgId));
+            }
+            // Si no hay org seleccionada, no filtramos más (ve todo)
+        } else {
+            // Lógica de visibilidad estándar
+            if ($this->selectedOrgId) {
+                $query->whereHas('terreno', function($q) {
+                    $q->where('organizacion_id', $this->selectedOrgId)
+                      ->orWhere('usuario_id', Auth::id());
+                });
+            } else {
+                $query->whereHas('terreno', function($q) {
+                    $q->where('usuario_id', Auth::id());
+                });
+            }
+        }
+
         // Búsqueda dinámica para el Modal
         $resultsTerrenos = [];
         if (strlen(trim($this->queryTerreno)) > 0) {
-            $resultsTerrenos = Terreno::where('usuario_id', $user->id)
-                ->where('nombre', 'like', "%" . trim($this->queryTerreno) . "%")
-                ->take(5)->get()->map(function($t) {
-                    $ocupado = Cultivo::where('terreno_id', $t->id)->whereIn('estado', ['Planificado', 'En crecimiento'])->where('id', '!=', $this->cropId)->sum('area_destinada');
-                    $t->disponible = max(0, $t->hectareas - $ocupado);
-                    return $t;
-                });
+            $tQuery = Terreno::where('nombre', 'like', "%" . trim($this->queryTerreno) . "%");
+            if ($user->rol_id !== 1) $tQuery->where('usuario_id', $user->id);
+            $resultsTerrenos = $tQuery->take(5)->get()->map(function($t) {
+                $ocupado = Cultivo::where('terreno_id', $t->id)->whereIn('estado', ['Planificado', 'En crecimiento'])->where('id', '!=', $this->cropId)->sum('area_destinada');
+                $t->disponible = max(0, $t->hectareas - $ocupado);
+                return $t;
+            });
         }
 
         $resultsCatalogo = [];
@@ -554,18 +575,6 @@ class CosechasManager extends Component
 
         $selTerreno = $this->terreno_id ? Terreno::find($this->terreno_id) : null;
         $selCultivo = $this->catalogo_cultivo_id ? CatalogoCultivo::find($this->catalogo_cultivo_id) : null;
-
-        // Lógica de visibilidad (simplificada pero segura)
-        if ($this->selectedOrgId) {
-            $query->whereHas('terreno', function($q) {
-                $q->where('organizacion_id', $this->selectedOrgId)
-                  ->orWhere('usuario_id', Auth::id());
-            });
-        } else {
-            $query->whereHas('terreno', function($q) {
-                $q->where('usuario_id', Auth::id());
-            });
-        }
 
         if ($this->searchCultivo) {
             $query->whereHas('detalleCatalogo', fn($q) => $q->where('nombre', 'like', "%{$this->searchCultivo}%"));
@@ -610,7 +619,7 @@ class CosechasManager extends Component
         return view('livewire.admin.cosechas-manager', [
             'cosechas' => $cosechas,
             'stats' => $stats,
-            'resultsTerrenos' => $resultsTerrenos,
+            'resultsTerrenos' => $resultsTerrenos ?? [],
             'resultsCatalogo' => $resultsCatalogo,
             'selectedTerrenoModel' => $selTerreno,
             'selectedCultivoModel' => $selCultivo,

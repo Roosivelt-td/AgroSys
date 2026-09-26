@@ -192,11 +192,20 @@ class CultivosManager extends Component
 
     public function save()
     {
+        $maxArea = max(0.01, (float)$this->areaDisponible);
+        if ($this->cropId) {
+            $prevCrop = Cultivo::find($this->cropId);
+            if ($prevCrop) {
+                $maxArea += (float)$prevCrop->area_destinada;
+            }
+        }
+
         $this->validate([
-            'terreno_id' => 'required',
-            'catalogo_cultivo_id' => 'required',
-            'nombre_lote' => 'required',
-            'area_destinada' => "required|numeric|min:0.01|max:{$this->areaDisponible}",
+            'terreno_id' => 'required|exists:terrenos,id',
+            'catalogo_cultivo_id' => 'required|exists:catalogo_cultivos,id',
+            'nombre_lote' => 'required|string|min:2|max:100',
+            'variedad' => 'nullable|string|max:100',
+            'area_destinada' => "required|numeric|min:0.01|max:{$maxArea}",
             'fecha_planificada' => [
                 'required',
                 'date',
@@ -212,9 +221,10 @@ class CultivosManager extends Component
                     }
                 }
             ],
-            'plantas_estimadas' => 'nullable|integer|min:0',
-            'rendimiento_esperado_tn_ha' => 'nullable|numeric|min:0',
-            'cropPhoto' => 'nullable|image|max:5120',
+            'plantas_estimadas' => 'nullable|integer|min:0|max:10000000',
+            'rendimiento_esperado_tn_ha' => 'nullable|numeric|min:0|max:10000',
+            'observaciones' => 'nullable|string|max:1000',
+            'cropPhoto' => 'nullable|image|max:10240',
         ]);
 
         $user = Auth::user();

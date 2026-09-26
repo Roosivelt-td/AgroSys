@@ -103,6 +103,22 @@ Route::middleware('auth')->group(function () {
     Route::get('admin/catalogo-cultivos', \App\Livewire\Admin\CatalogoCultivosManager::class)
         ->name('admin.catalogo-cultivos')
         ->middleware('can:superadmin-only');
+
+    Route::get('admin/catalogo-labores', \App\Livewire\Admin\CatalogoLaboresManager::class)
+        ->name('admin.catalogo-labores')
+        ->middleware('can:superadmin-only');
+
+    Route::get('admin/terrenos', \App\Livewire\Admin\AdminTerrenosManager::class)
+        ->name('superadmin.terrenos')
+        ->middleware('can:superadmin-only');
+
+    Route::get('admin/cosechas', \App\Livewire\Admin\AdminCosechasManager::class)
+        ->name('superadmin.cosechas')
+        ->middleware('can:superadmin-only');
+
+    Route::get('admin/ventas', \App\Livewire\Admin\AdminVentasManager::class)
+        ->name('superadmin.ventas')
+        ->middleware('can:superadmin-only');
 });
 
 require __DIR__.'/auth.php';

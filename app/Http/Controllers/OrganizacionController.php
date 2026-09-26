@@ -18,9 +18,28 @@ class OrganizacionController extends Controller
 {
     public function registrar(array $datos)
     {
+        $validator = \Illuminate\Support\Facades\Validator::make($datos, [
+            'nombre' => 'required|string|min:3|max:150',
+            'ruc' => 'required|string|digits:11',
+            'descripcion' => 'nullable|string|max:500',
+            'email' => 'nullable|email|max:150',
+        ], [
+            'nombre.required' => 'El nombre de la empresa es obligatorio.',
+            'nombre.min' => 'El nombre de la empresa debe tener al menos 3 caracteres.',
+            'nombre.max' => 'El nombre de la empresa no puede superar los 150 caracteres.',
+            'ruc.required' => 'El número de RUC es obligatorio.',
+            'ruc.digits' => 'El RUC debe tener exactamente 11 dígitos numéricos.',
+        ]);
+
+        if ($validator->fails()) {
+            return ['success' => false, 'mensaje' => $validator->errors()->first()];
+        }
+
         $usuario = Auth::user();
-        return DB::transaction(function () use ($datos, $usuario) {
-            $solicitud = Solicitud::create(['tipo' => 'creacion_organizacion', 'estado' => 0, 'solicitante_usuario_id' => $usuario->id, 'destinatario_usuario_id' => 1, 'datos_extra' => $datos, 'fecha_solicitud' => now()]);
+        $destinatarioId = User::where('rol_id', 1)->value('id') ?? User::value('id') ?? $usuario->id;
+
+        return DB::transaction(function () use ($datos, $usuario, $destinatarioId) {
+            $solicitud = Solicitud::create(['tipo' => 'creacion_organizacion', 'estado' => 0, 'solicitante_usuario_id' => $usuario->id, 'destinatario_usuario_id' => $destinatarioId, 'datos_extra' => $datos, 'fecha_solicitud' => now()]);
             $superAdmins = User::where('rol_id', 1)->get();
             foreach ($superAdmins as $admin) {
                 Notificacion::create(['usuario_id' => $admin->id, 'solicitud_id' => $solicitud->id, 'titulo' => 'Nueva Solicitud de Organización', 'mensaje' => 'El usuario ' . $usuario->nombres . ' solicita registrar la empresa: ' . $datos['nombre'], 'tipo' => 'solicitud_pendiente']);
@@ -35,11 +54,15 @@ class OrganizacionController extends Controller
         return DB::transaction(function () use ($solicitudId) {
             $solicitud = Solicitud::findOrFail($solicitudId);
             if ($solicitud->estado !== 0) return ['success' => false, 'mensaje' => 'Ya procesada.'];
+
+            $adminRol = RolesOrganizacion::firstOrCreate(['id' => 1], ['nombre' => 'Administrador', 'descripcion' => 'Admin de Org']);
+            $agriRol = RolesOrganizacion::firstOrCreate(['id' => 3], ['nombre' => 'Agricultor', 'descripcion' => 'Agricultor de Org']);
+
             $datos = $solicitud->datos_extra;
             $organizacion = Organizacion::create(['nombre' => $datos['nombre'], 'ruc' => $datos['ruc'], 'descripcion' => $datos['descripcion'] ?? null, 'email' => $datos['email'] ?? null, 'estado' => 1]);
             $miembro = MiembroOrganizacion::updateOrCreate(['usuario_id' => $solicitud->solicitante_usuario_id, 'organizacion_id' => $organizacion->id], ['es_propietario' => 1, 'estado' => 1, 'fecha_ingreso' => now(), 'deleted_at' => null]);
-            MiembroRol::updateOrCreate(['miembro_id' => $miembro->id, 'rol_id' => 1], ['estado' => 1]);
-            MiembroRol::updateOrCreate(['miembro_id' => $miembro->id, 'rol_id' => 3], ['estado' => 1]);
+            MiembroRol::updateOrCreate(['miembro_id' => $miembro->id, 'rol_id' => $adminRol->id], ['estado' => 1]);
+            MiembroRol::updateOrCreate(['miembro_id' => $miembro->id, 'rol_id' => $agriRol->id], ['estado' => 1]);
             $solicitud->update(['estado' => 1, 'fecha_respuesta' => now(), 'organizacion_id' => $organizacion->id]);
             Notificacion::create(['usuario_id' => $solicitud->solicitante_usuario_id, 'solicitud_id' => $solicitud->id, 'titulo' => '¡Organización Aprobada!', 'mensaje' => 'Empresa activa. Eres Administrador y Agricultor.', 'tipo' => 'exito']);
             $this->registrarHistorial(Auth::id(), $organizacion->id, 'organizaciones', $organizacion->id, 'APROBACIÓN', 'Aprobación de creación de ' . $organizacion->nombre, $datos);

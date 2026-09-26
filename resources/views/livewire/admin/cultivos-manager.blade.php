@@ -608,18 +608,21 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-50 dark:border-white/5">
                     <div class="space-y-1">
                         <x-input-label :value="__('Variedad del Producto')" class="text-[9px] font-black uppercase text-slate-400" />
-                        <x-text-input wire:model.live="variedad" type="text" class="block w-full uppercase p-3 text-xs" placeholder="Ej: Morada, Canchan..." />
+                        <x-text-input wire:model.live="variedad" type="text" class="block w-full uppercase p-3 text-xs" placeholder="Ej: Morada, Canchan..." maxlength="100" />
+                        <x-input-error :messages="$errors->get('variedad')" class="mt-1" />
                     </div>
                     <div class="space-y-1">
                         <x-input-label :value="__('Nombre de Lote (Auto)')" class="text-[9px] font-black uppercase text-slate-400" />
-                        <x-text-input wire:model="nombre_lote" type="text" readonly class="block w-full bg-slate-50 dark:bg-white/5 font-black text-agri-green italic p-3 text-xs" />
+                        <x-text-input wire:model="nombre_lote" type="text" readonly class="block w-full bg-slate-50 dark:bg-white/5 font-black text-agri-green italic p-3 text-xs" minlength="2" maxlength="100" />
+                        <x-input-error :messages="$errors->get('nombre_lote')" class="mt-1" />
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div class="space-y-1">
                         <x-input-label :value="__('Área a Sembrar (ha) *')" class="text-[9px] font-black text-slate-400" />
-                        <x-text-input wire:model.live="area_destinada" type="number" step="0.01" class="block w-full p-3 text-xs {{ !$terreno_id ? 'bg-slate-100 opacity-50' : '' }}" :disabled="!$terreno_id" />
+                        <x-text-input wire:model.live="area_destinada" type="number" min="0.01" max="10000" step="0.01" class="block w-full p-3 text-xs {{ !$terreno_id ? 'bg-slate-100 opacity-50' : '' }}" :disabled="!$terreno_id" required />
+                        <x-input-error :messages="$errors->get('area_destinada')" class="mt-1" />
                     </div>
 
                     @if($selectedCultivoModel && $selectedCultivoModel->tipo_ciclo === 'perenne')

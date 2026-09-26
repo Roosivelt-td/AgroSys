@@ -6,11 +6,15 @@
         <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="space-y-4">
                 <div>
-                    <span class="px-3 py-1 bg-blue-500/10 text-blue-500 text-[8px] font-black uppercase tracking-widest rounded border border-blue-500/20 italic">Comercialización</span>
-                    <h1 class="text-xl md:text-2xl font-black text-slate-800 dark:text-white italic tracking-tighter mt-1.5 leading-tight uppercase">Mis<br><span class="text-agri-green">Ventas</span></h1>
+                    <span class="px-3 py-1 bg-blue-500/10 text-blue-500 text-[8px] font-black uppercase tracking-widest rounded border border-blue-500/20 italic">
+                        {{ auth()->user()->rol_id === 1 ? __('Administración SaaS') : __('Comercialización') }}
+                    </span>
+                    <h1 class="text-xl md:text-2xl font-black text-slate-800 dark:text-white italic tracking-tighter mt-1.5 leading-tight uppercase">
+                        {{ auth()->user()->rol_id === 1 ? __('Transacciones') : __('Mis') }}<br><span class="text-agri-green">{{ auth()->user()->rol_id === 1 ? __('Globales') : __('Ventas') }}</span>
+                    </h1>
                 </div>
                 <p class="text-slate-400 dark:text-slate-500 text-xs font-medium italic max-w-xs leading-relaxed">
-                    Registro y seguimiento de transacciones comerciales de su producción.
+                    {{ auth()->user()->rol_id === 1 ? __('Seguimiento consolidado de todos los flujos comerciales de la plataforma.') : __('Registro y seguimiento de transacciones comerciales de su producción.') }}
                 </p>
             </div>
 
@@ -383,15 +387,18 @@
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-[9px] font-black text-slate-400 uppercase">Cantidad *</label>
-                        <input wire:model.live="cantidad_vendida_kg" type="number" step="0.01" class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-xs font-bold p-3 shadow-inner">
+                        <input wire:model.live="cantidad_vendida_kg" type="number" min="0.01" max="1000000" step="0.01" class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-xs font-bold p-3 shadow-inner" required>
+                        @error('cantidad_vendida_kg') <p class="text-[8px] font-black text-rose-500 uppercase tracking-widest mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-[9px] font-black text-slate-400 uppercase">Precio Unitario (S/)</label>
-                        <input wire:model.live="precio_por_kg" type="number" step="0.01" class="w-full bg-white dark:bg-slate-800 border-2 border-agri-green/20 rounded-xl text-xs font-black p-3 text-agri-green shadow-sm">
+                        <label class="text-[9px] font-black text-slate-400 uppercase">Precio Unitario (S/) *</label>
+                        <input wire:model.live="precio_por_kg" type="number" min="0.01" max="10000" step="0.01" class="w-full bg-white dark:bg-slate-800 border-2 border-agri-green/20 rounded-xl text-xs font-black p-3 text-agri-green shadow-sm" required>
+                        @error('precio_por_kg') <p class="text-[8px] font-black text-rose-500 uppercase tracking-widest mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-[9px] font-black text-slate-400 uppercase">Flete (S/)</label>
-                        <input wire:model.live="costo_flete" type="number" step="0.01" class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-xs font-bold p-3 shadow-inner">
+                        <input wire:model.live="costo_flete" type="number" min="0" max="100000" step="0.01" class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-xs font-bold p-3 shadow-inner">
+                        @error('costo_flete') <p class="text-[8px] font-black text-rose-500 uppercase tracking-widest mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
 

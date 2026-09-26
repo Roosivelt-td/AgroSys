@@ -116,13 +116,18 @@ class TerrenosManager extends Component
     public function save()
     {
         $this->validate([
-            'landName' => 'required|string|max:150',
-            'landArea' => 'required|numeric|min:0.01',
-            'landLat' => 'required',
-            'landLng' => 'required',
+            'landName' => 'required|string|min:3|max:100',
+            'landLocation' => 'nullable|string|max:255',
+            'landDirRef' => 'nullable|string|max:255',
+            'landArea' => 'required|numeric|min:0.01|max:10000',
+            'landTenure' => 'required|in:propio,alquilado',
+            'landRentCost' => 'required_if:landTenure,alquilado|numeric|min:0|max:10000000',
+            'landSoil' => 'required|string|max:50',
+            'landWater' => 'required|string|max:100',
+            'landLat' => 'required|numeric|between:-90,90',
+            'landLng' => 'required|numeric|between:-180,180',
             'landPolygon' => 'required',
-            'landPhoto' => 'nullable|image|max:5120',
-            'landRentCost' => 'required_if:landTenure,alquilado|numeric|min:0',
+            'landPhoto' => 'nullable|image|max:10240',
             'landRentStart' => 'required_if:landTenure,alquilado',
             'landRentEnd' => [
                 'nullable',
@@ -238,16 +243,15 @@ class TerrenosManager extends Component
         $misOrganizaciones = $user->membresias()->where('estado', 1)->with('organizacion')->get()->pluck('organizacion');
 
         // Lógica de visibilidad por Rol y Organización
-        if ($this->selectedOrgId) {
+        if ($user->rol_id === 1) {
+            // Super Admin ve ABSOLUTAMENTE TODO si no hay org seleccionada, o filtra por org si la hay
+            $baseQuery = $this->selectedOrgId
+                ? Terreno::where('organizacion_id', $this->selectedOrgId)
+                : Terreno::query();
+        } elseif ($this->selectedOrgId) {
             $miembro = $user->membresias()->where('organizacion_id', $this->selectedOrgId)->where('estado', 1)->first();
 
-            if ($user->rol_id === 1) {
-                // Super Admin ve todo de la organización seleccionada + sus personales
-                $baseQuery = Terreno::where(function($q) use ($user) {
-                    $q->where('organizacion_id', $this->selectedOrgId)
-                      ->orWhere('usuario_id', $user->id);
-                });
-            } elseif ($miembro) {
+            if ($miembro) {
                 $esAdmin = $miembro->roles()->whereHas('rolDetalle', fn($q) => $q->where('nombre', 'Administrador'))->where('estado', 1)->exists();
                 $esSupervisor = $miembro->roles()->whereHas('rolDetalle', fn($q) => $q->where('nombre', 'Supervisor'))->where('estado', 1)->exists();
 

@@ -170,6 +170,13 @@
                         @endforeach
                     </div>
 
+                    @if(in_array('Administrador', $miRolEnOrg) && !$esSupervisor)
+                        <button wire:click.stop="openAssignSupervisorModal({{ $miembro->id }})"
+                                class="mt-3 px-4 py-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-xl text-[9px] font-black uppercase tracking-wider hover:bg-amber-500 hover:text-white transition-all italic shadow-sm w-full">
+                            <i class="fa-solid fa-user-tie mr-1"></i> {{ $miSupervisor ? 'Cambiar Supervisor' : 'Asignar Supervisor' }}
+                        </button>
+                    @endif
+
                     <!-- Acciones Rápidas (Solo Admin) -->
                     @if(in_array('Administrador', $miRolEnOrg) && Auth::id() !== $miembro->usuario_id)
                     <div class="absolute top-4 right-4 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-all duration-500 scale-90 group-hover:scale-100">
@@ -238,6 +245,54 @@
             <div class="p-10 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5 flex justify-center">
                 <button wire:click="closeProfile" class="w-full py-4 bg-agri-green text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] shadow-xl shadow-agri-green/30 hover:scale-105 active:scale-95 transition-all italic">
                     Cerrar Expediente
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- MODAL DE ASIGNAR SUPERVISOR -->
+    @if($assignSupervisorModalOpen && $targetMemberToAssign)
+    <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
+        <div class="bg-white dark:bg-agri-d_bg w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10 animate-in zoom-in duration-300">
+            <div class="bg-[#003a38] px-8 py-6 flex justify-between items-center text-white border-b border-white/5">
+                <div>
+                    <h3 class="text-xl font-black italic tracking-tighter uppercase">Asignar Supervisor</h3>
+                    <p class="text-[9px] opacity-60 uppercase font-black tracking-widest mt-1 italic">Vigilancia Técnica AgroSys</p>
+                </div>
+                <button wire:click="closeAssignSupervisorModal" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-rose-500 transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-8 space-y-6">
+                <div class="flex items-center space-x-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                    <div class="w-12 h-12 rounded-full bg-agri-green/10 text-agri-green flex items-center justify-center font-black text-base italic shadow-inner">
+                        {{ substr($targetMemberToAssign->usuario->nombres, 0, 1) }}{{ substr($targetMemberToAssign->usuario->apellidos, 0, 1) }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-black text-slate-800 dark:text-white uppercase leading-tight italic">{{ $targetMemberToAssign->usuario->nombres }} {{ $targetMemberToAssign->usuario->apellidos }}</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">DNI: {{ $targetMemberToAssign->usuario->dni }}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Seleccionar Supervisor Encargado</label>
+                    <select wire:model="selectedSupervisorId" class="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-agri-green/10 transition-all cursor-pointer">
+                        <option value="">-- Ninguno (Sin Supervisor) --</option>
+                        @foreach($supervisoresOrg as $sup)
+                            <option value="{{ $sup->id }}">🌟 {{ $sup->usuario->nombres }} {{ $sup->usuario->apellidos }} (DNI: {{ $sup->usuario->dni }})</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="p-6 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5 flex gap-3">
+                <button wire:click="closeAssignSupervisorModal" class="flex-1 py-3 bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-300 transition-all italic">
+                    Cancelar
+                </button>
+                <button wire:click="guardarAsignacionSupervisor" class="flex-1 py-3 bg-agri-green text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-agri-green/20 hover:scale-105 transition-all italic">
+                    Guardar
                 </button>
             </div>
         </div>

@@ -96,7 +96,7 @@ class UpdateProfileInformation extends Component
             'email' => $validated['email'],
             'dni' => $validated['dni'],
             'telefono' => $validated['telefono'],
-            'experiencia_anios' => $validated['experiencia_anios'],
+            'experiencia_anios' => is_numeric($validated['experiencia_anios'] ?? null) ? (int)$validated['experiencia_anios'] : 0,
             'nivel_educativo' => $validated['nivel_educativo'],
             'ubicacion' => $validated['ubicacion'],
             'descripcion' => $validated['descripcion'],

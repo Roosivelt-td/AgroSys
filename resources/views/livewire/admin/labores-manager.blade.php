@@ -446,7 +446,8 @@
                                                     <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                                                         <i class="fa-solid fa-weight-hanging text-emerald-500"></i> Cantidad
                                                     </label>
-                                                    <input type="number" step="0.01" wire:model="itemsCosecha.{{ $idx }}.cantidad" class="w-full bg-white dark:bg-slate-800 border-none rounded-lg p-2.5 text-[11px] font-black shadow-sm">
+                                                    <input type="number" min="0.01" max="1000000" step="0.01" wire:model="itemsCosecha.{{ $idx }}.cantidad" class="w-full bg-white dark:bg-slate-800 border-none rounded-lg p-2.5 text-[11px] font-black shadow-sm" required>
+                                                    @error('itemsCosecha.'.$idx.'.cantidad') <p class="text-[8px] font-black text-rose-500 uppercase tracking-widest mt-0.5">{{ $message }}</p> @enderror
                                                 </div>
                                                 <div class="md:col-span-3 space-y-1.5">
                                                     <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">

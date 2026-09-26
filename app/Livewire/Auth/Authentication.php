@@ -174,7 +174,7 @@ class Authentication extends Component
         }
         */
 
-        $rolAgricultor = Rol::where('nombre', 'Agricultor')->first();
+        $rolAgricultor = Rol::where('nombre', 'Agricultor')->first() ?: Rol::firstOrCreate(['id' => 2], ['nombre' => 'Agricultor']);
 
         $user = User::create([
             'nombres' => mb_convert_case(trim($validated['nombres']), MB_CASE_TITLE, "UTF-8"),
@@ -182,7 +182,7 @@ class Authentication extends Component
             'dni' => $validated['dni'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'rol_id' => $rolAgricultor ? $rolAgricultor->id : 2,
+            'rol_id' => $rolAgricultor->id,
             'estado' => 1,
             'is_activo' => true,
         ]);

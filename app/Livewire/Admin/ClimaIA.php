@@ -438,18 +438,24 @@ class ClimaIA extends Component
         }
 
         // Datos para el Mapa
-        $mapTerrenos = $terrenos->map(fn($t) => [
-            'id' => $t->id,
-            'nombre' => $t->nombre,
-            'lat' => (float)$t->latitud,
-            'lng' => (float)$t->longitud,
-            'area' => $t->hectareas,
-            'suelo' => $t->calidad_suelo,
-            'poligono' => $t->poligono, // Incluir el polígono para que React lo dibuje
-            'color' => ($t->usuario_id === $user->id) ? (($t->tipo_tenencia === 'propio') ? 'green' : 'cyan') : 'red',
-            'es_mio' => $t->usuario_id === $user->id,
-            'cultivo' => 'Zona Activa'
-        ])->toArray();
+        $mapTerrenos = $terrenos->map(function($t) use ($user) {
+            $direccionText = $t->ubicacion ?: ($t->direccion_referencia ?: 'Sin dirección registrada');
+            return [
+                'id' => $t->id,
+                'nombre' => $t->nombre,
+                'ubicacion' => $t->ubicacion,
+                'direccion_referencia' => $t->direccion_referencia,
+                'label' => "{$t->nombre} - {$direccionText} (" . number_format($t->hectareas, 2) . " HA)",
+                'lat' => (float)$t->latitud,
+                'lng' => (float)$t->longitud,
+                'area' => $t->hectareas,
+                'suelo' => $t->calidad_suelo,
+                'poligono' => is_string($t->poligono) ? json_decode($t->poligono, true) : $t->poligono,
+                'color' => ($t->usuario_id === $user->id) ? (($t->tipo_tenencia === 'propio') ? 'green' : 'cyan') : 'red',
+                'es_mio' => $t->usuario_id === $user->id,
+                'cultivo' => 'Zona Activa'
+            ];
+        })->toArray();
 
         // Datos de Inversión y Detalles para el Bloque 4 (Calculados antes de la IA para Insights)
         $investmentStats = null;
@@ -507,15 +513,32 @@ class ClimaIA extends Component
                 $cultivoJson = null;
                 $etapaActual = null;
 
-                $nombreBusqueda = strtolower($c->detalleCatalogo->nombre);
-                $cultivoJson = collect($procesosData['cultivos'])->first(fn($item) => str_contains($nombreBusqueda, strtolower($item['id'])));
+                $nombreBusqueda = \Illuminate\Support\Str::ascii(mb_strtolower($c->detalleCatalogo->nombre));
+                $cultivoJson = collect($procesosData['cultivos'])->first(function($item) use ($nombreBusqueda) {
+                    $idNorm = \Illuminate\Support\Str::ascii(mb_strtolower($item['id']));
+                    $nombreNorm = \Illuminate\Support\Str::ascii(mb_strtolower($item['nombre']));
+                    return str_contains($nombreBusqueda, $idNorm) || str_contains($nombreBusqueda, $nombreNorm) || str_contains($idNorm, $nombreBusqueda);
+                });
 
-                if ($cultivoJson) {
-                    $edadDias = $c->fecha_siembra ? (int)floor($c->fecha_siembra->diffInDays(now())) : 0;
+                if (!$cultivoJson) {
+                    $cultivoJson = [
+                        'id' => \Illuminate\Support\Str::slug($c->detalleCatalogo->nombre),
+                        'nombre' => $c->detalleCatalogo->nombre,
+                        'duracion_dias' => ['min' => 90, 'max' => 150],
+                        'etapas' => [
+                            ['id' => 'desarrollo', 'nombre' => 'Crecimiento y Desarrollo', 'inicio_dia' => 0, 'fin_dia' => 180, 'labores' => [
+                                ['labor_id' => 'riego', 'nombre' => 'Monitoreo Hídrico', 'aplica' => true, 'depende_de_clima' => true, 'variables_climaticas' => ['temperatura', 'precipitacion'], 'accion_si_clima_no_adecuado' => 'ajustar riego'],
+                                ['labor_id' => 'fumigar', 'nombre' => 'Protección Fitosanitaria', 'aplica' => true, 'depende_de_clima' => true, 'variables_climaticas' => ['viento', 'precipitacion'], 'accion_si_clima_no_adecuado' => 'posponer por viento/lluvia']
+                            ]]
+                        ]
+                    ];
+                }
 
-                    $etapaActual = collect($cultivoJson['etapas'])->first(function($etapa) use ($edadDias) {
-                        return $edadDias >= $etapa['inicio_dia'] && $edadDias <= $etapa['fin_dia'];
-                    });
+                $edadDias = $c->fecha_siembra ? (int)floor($c->fecha_siembra->diffInDays(now())) : 0;
+
+                $etapaActual = collect($cultivoJson['etapas'])->first(function($etapa) use ($edadDias) {
+                    return $edadDias >= $etapa['inicio_dia'] && $edadDias <= $etapa['fin_dia'];
+                }) ?: ($cultivoJson['etapas'][0] ?? null);
 
                     if ($etapaActual) {
                         foreach($etapaActual['labores'] as $labor) {
@@ -556,7 +579,6 @@ class ClimaIA extends Component
                             }
                         }
                     }
-                }
 
                 // 4. ESTRATEGIA DE COORDINACIÓN (CEREBRO AGROBOT)
                 // Ejecutar solo si no tenemos un análisis reciente para evitar bucles infinitos en render
@@ -629,10 +651,12 @@ class ClimaIA extends Component
             'json_profile' => $jsonProfile,
             'historial_labores' => $historialLabores,
             'historial_clima' => $historialClima,
-            'crop_name' => "{$crop->detalleCatalogo->nombre} ({$crop->variedad})",
+            'crop_name' => "{$crop->detalleCatalogo->nombre} (" . ($crop->variedad ?: 'Común') . ")",
             'dias_cultivo' => (int)floor($stats['dias_cultivo'] ?? 0),
-            'etapa_nombre' => $stage['nombre'] ?? 'Desconocida',
+            'dias_totales' => (int)floor($stats['dias_totales'] ?? 120),
+            'etapa_nombre' => $stage['nombre'] ?? 'Crecimiento y Desarrollo',
             'weather' => $weather,
+            'stats' => $stats
         ];
 
         $this->aiAnalysis = $agroBot->coordinateStrategicPlan($context);

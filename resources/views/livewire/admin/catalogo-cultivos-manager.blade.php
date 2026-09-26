@@ -23,52 +23,62 @@
         </div>
     </div>
 
-    <!-- TABLA DE CATÁLOGO (DISEÑO PREMIUM) -->
-    <div class="bg-white dark:bg-agri-d_bg rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 dark:border-white/5">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
-                    <th class="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Imagen</th>
-                    <th class="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Nombre Común</th>
-                    <th class="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Nombre Científico</th>
-                    <th class="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Tipo de Ciclo</th>
-                    <th class="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-right">Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-50 dark:divide-white/5">
-                @foreach($cultivos as $cultivo)
-                <tr wire:click="edit({{ $cultivo->id }})" class="hover:bg-agri-green/5 cursor-pointer transition-all group">
-                    <td class="px-8 py-4">
-                        <div class="w-16 h-12 rounded-xl overflow-hidden border-2 border-white dark:border-slate-800 shadow-md">
-                            @if($cultivo->foto_path)
-                                <img src="{{ Storage::url($cultivo->foto_path) }}" class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300">
-                                    <i class="fa-solid fa-leaf text-xl"></i>
-                                </div>
-                            @endif
-                        </div>
-                    </td>
-                    <td class="px-8 py-4">
-                        <p class="text-sm font-black text-slate-800 dark:text-white uppercase italic tracking-tighter">{{ $cultivo->nombre }}</p>
-                    </td>
-                    <td class="px-8 py-4">
-                        <p class="text-xs font-bold text-slate-500 italic">{{ $cultivo->nombre_cientifico ?: 'No registrado' }}</p>
-                    </td>
-                    <td class="px-8 py-4">
-                        <span class="px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-lg text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 italic">
-                            {{ str_replace('_', ' ', $cultivo->tipo_ciclo) }}
-                        </span>
-                    </td>
-                    <td class="px-8 py-4 text-right">
-                        <button class="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 text-slate-400 group-hover:text-agri-green transition-all">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+    <!-- TABLA DE CATÁLOGO (DISEÑO ADMINISTRATIVO) -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-slate-50 dark:border-white/5">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Imagen</th>
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Nombre Común</th>
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Nombre Científico</th>
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Tipo de Ciclo</th>
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 dark:divide-white/5">
+                    @foreach($cultivos as $cultivo)
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors group">
+                        <td class="px-6 py-4">
+                            <div class="w-12 h-10 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-900">
+                                @if($cultivo->foto_path)
+                                    <img src="{{ Storage::url($cultivo->foto_path) }}" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-slate-200">
+                                        <i class="fa-solid fa-leaf text-sm"></i>
+                                    </div>
+                                @endif
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-[11px] font-black text-slate-700 dark:text-white uppercase italic tracking-tighter">{{ $cultivo->nombre }}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-[10px] font-bold text-slate-500 italic">{{ $cultivo->nombre_cientifico ?: '---' }}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            @php
+                                $cycleColor = $cultivo->tipo_cycle === 'perenne' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700';
+                            @endphp
+                            <span class="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest italic {{ $cycleColor }}">
+                                {{ str_replace('_', ' ', $cultivo->tipo_ciclo) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button wire:click="edit({{ $cultivo->id }})" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-500 hover:bg-indigo-600 hover:text-white transition-all">
+                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                </button>
+                                <button onclick="confirm('¿Estás seguro de eliminar este cultivo del catálogo maestro?') || event.stopImmediatePropagation()" wire:click="delete({{ $cultivo->id }})" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-500 hover:bg-rose-600 hover:text-white transition-all">
+                                    <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
     <div class="mt-8">{{ $cultivos->links() }}</div>
 

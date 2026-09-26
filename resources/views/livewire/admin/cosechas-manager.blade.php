@@ -23,15 +23,19 @@
         <div class="relative grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div class="space-y-5">
                 <div>
-                    <span class="px-3 py-1 bg-agri-green/10 text-agri-green text-[8px] font-black uppercase tracking-widest rounded border border-agri-green/20 italic">Análisis de Producción</span>
-                    <h1 class="text-xl md:text-2xl font-black text-slate-800 dark:text-white italic tracking-tighter mt-1.5 leading-tight uppercase">Mis<br><span class="text-agri-green">Cosechas</span></h1>
+                    <span class="px-3 py-1 bg-agri-green/10 text-agri-green text-[8px] font-black uppercase tracking-widest rounded border border-agri-green/20 italic">
+                        {{ auth()->user()->rol_id === 1 ? __('Inteligencia de Ecosistema') : __('Análisis de Producción') }}
+                    </span>
+                    <h1 class="text-xl md:text-2xl font-black text-slate-800 dark:text-white italic tracking-tighter mt-1.5 leading-tight uppercase">
+                        {{ auth()->user()->rol_id === 1 ? __('Producción') : __('Mis') }}<br><span class="text-agri-green">{{ auth()->user()->rol_id === 1 ? __('Global') : __('Cosechas') }}</span>
+                    </h1>
                 </div>
                 <p class="text-slate-400 dark:text-slate-500 text-xs font-medium italic max-w-xs leading-relaxed">
-                    Historial consolidado de rendimiento y balance económico de campañas finalizadas.
+                    {{ auth()->user()->rol_id === 1 ? __('Resumen generalizado de rendimientos biológicos en toda la plataforma.') : __('Historial consolidado de rendimiento y balance económico de campañas finalizadas.') }}
                 </p>
                 <div class="flex flex-wrap gap-3">
                     <div class="bg-slate-50 dark:bg-white/5 px-5 py-2.5 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm">
-                        <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total Campañas</p>
+                        <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{{ auth()->user()->rol_id === 1 ? __('Campañas Totales') : __('Total Campañas') }}</p>
                         <p class="text-lg font-black text-slate-800 dark:text-white italic">{{ $cosechas->total() }}</p>
                     </div>
                     <div class="bg-slate-50 dark:bg-white/5 px-5 py-2.5 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm">

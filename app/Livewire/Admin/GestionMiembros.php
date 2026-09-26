@@ -28,8 +28,13 @@ class GestionMiembros extends Component
     public $searchUserInvite = ''; // Para búsqueda interactiva de invitables
     public $usuariosEncontrados = [];
 
-    public $miRolEnOrg;
+    public $miRolEnOrg = [];
     public $misAsignaciones = [];
+
+    // Modal para Asignar Supervisor a un Agricultor
+    public $assignSupervisorModalOpen = false;
+    public $targetMemberToAssign = null;
+    public $selectedSupervisorId = '';
 
     public function mount($id)
     {
@@ -98,6 +103,58 @@ class GestionMiembros extends Component
         $this->selectedMember = null;
     }
 
+    public function openAssignSupervisorModal($miembroId)
+    {
+        if (!in_array('Administrador', $this->miRolEnOrg)) return;
+
+        $this->targetMemberToAssign = MiembroOrganizacion::with('usuario')->find($miembroId);
+        if (!$this->targetMemberToAssign) return;
+
+        // Verificar si ya tiene supervisor
+        $asignacion = AsignacionSupervisor::where('organizacion_id', $this->orgId)
+            ->where('agricultor_usuario_id', $this->targetMemberToAssign->usuario_id)
+            ->first();
+
+        $this->selectedSupervisorId = $asignacion ? $asignacion->supervisor_miembro_id : '';
+        $this->assignSupervisorModalOpen = true;
+    }
+
+    public function closeAssignSupervisorModal()
+    {
+        $this->assignSupervisorModalOpen = false;
+        $this->targetMemberToAssign = null;
+        $this->selectedSupervisorId = '';
+    }
+
+    public function guardarAsignacionSupervisor()
+    {
+        if (!in_array('Administrador', $this->miRolEnOrg) || !$this->targetMemberToAssign) return;
+
+        $controller = new OrganizacionController();
+
+        // Si se seleccionó vació, desvincular
+        if (empty($this->selectedSupervisorId)) {
+            $asignacion = AsignacionSupervisor::where('organizacion_id', $this->orgId)
+                ->where('agricultor_usuario_id', $this->targetMemberToAssign->usuario_id)
+                ->first();
+
+            if ($asignacion) {
+                $res = $controller->eliminarAsignacionSupervisor($asignacion->id);
+                session()->flash($res['success'] ? 'status' : 'error', $res['mensaje']);
+            }
+        } else {
+            // Eliminar asignación previa si existía
+            AsignacionSupervisor::where('organizacion_id', $this->orgId)
+                ->where('agricultor_usuario_id', $this->targetMemberToAssign->usuario_id)
+                ->delete();
+
+            $res = $controller->asignarAgricultorASupervisor($this->orgId, $this->selectedSupervisorId, $this->targetMemberToAssign->usuario_id);
+            session()->flash($res['success'] ? 'status' : 'error', $res['mensaje']);
+        }
+
+        $this->closeAssignSupervisorModal();
+    }
+
     public function toggleBloqueo($miembroId)
     {
         if (!in_array('Administrador', $this->miRolEnOrg)) return;
@@ -155,9 +212,17 @@ class GestionMiembros extends Component
             });
         }
 
+        // Obtener supervisores activos de la organización para el dropdown
+        $supervisoresOrg = MiembroOrganizacion::where('organizacion_id', $this->orgId)
+            ->where('estado', 1)
+            ->whereHas('roles', fn($q) => $q->where('rol_id', 2)->where('estado', 1))
+            ->with('usuario')
+            ->get();
+
         return view('livewire.admin.gestion-miembros', [
             'miembros' => $query->paginate(10),
-            'rolesCatalogo' => RolesOrganizacion::whereIn('id', [2, 3, 4])->get()
+            'rolesCatalogo' => RolesOrganizacion::whereIn('id', [2, 3, 4])->get(),
+            'supervisoresOrg' => $supervisoresOrg
         ]);
     }
 }

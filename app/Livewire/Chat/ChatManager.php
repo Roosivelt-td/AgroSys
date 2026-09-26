@@ -43,7 +43,11 @@ class ChatManager extends Component
     {
         $this->ensureOrganizationGroups();
 
-        if (request()->has('open')) {
+        if (request()->has('user')) {
+            $this->selectContact(request()->query('user'));
+        } elseif (request()->has('open_user')) {
+            $this->selectContact(request()->query('open_user'));
+        } elseif (request()->has('open')) {
             $this->selectedConversacionId = request()->query('open');
         } elseif (session()->has('open_conversacion')) {
             $this->selectedConversacionId = session('open_conversacion');

@@ -275,16 +275,21 @@ class LaboresManager extends Component
     public function save()
     {
         $rules = [
-            'cultivo_id' => 'required',
-            'catalogo_labor_id' => 'required',
-            'fecha_realizacion' => 'required|date|before_or_equal:today',
-            'costo_total' => 'required|numeric'
+            'cultivo_id' => 'required|exists:cultivos,id',
+            'catalogo_labor_id' => 'required|exists:catalogo_labores,id',
+            'fecha_realizacion' => 'required|date',
+            'costo_mano_obra_total' => 'nullable|numeric|min:0|max:1000000',
+            'costo_maquinaria_total' => 'nullable|numeric|min:0|max:1000000',
+            'costo_insumos_total' => 'nullable|numeric|min:0|max:1000000',
+            'costo_total' => 'required|numeric|min:0|max:10000000',
+            'observaciones' => 'nullable|string|max:1000',
+            'laborPhoto' => 'nullable|image|max:10240',
         ];
 
         if ($this->esCosecha) {
-            $rules['itemsCosecha.*.cantidad'] = 'required|numeric|min:0.01';
-            $rules['itemsCosecha.*.unidad'] = 'required';
-            $rules['itemsCosecha.*.calidad'] = 'required';
+            $rules['itemsCosecha.*.cantidad'] = 'required|numeric|min:0.01|max:1000000';
+            $rules['itemsCosecha.*.unidad'] = 'required|string|max:20';
+            $rules['itemsCosecha.*.calidad'] = 'required|string|max:50';
         }
 
         $this->validate($rules);

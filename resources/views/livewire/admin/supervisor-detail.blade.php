@@ -7,14 +7,14 @@
             </a>
             <div class="flex items-center space-x-5">
                 <div class="w-16 h-16 rounded-full border-4 border-amber-500 p-0.5 shadow-xl relative">
-                    <img src="{{ $supervisor->usuario->foto_perfil_url ?? 'https://ui-avatars.com/api/?name='.urlencode($supervisor->usuario->nombres).'&background=ff8f00&color=fff' }}" class="w-full h-full rounded-full object-cover">
+                    <img src="{{ $supervisor?->usuario?->foto_perfil_url ?? 'https://ui-avatars.com/api/?name='.urlencode($supervisor?->usuario?->nombres ?? 'Supervisor').'&background=ff8f00&color=fff' }}" class="w-full h-full rounded-full object-cover">
                     <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-amber-500 rounded-full border-2 border-white dark:border-agri-d_bg flex items-center justify-center text-white">
                         <i class="fa-solid fa-star text-[7px]"></i>
                     </div>
                 </div>
                 <div>
                     <h2 class="text-3xl font-black text-slate-800 dark:text-white italic tracking-tighter">
-                        {{ $supervisor->usuario_id === auth()->id() ? 'Mi Equipo de Supervisión' : 'Expediente de Supervisión: ' . $supervisor->usuario->nombres }}
+                        {{ $supervisor?->usuario_id === auth()->id() ? 'Mi Equipo de Supervisión' : 'Expediente de Supervisión: ' . ($supervisor?->usuario?->nombres ?? 'Supervisor') }}
                     </h2>
                     <p class="text-[10px] text-amber-600 font-black uppercase tracking-[0.3em] mt-1 italic">Control de Supervisión Asignada</p>
                 </div>

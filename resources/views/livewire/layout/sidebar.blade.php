@@ -52,9 +52,6 @@
                 <x-sidebar-link :href="route('admin.organizaciones')" :active="request()->routeIs('admin.organizaciones*')" icon="fa-solid fa-building-shield">
                     {{ __('Organizaciones') }}
                 </x-sidebar-link>
-                <x-sidebar-link :href="route('admin.catalogo-cultivos')" :active="request()->routeIs('admin.catalogo-cultivos*')" icon="fa-solid fa-book">
-                    {{ __('Catálogo Maestro') }}
-                </x-sidebar-link>
                 <x-sidebar-link :href="route('admin.historial')" :active="request()->routeIs('admin.historial*')" icon="fa-solid fa-clock-rotate-left">
                     {{ __('Historial General') }}
                 </x-sidebar-link>
@@ -98,30 +95,53 @@
         </div>
         @endcan
 
-        <!-- Section: PRODUCCIÓN (Base operativa) -->
+        <!-- Section: ADMINISTRACIÓN OPERATIVA / MI PRODUCCIÓN -->
         <div>
             <div class="px-3 mb-2" x-show="!sidebarCollapsed || mobileOpen" x-transition>
-                <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Mi Producción</span>
+                <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+                    {{ auth()->user()->rol_id === 1 ? __('Administración Ecosistema') : __('Mi Producción') }}
+                </span>
             </div>
             <div class="space-y-0.5">
                 <x-sidebar-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" icon="fa-solid fa-table-cells-large">
-                    {{ __('Dashboard') }}
+                    {{ auth()->user()->rol_id === 1 ? __('Dashboard Global') : __('Dashboard') }}
                 </x-sidebar-link>
-                <x-sidebar-link :href="route('admin.terrenos')" :active="request()->routeIs('admin.terrenos*')" icon="fa-solid fa-map-location-dot">
-                    {{ __('Mis Terrenos') }}
-                </x-sidebar-link>
-                <x-sidebar-link :href="route('admin.cultivos')" :active="request()->routeIs('admin.cultivos*')" icon="fa-solid fa-seedling">
-                    {{ __('Mis Cultivos') }}
-                </x-sidebar-link>
-                <x-sidebar-link :href="route('admin.labores')" :active="request()->routeIs('admin.labores*')" icon="fa-solid fa-screwdriver-wrench">
-                    {{ __('Mis Labores') }}
-                </x-sidebar-link>
-                <x-sidebar-link :href="route('admin.cosechas')" :active="request()->routeIs('admin.cosechas*')" icon="fa-solid fa-wheat-awn">
-                    {{ __('Mis Cosechas') }}
-                </x-sidebar-link>
-                <x-sidebar-link :href="route('admin.ventas')" :active="request()->routeIs('admin.ventas*')" icon="fa-solid fa-hand-holding-dollar">
-                    {{ __('Mis Ventas') }}
-                </x-sidebar-link>
+
+                @if(auth()->user()->rol_id === 1)
+                    <!-- VISTA PARA EL SUPER ADMIN (ADMINISTRACIÓN GLOBAL) -->
+                    <x-sidebar-link :href="route('superadmin.terrenos')" :active="request()->routeIs('superadmin.terrenos*')" icon="fa-solid fa-map-location-dot">
+                        {{ __('Mis Terrenos') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link :href="route('admin.catalogo-cultivos')" :active="request()->routeIs('admin.catalogo-cultivos*')" icon="fa-solid fa-seedling">
+                        {{ __('Mis Cultivos') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link :href="route('admin.catalogo-labores')" :active="request()->routeIs('admin.catalogo-labores*')" icon="fa-solid fa-screwdriver-wrench">
+                        {{ __('Mis Labores') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link :href="route('superadmin.cosechas')" :active="request()->routeIs('superadmin.cosechas*')" icon="fa-solid fa-wheat-awn">
+                        {{ __('Mis Cosechas') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link :href="route('superadmin.ventas')" :active="request()->routeIs('superadmin.ventas*')" icon="fa-solid fa-hand-holding-dollar">
+                        {{ __('Mis Ventas') }}
+                    </x-sidebar-link>
+                @else
+                    <!-- Links de producción para el Agricultor/Supervisor (Vista operativa personal) -->
+                    <x-sidebar-link :href="route('admin.terrenos')" :active="request()->routeIs('admin.terrenos*')" icon="fa-solid fa-map-location-dot">
+                        {{ __('Mis Terrenos') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link :href="route('admin.cultivos')" :active="request()->routeIs('admin.cultivos*')" icon="fa-solid fa-seedling">
+                        {{ __('Mis Cultivos') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link :href="route('admin.labores')" :active="request()->routeIs('admin.labores*')" icon="fa-solid fa-screwdriver-wrench">
+                        {{ __('Mis Labores') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link :href="route('admin.cosechas')" :active="request()->routeIs('admin.cosechas*')" icon="fa-solid fa-wheat-awn">
+                        {{ __('Mis Cosechas') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link :href="route('admin.ventas')" :active="request()->routeIs('admin.ventas*')" icon="fa-solid fa-hand-holding-dollar">
+                        {{ __('Mis Ventas') }}
+                    </x-sidebar-link>
+                @endif
             </div>
         </div>
 

@@ -344,14 +344,17 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
         }
     }, [points.length, drawMode, isInitialized, activeColor]);
 
-    // POSICIONAR MAPA INICIAL
+    // POSICIONAR MAPA INICIAL Y ACTUALIZACIONES DE CENTRO
     useEffect(() => {
         if (!isInitialized) return;
         const targetCenter = center || (points.length > 0 ? points[0] : null);
-        if (targetCenter && mapInstance.current) {
-            setTimeout(() => mapInstance.current?.setView([targetCenter.lat, targetCenter.lng], zoom), 500);
+        if (targetCenter && targetCenter.lat && targetCenter.lng && mapInstance.current) {
+            setTimeout(() => {
+                mapInstance.current?.setView([targetCenter.lat, targetCenter.lng], zoom);
+                mapInstance.current?.invalidateSize();
+            }, 300);
         }
-    }, [isInitialized, !!center, zoom, drawMode]);
+    }, [isInitialized, center?.lat, center?.lng, zoom, drawMode]);
 
     // RENDERIZAR TERRENOS EXISTENTES
     useEffect(() => {
@@ -366,25 +369,46 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
             else if (t.color === 'blue') color = '#3b82f6';
             else if (t.color === 'purple') color = '#a855f7';
 
+            const isSelected = selectedId && t.id == selectedId;
+
+            const popupContent = `
+                <div style="font-family: system-ui, sans-serif; padding: 6px; min-width: 190px;">
+                    <strong style="font-size: 13px; color: #0f172a; display: block; margin-bottom: 4px;">📍 ${t.nombre || 'Terreno'}</strong>
+                    ${t.ubicacion ? `<div style="font-size: 11px; color: #334155; font-weight: 600; margin-bottom: 3px;">${t.ubicacion}</div>` : ''}
+                    ${t.direccion_referencia ? `<div style="font-size: 10px; color: #d97706; font-weight: 700; margin-bottom: 5px; background: #fef3c7; padding: 3px 8px; border-radius: 6px; display: inline-block;">📍 Ref: ${t.direccion_referencia}</div>` : ''}
+                    <div style="font-size: 11px; color: #10b981; font-weight: 800; margin-top: 2px;">Área: ${t.area || 0} HA</div>
+                    ${t.lat && t.lng ? `
+                        <div style="font-size: 10px; margin-top: 6px; border-top: 1px solid #e2e8f0; padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #64748b; font-family: monospace; font-weight: 700;">GPS: ${t.lat}, ${t.lng}</span>
+                            <a href="https://www.google.com/maps/search/?api=1&query=${t.lat},${t.lng}" target="_blank" style="color: #ffffff; background-color: #2563eb; font-weight: 800; text-decoration: none; font-size: 10px; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Google Maps ↗</a>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
             if (t.type === 'marker') {
                 const locationIcon = L.divIcon({
                     className: 'custom-div-icon',
                     html: `<div style="background-color: #a855f7; border: 2px solid white; width: 24px; height: 24px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><div style="width: 8px; height: 8px; background: white; border-radius: 50%; transform: rotate(45deg);"></div></div>`,
                     iconSize: [24, 24], iconAnchor: [12, 24]
                 });
-                L.marker([t.lat, t.lng], { icon: locationIcon }).addTo(markersLayerGroup.current).bindPopup(`<b>${t.label}</b>`);
-            } else if (t.poligono && Array.isArray(t.poligono)) {
+                const m = L.marker([t.lat, t.lng], { icon: locationIcon }).addTo(markersLayerGroup.current);
+                m.bindPopup(popupContent);
+                if (t.label) m.bindTooltip(t.label, { sticky: true, className: 'agro-tooltip' });
+                if (isSelected) m.openPopup();
+            } else if (t.poligono && Array.isArray(t.poligono) && t.poligono.length > 0) {
                 const poly = L.polygon(t.poligono, {
                     color,
-                    fillOpacity: 0.15,
+                    fillOpacity: 0.25,
                     weight: t.es_mio ? 3 : 1,
                     interactive: true
                 }).addTo(markersLayerGroup.current);
 
-                poly.bindTooltip(t.label, {
+                poly.bindTooltip(t.label || t.nombre, {
                     sticky: true,
                     className: 'agro-tooltip'
                 });
+                poly.bindPopup(popupContent);
 
                 // ICONO DE UBICACIÓN EN EL CENTRO DEL TERRENO
                 const centerPos = poly.getBounds().getCenter();
@@ -395,7 +419,21 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
                            </div>`,
                     iconSize: [22, 22], iconAnchor: [11, 22]
                 });
-                L.marker(centerPos, { icon: centerIcon, interactive: false }).addTo(markersLayerGroup.current);
+                const centerMarker = L.marker(centerPos, { icon: centerIcon, interactive: true }).addTo(markersLayerGroup.current);
+                centerMarker.bindPopup(popupContent);
+                if (isSelected) {
+                    poly.openPopup(centerPos);
+                }
+            } else if (t.lat && t.lng) {
+                const locationIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="background-color: white; border: 2px solid ${color}; width: 24px; height: 24px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4);"><div style="width: 8px; height: 8px; background: ${color}; border-radius: 50%; transform: rotate(45deg);"></div></div>`,
+                    iconSize: [24, 24], iconAnchor: [12, 24]
+                });
+                const m = L.marker([t.lat, t.lng], { icon: locationIcon }).addTo(markersLayerGroup.current);
+                m.bindTooltip(t.label || t.nombre, { sticky: true, className: 'agro-tooltip' });
+                m.bindPopup(popupContent);
+                if (isSelected) m.openPopup();
             }
         });
     }, [terrenos, isInitialized, drawMode, editingId]);

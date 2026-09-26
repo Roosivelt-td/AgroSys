@@ -15,16 +15,113 @@ class AgroBotService
 
     public function __construct()
     {
-        /* no quitar estar datos de IA si se nesecita tomar otro dato solo descomentarlo y comentarlo al otro */
-        $this->baseUrl = env('OLLAMA_URL', 'http://host.docker.internal:11434') . '/api/generate';
-        //$this->baseUrl = env('OLLAMA_URL', 'http://localhost:11434') . '/api/generate';
-        // Priorizamos el modelo qwen3:1.7b por 3 de 3
-        //$this->model = env('OLLAMA_MODEL', 'deepseek-r1:8b'); // 5.2GB
-        //$this->model = env('OLLAMA_MODEL', 'mistral:latest'); // 4.4GB
-        //$this->model = env('OLLAMA_MODEL', 'qwen3:4b'); // 2.5GB
-        //$this->model = env('OLLAMA_MODEL', 'phi:latest'); // 1.6GB
-        // $this->model = env('OLLAMA_MODEL', 'qwen3:1.7b'); // 1.4GB
-        //$this->model = env('OLLAMA_MODEL', 'tinylama:latest'); // 637MB
+        $ollamaUrl = env('OLLAMA_URL', 'http://127.0.0.1:11434');
+        $this->baseUrl = rtrim($ollamaUrl, '/') . '/api/generate';
+        $this->model = env('OLLAMA_MODEL', 'qwen3:1.7b');
+    }
+
+    /**
+     * Motor unificado de IA: Intenta Google Gemini API primero y Ollama como fallback
+     */
+    protected function callAI($prompt, $jsonMode = false, $temperature = 0.3, $maxTokens = 800)
+    {
+        $driver = config('services.gemini.driver') ?: env('AI_DRIVER', 'gemini');
+        $geminiKey = config('services.gemini.key') ?: env('GEMINI_API_KEY');
+        $geminiModel = config('services.gemini.model') ?: env('GEMINI_MODEL', 'gemini-3.5-flash');
+        $geminiModelsToTry = array_unique([$geminiModel, 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash']);
+
+        // 1. Intentar con Google Gemini (Modelos en orden de preferencia)
+        if (($driver === 'gemini' || !empty($geminiKey)) && !empty($geminiKey) && strlen($geminiKey) > 10) {
+            foreach ($geminiModelsToTry as $currentGeminiModel) {
+                try {
+                    $url = "https://generativelanguage.googleapis.com/v1beta/models/{$currentGeminiModel}:generateContent?key={$geminiKey}";
+
+                    $generationConfig = [
+                        'temperature' => (float)$temperature,
+                        'maxOutputTokens' => (int)$maxTokens,
+                    ];
+
+                    if ($jsonMode) {
+                        $generationConfig['responseMimeType'] = 'application/json';
+                    }
+
+                    $response = Http::timeout(25)
+                        ->withHeaders(['Content-Type' => 'application/json'])
+                        ->post($url, [
+                            'contents' => [
+                                [
+                                    'parts' => [
+                                        ['text' => $prompt]
+                                    ]
+                                ]
+                            ],
+                            'generationConfig' => $generationConfig
+                        ]);
+
+                    if ($response->successful()) {
+                        $json = $response->json();
+                        $parts = $json['candidates'][0]['content']['parts'] ?? [];
+                        $text = '';
+                        foreach ($parts as $p) {
+                            if (isset($p['text'])) {
+                                $text .= $p['text'];
+                            }
+                        }
+
+                        if (!empty($text)) {
+                            $text = preg_replace('/<think>.*?<\/think>/s', '', trim($text));
+                            $text = preg_replace('/^```(?:json)?\s*|\s*```$/i', '', trim($text));
+                            return trim($text);
+                        }
+                    }
+
+                    Log::warning("Gemini API Error para modelo {$currentGeminiModel} (Status {$response->status()}): " . $response->body() . ". Probando siguiente modelo...");
+                } catch (\Exception $e) {
+                    Log::warning("Gemini API Exception para modelo {$currentGeminiModel}: " . $e->getMessage());
+                }
+            }
+        }
+
+        // 2. Fallback a Ollama (IA Local)
+        $ollamaModel = $this->model ?: env('OLLAMA_MODEL', 'qwen3:1.7b');
+        $urlsToTry = array_unique([
+            $this->baseUrl,
+            'http://127.0.0.1:11434/api/generate',
+            'http://localhost:11434/api/generate'
+        ]);
+
+        foreach ($urlsToTry as $targetUrl) {
+            try {
+                $ollamaPayload = [
+                    'model' => $ollamaModel,
+                    'prompt' => $prompt,
+                    'stream' => false,
+                    'options' => [
+                        'temperature' => (float)$temperature,
+                        'num_predict' => (int)$maxTokens,
+                    ]
+                ];
+
+                if ($jsonMode) {
+                    $ollamaPayload['format'] = 'json';
+                }
+
+                $response = Http::timeout(45)->post($targetUrl, $ollamaPayload);
+
+                if ($response->successful()) {
+                    $text = $response->json()['response'] ?? null;
+                    if (!empty($text)) {
+                        return preg_replace('/<think>.*?<\/think>/s', '', trim($text));
+                    }
+                }
+
+                Log::error("Ollama Error on {$targetUrl} (Status {$response->status()}): " . $response->body());
+            } catch (\Exception $e) {
+                Log::error("Ollama Direct Error on {$targetUrl}: " . $e->getMessage());
+            }
+        }
+
+        return null;
     }
 
     public function getResponse($mensajeUsuario)
@@ -37,31 +134,14 @@ class AgroBotService
             $datosFinca .= $this->ejecutarHerramienta($h, $user);
         }
 
-        try {
-            // Bajamos el timeout a 60s ya que qwen3:1.7b es muy ligero
-            $response = Http::timeout(60)->post($this->baseUrl, [
-                'model' => $this->model,
-                'prompt' => $this->getAgentPrompt($user, $datosFinca, $mensajeUsuario),
-                'stream' => false,
-                'options' => [
-                    'temperature' => 0.3,
-                    'num_predict' => 500, // Respuestas técnicas breves y rápidas
-                    'num_ctx' => 2048,    // Contexto optimizado
-                ]
-            ]);
+        $prompt = $this->getAgentPrompt($user, $datosFinca, $mensajeUsuario);
+        $reply = $this->callAI($prompt, false, 0.3, 500);
 
-            if ($response->successful()) {
-                $text = $response->json()['response'] ?? "Entendido.";
-                return preg_replace('/<think>.*?<\/think>/s', '', $text);
-            }
-
-            Log::error("Ollama Error (Status {$response->status()}): " . $response->body());
-            return "El motor de IA está cargando. Intenta de nuevo en unos segundos.";
-
-        } catch (\Exception $e) {
-            Log::error('Ollama Direct Error: ' . $e->getMessage());
-            return "Error de conexión. Asegúrate de tener Ollama corriendo (`ollama serve`).";
+        if ($reply) {
+            return $reply;
         }
+
+        return "El servicio de IA no respondió. Revisa la configuración de GEMINI_API_KEY o la conexión con Ollama.";
     }
 
     protected function identificarHerramientas($pregunta)
@@ -86,7 +166,8 @@ class AgroBotService
 
     protected function getAgentPrompt($user, $datos, $pregunta)
     {
-        return "Instrucciones: Eres AgroBot, el Asistente Técnico de AgroSys. Ayudas al agricultor {$user->nombres}.
+        $nombre = $user?->nombres ?? 'Agricultor';
+        return "Instrucciones: Eres AgroBot, el Asistente Técnico de AgroSys. Ayudas al agricultor {$nombre}.
 Responde en ESPAÑOL de forma técnica y profesional.
 
 DATOS ACTUALES DE LA FINCA:
@@ -102,96 +183,116 @@ Respuesta de AgroBot:";
     }
 
     /**
-     * Análisis agronómico estricto basado en hechos climáticos reales.
+     * Análisis agronómico basado en hechos climáticos reales.
      */
     public function analyzeWeather($weatherData, $cropData = null)
     {
+        $w = (array)$weatherData;
+        $temp = $w['temperatura'] ?? $w['temp'] ?? 20;
+        $hum = $w['humedad'] ?? 60;
+        $viento = $w['viento_kmh'] ?? $w['viento'] ?? 10;
+        $cond = $w['condicion'] ?? 'Estable';
+
         $prompt = "Actúa como un INGENIERO AGRÓNOMO experto. Analiza estos DATOS REALES capturados por satélite:
-        - Temperatura: {$weatherData['temp']}°C
-        - Humedad: {$weatherData['humedad']}%
-        - Viento: {$weatherData['viento']} km/h
-        - Condición: {$weatherData['condicion']}
-        ";
+- Temperatura: {$temp}°C
+- Humedad: {$hum}%
+- Viento: {$viento} km/h
+- Condición: {$cond}
+";
 
         if ($cropData) {
             $prompt .= "\nImpacto directo en el cultivo: {$cropData['nombre']} ({$cropData['variedad']})";
         }
 
         $prompt .= "\nTAREA: Proporciona 2 recomendaciones TÉCNICAS de manejo de campo inmediatas.
-        REGLAS:
-        1. NO hables del pronóstico futuro.
-        2. Céntrate en lo que el agricultor debe hacer AHORA con este clima.
-        3. Formato JSON: [{\"msg\": \"mensaje técnico\", \"priority\": \"Alta/Media/Baja\", \"color\": \"blue/rose/amber/emerald\", \"type\": \"Categoría\"}]";
+REGLAS:
+1. NO hables del pronóstico futuro.
+2. Céntrate en lo que el agricultor debe hacer AHORA con este clima.
+3. Formato JSON estricto: [{\"msg\": \"mensaje técnico\", \"priority\": \"Alta/Media/Baja\", \"color\": \"blue/rose/amber/emerald\", \"type\": \"Categoría\"}]";
 
-        try {
-            $response = Http::timeout(30)->post($this->baseUrl, [
-                'model' => $this->model,
-                'prompt' => $prompt,
-                'stream' => false,
-                'format' => 'json'
-            ]);
+        $text = $this->callAI($prompt, false, 0.2, 2048);
 
-            if ($response->successful()) {
-                $text = $response->json()['response'] ?? '[]';
-                return json_decode($text, true) ?: [];
+        if ($text) {
+            // Intentar extraer el array JSON si la IA devolvió texto alrededor
+            if (preg_match('/\[.*\]/s', $text, $matches)) {
+                $text = $matches[0];
             }
-        } catch (\Exception $e) {
-            Log::error('Weather AI Analysis Error: ' . $e->getMessage());
+            $data = json_decode($text, true);
+            return is_array($data) ? $data : [];
         }
 
         return [];
     }
 
     /**
-     * Cerebro de Coordinación Estratégica: Cruza JSON + Clima + Historial
+     * Cerebro de Coordinación Estratégica: Cruza JSON + Clima + Historial + Finanzas
      */
     public function coordinateStrategicPlan($context)
     {
-        $prompt = "Actúa como un Cerebro de Inteligencia Agronómica Senior de AgroSys.
-        TAREA: Genera un análisis técnico denso y profesional para coordinar las labores del cultivo.
-
-        FUENTE 1: PROCESO TÉCNICO (JSON):
-        " . json_encode($context['json_profile']) . "
-
-        FUENTE 2: HISTORIAL DE LABORES REALIZADAS (MySQL):
-        " . ($context['historial_labores'] ?: 'Sin registros previos.') . "
-
-        FUENTE 3: HISTORIAL CLIMÁTICO RECIENTE (MySQL):
-        " . ($context['historial_clima'] ?: 'Sin historial climático.') . "
-
-        FUENTE 4: CONTEXTO ACTUAL Y PRONÓSTICO:
-        - Cultivo: {$context['crop_name']}
-        - Edad: {$context['dias_cultivo']} días (Etapa: {$context['etapa_nombre']})
-        - Clima hoy: {$context['weather']['temp']}°C, Viento {$context['weather']['viento']}km/h, Humedad {$context['weather']['humedad']}%
-        - Pronóstico 7 días: " . json_encode($context['weather']['forecast']) . "
-
-        REGLAS DE RAZONAMIENTO:
-        1. Cruza el día actual con las labores del JSON.
-        2. Analiza si lo que 'ya se hizo' (MySQL) afecta lo que 'se debe hacer' hoy.
-        3. Si el clima (actual o historial reciente) o pronóstico prohíbe una labor (viento > 15km/h o lluvia), ordena posponerla.
-        4. Explica el impacto financiero de tus decisiones.
-        5. Sé muy técnico y aprovecha todo el espacio. Párrafos largos e informativos. No uses listas.
-        6. Ve al grano, no saludes.";
-
-        try {
-            $response = Http::timeout(60)->post($this->baseUrl, [
-                'model' => $this->model,
-                'prompt' => $prompt,
-                'stream' => false,
-                'options' => [
-                    'temperature' => 0.1, // Máxima precisión técnica
-                    'num_predict' => 800, // Respuesta densa
-                ]
-            ]);
-
-            if ($response->successful()) {
-                $text = $response->json()['response'] ?? "Analizando telemetría...";
-                return preg_replace('/<think>.*?<\/think>/s', '', $text);
-            }
-        } catch (\Exception $e) {
-            Log::error('Coordination AI Error: ' . $e->getMessage());
+        if (isset($context['weather']) && is_object($context['weather'])) {
+            $context['weather'] = (array)$context['weather'];
         }
 
-        return "El servicio de IA local no respondió. Revisa la conexión con Ollama en {$this->baseUrl}.";
+        $w = $context['weather'] ?? [];
+        $wTemp = $w['temperatura'] ?? $w['temp'] ?? 20;
+        $wHum = $w['humedad'] ?? 60;
+        $wViento = $w['viento_kmh'] ?? $w['viento'] ?? 10;
+        $wCond = $w['condicion'] ?? 'Estable';
+        $wLluvia = $w['prob_lluvia'] ?? 0;
+        $wForecast = $w['forecast'] ?? [];
+
+        $diasCultivo = $context['dias_cultivo'] ?? 0;
+        $diasTotales = $context['dias_totales'] ?? 120;
+        $pctProgreso = $diasTotales > 0 ? round(($diasCultivo / $diasTotales) * 100) : 0;
+        $totalInversion = number_format($context['stats']['total'] ?? 0, 2);
+
+        $prompt = "Actúa como un INGENIERO AGRÓNOMO Y CEREBRO DE INTELIGENCIA ESTRATÉGICA DE AGROSYS.
+Analiza con máxima precisión técnica el estado del cultivo seleccionado:
+
+1. FICHA TÉCNICA DEL CULTIVO:
+- Cultivo: {$context['crop_name']}
+- Progreso Biológico: Día {$diasCultivo} de {$diasTotales} (Progreso: {$pctProgreso}%) | Etapa: {$context['etapa_nombre']}
+- Inversión Acumulada: S/ {$totalInversion}
+
+2. PERFIL TÉCNICO Y LABORES REQUERIDAS (JSON MODELO):
+" . json_encode($context['json_profile'] ?? [], JSON_UNESCAPED_UNICODE) . "
+
+3. CLIMA Y TELEMETRÍA EN TIEMPO REAL:
+- Temperatura: {$wTemp}°C | Humedad: {$wHum}% | Viento: {$wViento} km/h
+- Condición: {$wCond} | Lluvia: {$wLluvia}%
+- Pronóstico 7 días: " . json_encode($wForecast, JSON_UNESCAPED_UNICODE) . "
+
+4. HISTORIAL OPERATIVO (REGISTROS MYSQL):
+- Labores Ejecutadas: " . ($context['historial_labores'] ?: 'Sin labores previas registradas.') . "
+- Historial Clima Reciente: " . ($context['historial_clima'] ?: 'Sin registros anteriores.') . "
+
+INSTRUCCIONES DE FORMATO OBLIGATORIO:
+Organiza la respuesta estrictamente en LISTAS CON VIÑETAS (-) muy cortas, resumidas y directas al grano.
+
+### ✅ LO QUE SE DEBE HACER HOY
+- **[Labor/Acción 1]:** [Explicación de máximo 1 o 2 líneas].
+- **[Labor/Acción 2]:** [Explicación de máximo 1 o 2 líneas].
+
+### 🚫 LO QUE NO SE DEBE HACER
+- **[Prohibición/Riesgo 1]:** [Motivo técnico o restricción climática breve].
+- **[Prohibición/Riesgo 2]:** [Motivo técnico o restricción climática breve].
+
+### 📊 PROYECCIÓN Y FINANZAS
+- **Estado del Ciclo:** Día {$diasCultivo} de {$diasTotales} ({$pctProgreso}%) - Etapa: {$context['etapa_nombre']}.
+- **Eficiencia de Inversión:** Invertido S/ {$totalInversion}. [Sugerencia ejecutiva de 1 línea para optimizar gastos].
+
+REGLAS ESTRICTAS:
+- TODO debe presentarse en VIÑETAS (-).
+- NO escribas párrafos largos ni bloques de texto denso.
+- Máximo 2 a 3 viñetas por sección, sumamente resumidas.
+- Sin saludos, introducciones ni explicaciones de relleno.";
+
+        $reply = $this->callAI($prompt, false, 0.2, 2048);
+
+        if ($reply) {
+            return $reply;
+        }
+
+        return "El servicio de IA (Gemini / Ollama) no respondió. Revisa la configuración de tu GEMINI_API_KEY en el archivo .env.";
     }
 }
