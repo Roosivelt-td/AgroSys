@@ -9,6 +9,15 @@
         <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="absolute -bottom-10 -left-10 w-24 h-24 bg-black/5 rounded-full blur-xl pointer-events-none"></div>
 
+        <!-- Botón 'X' para cerrar el menú móvil en celular -->
+        <button @click="mobileOpen = false"
+                x-show="mobileOpen"
+                x-cloak
+                class="md:hidden absolute top-3 right-3 z-30 w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 text-white flex items-center justify-center transition-colors focus:outline-none shadow-md"
+                title="Cerrar Menú">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
         <div class="flex items-center w-full h-full relative z-10 overflow-hidden">
             <!-- Logo Expandido -->
             <div x-show="!sidebarCollapsed || mobileOpen"

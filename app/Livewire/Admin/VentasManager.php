@@ -121,6 +121,32 @@ class VentasManager extends Component
         $this->fecha_venta = date('Y-m-d');
     }
 
+    public function updatedCultivoSeleccionadoId($id)
+    {
+        if (!$id) {
+            $this->clearCultivoSelection();
+            return;
+        }
+
+        $crop = \App\Models\Cultivo::with('detalleCatalogo')->find($id);
+        if ($crop) {
+            $label = strtoupper($crop->detalleCatalogo->nombre ?? 'CULTIVO') . " " . strtoupper($crop->variedad ?: 'GENERICA');
+            $this->selectCultivo($id, $label);
+        }
+    }
+
+    public function updatedCosechaId($id)
+    {
+        if (!$id) return;
+
+        $cosecha = Cosecha::with('ventas')->find($id);
+        if ($cosecha) {
+            $stock = $cosecha->cantidad_kg - $cosecha->ventas->sum('cantidad_vendida_kg');
+            $label = "CALIDAD: " . strtoupper($cosecha->calidad) . " - " . $cosecha->fecha_cosecha->format('d/m/Y');
+            $this->selectCosecha($id, $label, $stock, $cosecha->unidad_medida);
+        }
+    }
+
     public function selectCultivo($id, $label)
     {
         $this->cultivoSeleccionadoId = $id;
@@ -213,27 +239,61 @@ class VentasManager extends Component
 
     public function saveQuickComprador()
     {
+        $nombreClean = strtoupper(trim($this->newCompNombre));
+        $dirClean = strtoupper(trim($this->newCompDir));
+        $rucDniClean = trim($this->newCompRucDni);
+
         $this->validate([
             'newCompNombre' => 'required|string|min:3|max:150',
             'newCompRucDni' => 'nullable|string|max:20',
             'newCompTelf' => 'nullable|string|max:20',
             'newCompEmail' => 'nullable|email|max:150',
             'newCompDir' => 'nullable|string|max:255',
+        ], [
+            'newCompNombre.required' => 'El nombre o razón social del comprador es obligatorio.',
+            'newCompNombre.min' => 'El nombre debe tener al menos 3 caracteres.',
         ]);
 
+        // Comprobar si ya existe un comprador idéntico (Mismo Nombre Y misma Dirección o RUC/DNI)
+        $queryDuplicate = \App\Models\Comprador::where('nombre', $nombreClean);
+
+        if ($dirClean !== '') {
+            $queryDuplicate->where('direccion', $dirClean);
+        }
+        if ($rucDniClean !== '') {
+            $queryDuplicate->where('ruc_dni', $rucDniClean);
+        }
+
+        $existingSame = $queryDuplicate->first();
+
+        if ($existingSame) {
+            $this->addError('newCompNombre', "Ya existe un comprador registrado con el nombre '{$nombreClean}' y la misma ubicación/documento.");
+            return;
+        }
+
+        // Si sólo coincide el nombre sin dirección ni RUC diferente especificados
+        if ($dirClean === '' && $rucDniClean === '') {
+            $existingName = \App\Models\Comprador::where('nombre', $nombreClean)->exists();
+            if ($existingName) {
+                $this->addError('newCompNombre', "Ya existe un comprador con el nombre '{$nombreClean}'. Ingrese una dirección/ubicación o RUC/DNI para diferenciarlo.");
+                return;
+            }
+        }
+
         $comprador = \App\Models\Comprador::create([
-            'nombre' => strtoupper($this->newCompNombre),
-            'ruc_dni' => $this->newCompRucDni,
-            'telefono' => $this->newCompTelf,
-            'email' => $this->newCompEmail,
-            'direccion' => $this->newCompDir,
+            'nombre' => $nombreClean,
+            'ruc_dni' => $rucDniClean ?: null,
+            'telefono' => $this->newCompTelf ?: null,
+            'email' => $this->newCompEmail ?: null,
+            'direccion' => $dirClean ?: null,
         ]);
 
         $this->comprador_id = $comprador->id;
         $this->compradorSeleccionadoNombre = $comprador->nombre;
+        $this->queryComprador = '';
 
         $this->dispatch('close-modal', 'modal-add-comprador');
-        session()->flash('status', 'Comprador registrado y seleccionado.');
+        session()->flash('status', "Cliente '{$comprador->nombre}' registrado y seleccionado.");
     }
 
     public function save()
@@ -663,6 +723,23 @@ class VentasManager extends Component
         $this->dispatch('open-modal', 'modal-venta-report');
     }
 
+    public function quickSellCosecha($cosechaId)
+    {
+        $this->resetForm();
+        $cosecha = Cosecha::with(['labor.cultivo.detalleCatalogo', 'labor.cultivo.terreno', 'ventas'])->find($cosechaId);
+        if (!$cosecha) return;
+
+        $crop = $cosecha->labor->cultivo;
+        $labelCultivo = strtoupper($crop->detalleCatalogo->nombre) . " " . strtoupper($crop->variedad ?: 'GENERICA');
+        $labelCosecha = "CALIDAD: " . strtoupper($cosecha->calidad) . " - " . $cosecha->fecha_cosecha->format('d/m/Y');
+        $stockDisponible = $cosecha->cantidad_kg - $cosecha->ventas->sum('cantidad_vendida_kg');
+
+        $this->selectCultivo($crop->id, $labelCultivo);
+        $this->selectCosecha($cosecha->id, $labelCosecha, $stockDisponible, $cosecha->unidad_medida);
+
+        $this->dispatch('open-modal', 'modal-venta-manager');
+    }
+
     public function render()
     {
         $user = Auth::user();
@@ -769,8 +846,21 @@ class VentasManager extends Component
                 ->take(5)->get();
         }
 
+        // Cosechas / Lotes Cosechados disponibles para venta
+        $cosechasDisponibles = Cosecha::with(['labor.cultivo.detalleCatalogo', 'labor.cultivo.terreno', 'ventas'])
+            ->whereHas('labor.cultivo.terreno', $orgFilter)
+            ->get()
+            ->filter(function($c) {
+                $vendido = $c->ventas->sum('cantidad_vendida_kg');
+                return ($c->cantidad_kg - $vendido) > 0.01;
+            })->map(function($c) {
+                $c->stock_disponible = $c->cantidad_kg - $c->ventas->sum('cantidad_vendida_kg');
+                return $c;
+            })->values();
+
         return view('livewire.admin.ventas-manager', [
             'ventas' => $ventas,
+            'cosechasDisponibles' => $cosechasDisponibles,
             'resultsCultivos' => $resultsCultivos,
             'resultsCosechas' => $resultsCosechas,
             'resultsCompradores' => $resultsCompradores,

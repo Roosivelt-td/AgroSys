@@ -1,0 +1,4467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Estaciones Agrometeo | Agricolus</title>
+
+  <!-- =====================================================
+       TAILWIND
+  ====================================================== -->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+
+          colors: {
+            agricolus: {
+              50:  '#f4f8f2',
+              100: '#e5f0e1',
+              200: '#cce1c5',
+              300: '#abd09f',
+              400: '#83bb74',
+              500: '#5da44d',
+              600: '#478d3c',
+              700: '#397331',
+              800: '#2d5c29',
+              900: '#244b21'
+            }
+          },
+
+          boxShadow: {
+            soft: '0 25px 70px rgba(34,70,31,.14)',
+            card: '0 18px 50px rgba(34,70,31,.10)'
+          },
+
+          borderRadius: {
+            '4xl': '2rem'
+          }
+
+        }
+      }
+    }
+  </script>
+
+
+  <!-- =====================================================
+       ALPINE.JS
+  ====================================================== -->
+
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
+  </script>
+
+
+  <!-- =====================================================
+       ESTILOS
+  ====================================================== -->
+
+  <style>
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+      color: #272b27;
+    }
+
+    .container-main {
+      width: min(
+        1180px,
+        calc(100% - 40px)
+      );
+
+      margin: auto;
+    }
+
+
+    /* HERO */
+
+    .hero-overlay {
+      background:
+        linear-gradient(
+          90deg,
+          rgba(29,61,27,.96) 0%,
+          rgba(29,61,27,.82) 42%,
+          rgba(29,61,27,.22) 100%
+        );
+    }
+
+
+    /* TITULOS */
+
+    .section-line {
+      position: relative;
+    }
+
+    .section-line::after {
+      content: "";
+
+      position: absolute;
+
+      width: 55px;
+      height: 3px;
+
+      left: 0;
+      bottom: -16px;
+
+      background:
+        #5da44d;
+    }
+
+
+    /* CARDS */
+
+    .feature-card {
+      transition:
+        transform .35s ease,
+        box-shadow .35s ease;
+    }
+
+    .feature-card:hover {
+      transform:
+        translateY(-8px);
+
+      box-shadow:
+        0 20px 55px
+        rgba(34,70,31,.13);
+    }
+
+
+    /* SENSOR */
+
+    .sensor-pulse {
+      animation:
+        pulseSensor 2.5s
+        infinite;
+    }
+
+    @keyframes pulseSensor {
+
+      0% {
+        box-shadow:
+          0 0 0 0
+          rgba(93,164,77,.35);
+      }
+
+      70% {
+        box-shadow:
+          0 0 0 20px
+          rgba(93,164,77,0);
+      }
+
+      100% {
+        box-shadow:
+          0 0 0 0
+          rgba(93,164,77,0);
+      }
+
+    }
+
+
+    /* WEATHER CHART */
+
+    .weather-line {
+      stroke-dasharray: 500;
+      stroke-dashoffset: 500;
+
+      animation:
+        drawLine 2s
+        ease forwards;
+    }
+
+    @keyframes drawLine {
+
+      to {
+        stroke-dashoffset: 0;
+      }
+
+    }
+
+
+    /* MOBILE */
+
+    @media(max-width:768px) {
+
+      .hero-overlay {
+        background:
+          rgba(29,61,27,.84);
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body
+  class="bg-white"
+  x-data
+>
+
+
+<!-- =====================================================
+     HEADER
+====================================================== -->
+
+<header
+    x-data="{ open: false, solutionsOpen: false, quienesOpen: false }"
+    class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm"
+>
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+        <div class="h-[82px] flex items-center justify-between">
+            <!-- LOGO -->
+            <a href="../index.html" class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-full bg-agricolus flex items-center justify-center">
+                    <span class="text-white text-xl font-black">A</span>
+                </div>
+                <span class="text-2xl font-bold tracking-tight text-darkgreen">AGRICOLUS</span>
+            </a>
+
+            <!-- DESKTOP NAV -->
+            <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-darkgreen">
+                <!-- SOLUCIONES DROPDOWN -->
+                <div class="relative" @click.outside="solutionsOpen = false">
+                    <button
+                        @click="solutionsOpen = !solutionsOpen; quienesOpen = false"
+                        class="flex items-center gap-1 hover:text-agricolus transition py-2"
+                    >
+                        Soluciones
+                        <svg class="w-4 h-4 transition-transform" :class="solutionsOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div
+                        x-show="solutionsOpen"
+                        x-transition
+                        style="display: none;"
+                        class="absolute top-full left-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 px-2 z-50"
+                    >
+                        <a href="todasSoluciones.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Todas las soluciones</a>
+                        <a href="gestionAgronomica.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Gestión agronómica</a>
+                        <a href="monitoreoSatelital.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Monitoreo satelital</a>
+                        <a href="estacionesAgrometeo.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Estaciones agrometeo</a>
+                        <a href="defensaCultivos.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Defensa de cultivos</a>
+                        <a href="exploracionCultivos.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Exploración de cultivos</a>
+                        <a href="controlCadenaAgroalimentaria.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Control cadena agroalimentaria</a>
+                    </div>
+                </div>
+
+                <!-- QUIENES SOMOS DROPDOWN -->
+                <div class="relative" @click.outside="quienesOpen = false">
+                    <button
+                        @click="quienesOpen = !quienesOpen; solutionsOpen = false"
+                        class="flex items-center gap-1 hover:text-agricolus transition py-2"
+                    >
+                        Quiénes somos
+                        <svg class="w-4 h-4 transition-transform" :class="quienesOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div
+                        x-show="quienesOpen"
+                        x-transition
+                        style="display: none;"
+                        class="absolute top-full left-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 px-2 z-50"
+                    >
+                        <a href="../quieneSomos/empresa.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Empresa</a>
+                        <a href="../quieneSomos/investigacionIndustrial.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Investigación industrial</a>
+                        <a href="../quieneSomos/nuestraRed.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Nuestra red</a>
+                        <a href="../quieneSomos/tecnologia.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Tecnología</a>
+                    </div>
+                </div>
+
+                <a href="../academy.html" class="hover:text-agricolus transition">Academy</a>
+                <a href="../sostenibilidad.html" class="hover:text-agricolus transition">Sostenibilidad</a>
+                <a href="../contacto.html" class="hover:text-agricolus transition">Contacto</a>
+            </nav>
+
+            <!-- DESKTOP CTA -->
+            <div class="hidden lg:flex items-center gap-5">
+                <button class="text-sm font-semibold text-darkgreen">ES</button>
+                <a
+                    href="../contacto.html"
+                    class="bg-agricolus hover:bg-agricolusDark text-white px-6 py-3 rounded-full font-semibold transition shadow-sm"
+                >
+                    Reserva una demo
+                </a>
+            </div>
+
+            <!-- MOBILE BUTTON -->
+            <button
+                @click="open = !open"
+                class="lg:hidden text-darkgreen p-2"
+                aria-label="Menu"
+            >
+                <svg x-show="!open" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <svg x-show="open" style="display: none;" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- MOBILE MENU -->
+        <div
+            x-show="open"
+            x-transition
+            style="display: none;"
+            class="lg:hidden py-5 border-t border-gray-100 max-h-[80vh] overflow-y-auto"
+        >
+            <nav class="flex flex-col gap-3 text-darkgreen font-medium">
+                <!-- Mobile Soluciones Accordion -->
+                <div x-data="{ subSol: false }">
+                    <button @click="subSol = !subSol" class="flex items-center justify-between w-full py-2 hover:text-agricolus">
+                        <span>Soluciones</span>
+                        <svg class="w-4 h-4 transition-transform" :class="subSol ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="subSol" style="display: none;" class="pl-4 flex flex-col gap-2 py-2 text-sm text-gray-600">
+                        <a href="todasSoluciones.html" class="py-1 hover:text-agricolus">Todas las soluciones</a>
+                        <a href="gestionAgronomica.html" class="py-1 hover:text-agricolus">Gestión agronómica</a>
+                        <a href="monitoreoSatelital.html" class="py-1 hover:text-agricolus">Monitoreo satelital</a>
+                        <a href="estacionesAgrometeo.html" class="py-1 hover:text-agricolus">Estaciones agrometeo</a>
+                        <a href="defensaCultivos.html" class="py-1 hover:text-agricolus">Defensa de cultivos</a>
+                        <a href="exploracionCultivos.html" class="py-1 hover:text-agricolus">Exploración de cultivos</a>
+                        <a href="controlCadenaAgroalimentaria.html" class="py-1 hover:text-agricolus">Control cadena agroalimentaria</a>
+                    </div>
+                </div>
+
+                <!-- Mobile Quienes Somos Accordion -->
+                <div x-data="{ subQs: false }">
+                    <button @click="subQs = !subQs" class="flex items-center justify-between w-full py-2 hover:text-agricolus">
+                        <span>Quiénes somos</span>
+                        <svg class="w-4 h-4 transition-transform" :class="subQs ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="subQs" style="display: none;" class="pl-4 flex flex-col gap-2 py-2 text-sm text-gray-600">
+                        <a href="../quieneSomos/empresa.html" class="py-1 hover:text-agricolus">Empresa</a>
+                        <a href="../quieneSomos/investigacionIndustrial.html" class="py-1 hover:text-agricolus">Investigación industrial</a>
+                        <a href="../quieneSomos/nuestraRed.html" class="py-1 hover:text-agricolus">Nuestra red</a>
+                        <a href="../quieneSomos/tecnologia.html" class="py-1 hover:text-agricolus">Tecnología</a>
+                    </div>
+                </div>
+
+                <a href="../academy.html" class="py-2 hover:text-agricolus">Academy</a>
+                <a href="../sostenibilidad.html" class="py-2 hover:text-agricolus">Sostenibilidad</a>
+                <a href="../contacto.html" class="py-2 hover:text-agricolus">Contacto</a>
+
+                <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
+                    <span class="text-sm font-semibold">ES</span>
+                    <a
+                        href="../contacto.html"
+                        class="bg-agricolus hover:bg-agricolusDark text-white px-6 py-2.5 rounded-full font-semibold text-center transition"
+                    >
+                        Reserva una demo
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+
+<!-- =====================================================
+     HERO
+====================================================== -->
+
+<section
+  class="
+    relative
+    min-h-[720px]
+    flex
+    items-center
+    overflow-hidden
+  "
+
+  style="
+    background-image:
+      url('https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=2200&q=90');
+
+    background-size:cover;
+    background-position:center;
+  "
+>
+
+  <div
+    class="
+      absolute
+      inset-0
+      hero-overlay
+    "
+  ></div>
+
+
+  <div
+    class="
+      container-main
+      relative
+      z-10
+      pt-24
+    "
+  >
+
+    <div
+      class="
+        grid
+        lg:grid-cols-2
+        gap-16
+        items-center
+      "
+    >
+
+
+      <!-- TEXTO -->
+
+      <div
+        class="text-white"
+      >
+
+        <div
+          class="
+            uppercase
+            tracking-[4px]
+            text-agricolus-300
+            text-sm
+            font-bold
+          "
+        >
+          Sensores y tecnología
+        </div>
+
+
+        <h1
+          class="
+            mt-7
+            text-5xl
+            md:text-6xl
+            lg:text-[64px]
+            font-bold
+            leading-[1.04]
+          "
+        >
+
+          Estaciones
+          <span
+            class="text-agricolus-300"
+          >
+            agrometeo
+          </span>
+
+        </h1>
+
+
+        <p
+          class="
+            mt-8
+            text-lg
+            md:text-xl
+            text-white/90
+            leading-relaxed
+            max-w-xl
+          "
+        >
+
+          Datos meteorológicos precisos
+          directamente desde el campo para
+          conocer las condiciones de tus cultivos
+          y apoyar tus decisiones agronómicas.
+
+        </p>
+
+
+        <div
+          class="
+            mt-8
+            flex
+            flex-wrap
+            gap-4
+          "
+        >
+
+          <a
+            href="#estaciones"
+
+            class="
+              bg-agricolus-500
+              hover:bg-agricolus-400
+              px-7
+              py-4
+              rounded-full
+              font-bold
+              transition
+            "
+          >
+            Descubrir las estaciones
+          </a>
+
+
+          <a
+            href="#contacto"
+
+            class="
+              border
+              border-white/60
+              hover:bg-white
+              hover:text-agricolus-800
+              px-7
+              py-4
+              rounded-full
+              font-bold
+              transition
+            "
+          >
+            Solicitar información
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <!-- VISUAL HERO -->
+
+      <div
+        class="
+          hidden
+          md:block
+          relative
+        "
+      >
+
+        <div
+          class="
+            bg-white
+            rounded-[35px]
+            p-3
+            shadow-soft
+            rotate-2
+          "
+        >
+
+          <div
+            class="
+              rounded-[27px]
+              overflow-hidden
+              relative
+            "
+          >
+
+            <img
+              src="https://images.unsplash.com/photo-1586771107445-d3ca888129ce?auto=format&fit=crop&w=1300&q=85"
+
+              class="
+                w-full
+                h-[470px]
+                object-cover
+              "
+
+              alt="Estación meteorológica agrícola"
+            >
+
+
+            <!-- SENSOR MARKER -->
+
+            <div
+              class="
+                absolute
+                left-[48%]
+                top-[34%]
+                w-14
+                h-14
+                rounded-full
+                bg-agricolus-500
+                border-4
+                border-white
+                shadow-xl
+                sensor-pulse
+                flex
+                items-center
+                justify-center
+                text-xl
+              "
+            >
+              ☁
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- FLOATING DATA CARD -->
+
+        <div
+          class="
+            absolute
+            -left-10
+            bottom-10
+            bg-white
+            rounded-2xl
+            shadow-xl
+            p-6
+            w-[250px]
+          "
+        >
+
+          <div
+            class="
+              flex
+              items-center
+              justify-between
+            "
+          >
+
+            <span
+              class="
+                text-gray-500
+                text-sm
+              "
+            >
+              Estación activa
+            </span>
+
+            <span
+              class="
+                w-3
+                h-3
+                bg-green-500
+                rounded-full
+              "
+            ></span>
+
+          </div>
+
+
+          <div
+            class="
+              text-3xl
+              font-bold
+              text-agricolus-700
+              mt-3
+            "
+          >
+            18.6 °C
+          </div>
+
+
+          <div
+            class="
+              grid
+              grid-cols-2
+              gap-3
+              mt-4
+              text-xs
+            "
+          >
+
+            <div>
+              <span class="text-gray-400">
+                Humedad
+              </span>
+
+              <strong
+                class="
+                  block
+                  mt-1
+                "
+              >
+                72%
+              </strong>
+            </div>
+
+
+            <div>
+              <span class="text-gray-400">
+                Lluvia
+              </span>
+
+              <strong
+                class="
+                  block
+                  mt-1
+                "
+              >
+                2.4 mm
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     INTRO
+====================================================== -->
+
+<section
+  id="estaciones"
+  class="
+    py-24
+  "
+>
+
+  <div class="container-main">
+
+    <div
+      class="
+        grid
+        lg:grid-cols-2
+        gap-16
+        items-center
+      "
+    >
+
+
+      <!-- IMAGE -->
+
+      <div>
+
+        <div
+          class="
+            rounded-[35px]
+            overflow-hidden
+            shadow-soft
+          "
+        >
+
+          <img
+            src="https://images.unsplash.com/photo-1563514227147-6d2ff665a6a7?auto=format&fit=crop&w=1400&q=85"
+
+            class="
+              w-full
+              h-[520px]
+              object-cover
+            "
+
+            alt="Estación agrometeorológica"
+          >
+
+        </div>
+
+      </div>
+
+
+      <!-- TEXT -->
+
+      <div>
+
+        <p
+          class="
+            uppercase
+            tracking-[3px]
+            text-agricolus-600
+            text-sm
+            font-bold
+          "
+        >
+          Estaciones meteorológicas
+        </p>
+
+
+        <h2
+          class="
+            section-line
+            mt-5
+            text-4xl
+            md:text-5xl
+            font-bold
+            leading-tight
+          "
+        >
+
+          Conoce el microclima
+          de tus cultivos
+
+        </h2>
+
+
+        <p
+          class="
+            mt-8
+            text-gray-600
+            text-lg
+            leading-relaxed
+          "
+        >
+
+          Las estaciones agrometeorológicas
+          recogen datos directamente en campo
+          para ofrecer una visión precisa de las
+          condiciones que afectan al desarrollo
+          de los cultivos.
+
+        </p>
+
+
+        <p
+          class="
+            mt-5
+            text-gray-600
+            leading-relaxed
+          "
+        >
+
+          Agricolus permite integrar estaciones
+          físicas y virtuales dentro de la plataforma,
+          centralizando la información meteorológica
+          y poniéndola a disposición de los modelos
+          de predicción.
+
+        </p>
+
+
+        <div
+          class="
+            mt-9
+            flex
+            items-center
+            gap-4
+          "
+        >
+
+          <div
+            class="
+              w-12
+              h-12
+              rounded-full
+              bg-agricolus-100
+              flex
+              items-center
+              justify-center
+              text-xl
+            "
+          >
+            🌦️
+          </div>
+
+
+          <div>
+
+            <div
+              class="font-bold"
+            >
+              Datos directamente del campo
+            </div>
+
+            <div
+              class="
+                text-gray-500
+                text-sm
+                mt-1
+              "
+            >
+              Información meteorológica
+              disponible en la plataforma.
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     PARAMETERS
+====================================================== -->
+
+<section
+  class="
+    bg-agricolus-50
+    py-24
+  "
+>
+
+  <div class="container-main">
+
+    <div
+      class="
+        max-w-3xl
+      "
+    >
+
+      <p
+        class="
+          uppercase
+          tracking-[3px]
+          text-agricolus-600
+          text-sm
+          font-bold
+        "
+      >
+        Datos meteorológicos
+      </p>
+
+
+      <h2
+        class="
+          section-line
+          mt-5
+          text-4xl
+          md:text-5xl
+          font-bold
+        "
+      >
+
+        Todos los parámetros
+        que necesitas
+
+      </h2>
+
+    </div>
+
+
+    <div
+      class="
+        grid
+        sm:grid-cols-2
+        lg:grid-cols-3
+        gap-6
+        mt-16
+      "
+    >
+
+
+      <!-- TEMPERATURE -->
+
+      <div
+        class="
+          feature-card
+          bg-white
+          rounded-[30px]
+          p-8
+        "
+      >
+
+        <div
+          class="
+            w-16
+            h-16
+            rounded-2xl
+            bg-red-50
+            flex
+            items-center
+            justify-center
+            text-3xl
+          "
+        >
+          🌡️
+        </div>
+
+
+        <h3
+          class="
+            text-2xl
+            font-bold
+            mt-7
+          "
+        >
+          Temperatura
+        </h3>
+
+
+        <p
+          class="
+            mt-4
+            text-gray-600
+            leading-relaxed
+          "
+        >
+          Consulta la temperatura del entorno
+          para conocer las condiciones térmicas
+          del cultivo.
+        </p>
+
+
+        <div
+          class="
+            mt-6
+            text-agricolus-600
+            font-bold
+          "
+        >
+          Datos en tiempo real →
+        </div>
+
+      </div>
+
+
+      <!-- HUMIDITY -->
+
+      <div
+        class="
+          feature-card
+          bg-white
+          rounded-[30px]
+          p-8
+        "
+      >
+
+        <div
+          class="
+            w-16
+            h-16
+            rounded-2xl
+            bg-blue-50
+            flex
+            items-center
+            justify-center
+            text-3xl
+          "
+        >
+          💧
+        </div>
+
+
+        <h3
+          class="
+            text-2xl
+            font-bold
+            mt-7
+          "
+        >
+          Humedad
+        </h3>
+
+
+        <p
+          class="
+            mt-4
+            text-gray-600
+            leading-relaxed
+          "
+        >
+          Monitoriza la humedad del aire y otros
+          parámetros relacionados con las
+          condiciones ambientales.
+        </p>
+
+
+        <div
+          class="
+            mt-6
+            text-agricolus-600
+            font-bold
+          "
+        >
+          Monitorización →
+        </div>
+
+      </div>
+
+
+      <!-- RAIN -->
+
+      <div
+        class="
+          feature-card
+          bg-white
+          rounded-[30px]
+          p-8
+        "
+      >
+
+        <div
+          class="
+            w-16
+            h-16
+            rounded-2xl
+            bg-cyan-50
+            flex
+            items-center
+            justify-center
+            text-3xl
+          "
+        >
+          🌧️
+        </div>
+
+
+        <h3
+          class="
+            text-2xl
+            font-bold
+            mt-7
+          "
+        >
+          Precipitaciones
+        </h3>
+
+
+        <p
+          class="
+            mt-4
+            text-gray-600
+            leading-relaxed
+          "
+        >
+          Registra las precipitaciones y utiliza
+          estos datos para comprender mejor
+          las condiciones del campo.
+        </p>
+
+
+        <div
+          class="
+            mt-6
+            text-agricolus-600
+            font-bold
+          "
+        >
+          Pluviometría →
+        </div>
+
+      </div>
+
+
+      <!-- WIND -->
+
+      <div
+        class="
+          feature-card
+          bg-white
+          rounded-[30px]
+          p-8
+        "
+      >
+
+        <div
+          class="
+            w-16
+            h-16
+            rounded-2xl
+            bg-sky-50
+            flex
+            items-center
+            justify-center
+            text-3xl
+          "
+        >
+          💨
+        </div>
+
+
+        <h3
+          class="
+            text-2xl
+            font-bold
+            mt-7
+          "
+        >
+          Viento
+        </h3>
+
+
+        <p
+          class="
+            mt-4
+            text-gray-600
+            leading-relaxed
+          "
+        >
+          Conoce la velocidad y dirección del
+          viento para interpretar mejor las
+          condiciones meteorológicas.
+        </p>
+
+
+        <div
+          class="
+            mt-6
+            text-agricolus-600
+            font-bold
+          "
+        >
+          Datos del viento →
+        </div>
+
+      </div>
+
+
+      <!-- LEAF WETNESS -->
+
+      <div
+        class="
+          feature-card
+          bg-white
+          rounded-[30px]
+          p-8
+        "
+      >
+
+        <div
+          class="
+            w-16
+            h-16
+            rounded-2xl
+            bg-green-50
+            flex
+            items-center
+            justify-center
+            text-3xl
+          "
+        >
+          🍃
+        </div>
+
+
+        <h3
+          class="
+            text-2xl
+            font-bold
+            mt-7
+          "
+        >
+          Humedad foliar
+        </h3>
+
+
+        <p
+          class="
+            mt-4
+            text-gray-600
+            leading-relaxed
+          "
+        >
+          Utiliza sensores específicos para
+          registrar la humedad presente en
+          las hojas.
+        </p>
+
+
+        <div
+          class="
+            mt-6
+            text-agricolus-600
+            font-bold
+          "
+        >
+          Sensor foliar →
+        </div>
+
+      </div>
+
+
+      <!-- SOIL -->
+
+      <div
+        class="
+          feature-card
+          bg-white
+          rounded-[30px]
+          p-8
+        "
+      >
+
+        <div
+          class="
+            w-16
+            h-16
+            rounded-2xl
+            bg-amber-50
+            flex
+            items-center
+            justify-center
+            text-3xl
+          "
+        >
+          🌱
+        </div>
+
+
+        <h3
+          class="
+            text-2xl
+            font-bold
+            mt-7
+          "
+        >
+          Humedad del suelo
+        </h3>
+
+
+        <p
+          class="
+            mt-4
+            text-gray-600
+            leading-relaxed
+          "
+        >
+          Integra sensores de suelo para
+          complementar la información
+          meteorológica del campo.
+        </p>
+
+
+        <div
+          class="
+            mt-6
+            text-agricolus-600
+            font-bold
+          "
+        >
+          Sensores de suelo →
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     DASHBOARD
+====================================================== -->
+
+<section
+  class="
+    bg-[#243923]
+    text-white
+    py-24
+  "
+>
+
+  <div class="container-main">
+
+    <div
+      class="
+        grid
+        lg:grid-cols-2
+        gap-16
+        items-center
+      "
+    >
+
+
+      <!-- TEXT -->
+
+      <div>
+
+        <p
+          class="
+            uppercase
+            tracking-[3px]
+            text-agricolus-300
+            text-sm
+            font-bold
+          "
+        >
+          Datos en Agricolus
+        </p>
+
+
+        <h2
+          class="
+            mt-5
+            text-4xl
+            md:text-5xl
+            font-bold
+            leading-tight
+          "
+        >
+
+          Convierte los datos
+          meteorológicos en información útil
+
+        </h2>
+
+
+        <p
+          class="
+            mt-7
+            text-white/70
+            text-lg
+            leading-relaxed
+          "
+        >
+
+          Los datos recopilados por las estaciones
+          pueden integrarse con la plataforma
+          Agricolus y utilizarse junto a otros datos
+          agronómicos y modelos predictivos.
+
+        </p>
+
+
+        <div
+          class="
+            mt-10
+            space-y-5
+          "
+        >
+
+          <div
+            class="
+              flex
+              gap-4
+            "
+          >
+
+            <div
+              class="
+                w-11
+                h-11
+                rounded-full
+                bg-agricolus-500
+                flex
+                items-center
+                justify-center
+                shrink-0
+              "
+            >
+              ✓
+            </div>
+
+
+            <div>
+
+              <h3
+                class="
+                  font-bold
+                  text-lg
+                "
+              >
+                Datos centralizados
+              </h3>
+
+              <p
+                class="
+                  text-white/60
+                  mt-1
+                "
+              >
+                Consulta la información meteorológica
+                desde la plataforma.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="
+              flex
+              gap-4
+            "
+          >
+
+            <div
+              class="
+                w-11
+                h-11
+                rounded-full
+                bg-agricolus-500
+                flex
+                items-center
+                justify-center
+                shrink-0
+              "
+            >
+              ✓
+            </div>
+
+
+            <div>
+
+              <h3
+                class="
+                  font-bold
+                  text-lg
+                "
+              >
+                Modelos de predicción
+              </h3>
+
+              <p
+                class="
+                  text-white/60
+                  mt-1
+                "
+              >
+                Utiliza los datos como fuente
+                para modelos agronómicos.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="
+              flex
+              gap-4
+            "
+          >
+
+            <div
+              class="
+                w-11
+                h-11
+                rounded-full
+                bg-agricolus-500
+                flex
+                items-center
+                justify-center
+                shrink-0
+              "
+            >
+              ✓
+            </div>
+
+
+            <div>
+
+              <h3
+                class="
+                  font-bold
+                  text-lg
+                "
+              >
+                Seguimiento continuo
+              </h3>
+
+              <p
+                class="
+                  text-white/60
+                  mt-1
+                "
+              >
+                Analiza la evolución de las
+                variables meteorológicas.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- DASHBOARD MOCKUP -->
+
+      <div>
+
+        <div
+          class="
+            bg-white
+            rounded-[25px]
+            p-3
+            shadow-soft
+          "
+        >
+
+          <div
+            class="
+              bg-[#f5f7f4]
+              rounded-[18px]
+              overflow-hidden
+            "
+          >
+
+
+            <!-- TOP BAR -->
+
+            <div
+              class="
+                h-14
+                bg-white
+                border-b
+                flex
+                items-center
+                justify-between
+                px-5
+              "
+            >
+
+              <div
+                class="
+                  font-bold
+                  text-gray-800
+                "
+              >
+                Estaciones
+              </div>
+
+
+              <div
+                class="
+                  flex
+                  items-center
+                  gap-2
+                "
+              >
+
+                <span
+                  class="
+                    w-2
+                    h-2
+                    bg-green-500
+                    rounded-full
+                  "
+                ></span>
+
+                <span
+                  class="
+                    text-xs
+                    text-gray-500
+                  "
+                >
+                  Sincronizado
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <!-- CONTENT -->
+
+            <div
+              class="p-5"
+            >
+
+              <!-- STATION -->
+
+              <div
+                class="
+                  bg-white
+                  rounded-xl
+                  p-4
+                "
+              >
+
+                <div
+                  class="
+                    flex
+                    items-center
+                    justify-between
+                  "
+                >
+
+                  <div>
+
+                    <div
+                      class="
+                        text-xs
+                        text-gray-400
+                      "
+                    >
+                      ESTACIÓN
+                    </div>
+
+                    <div
+                      class="
+                        font-bold
+                        text-gray-800
+                        mt-1
+                      "
+                    >
+                      Bovolone
+                    </div>
+
+                  </div>
+
+
+                  <div
+                    class="
+                      bg-agricolus-100
+                      text-agricolus-700
+                      text-xs
+                      px-3
+                      py-1
+                      rounded-full
+                    "
+                  >
+                    Física
+                  </div>
+
+                </div>
+
+
+                <!-- METRICS -->
+
+                <div
+                  class="
+                    grid
+                    grid-cols-3
+                    gap-3
+                    mt-5
+                  "
+                >
+
+                  <div
+                    class="
+                      bg-red-50
+                      rounded-xl
+                      p-3
+                    "
+                  >
+
+                    <div
+                      class="
+                        text-xs
+                        text-gray-400
+                      "
+                    >
+                      Temperatura
+                    </div>
+
+                    <div
+                      class="
+                        font-bold
+                        text-gray-800
+                        mt-1
+                      "
+                    >
+                      18.6°C
+                    </div>
+
+                  </div>
+
+
+                  <div
+                    class="
+                      bg-blue-50
+                      rounded-xl
+                      p-3
+                    "
+                  >
+
+                    <div
+                      class="
+                        text-xs
+                        text-gray-400
+                      "
+                    >
+                      Humedad
+                    </div>
+
+                    <div
+                      class="
+                        font-bold
+                        text-gray-800
+                        mt-1
+                      "
+                    >
+                      72%
+                    </div>
+
+                  </div>
+
+
+                  <div
+                    class="
+                      bg-cyan-50
+                      rounded-xl
+                      p-3
+                    "
+                  >
+
+                    <div
+                      class="
+                        text-xs
+                        text-gray-400
+                      "
+                    >
+                      Lluvia
+                    </div>
+
+                    <div
+                      class="
+                        font-bold
+                        text-gray-800
+                        mt-1
+                      "
+                    >
+                      2.4mm
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <!-- CHART -->
+
+              <div
+                class="
+                  bg-white
+                  rounded-xl
+                  mt-4
+                  p-5
+                "
+              >
+
+                <div
+                  class="
+                    flex
+                    justify-between
+                    items-center
+                  "
+                >
+
+                  <div
+                    class="
+                      text-sm
+                      font-bold
+                      text-gray-700
+                    "
+                  >
+                    Evolución meteorológica
+                  </div>
+
+
+                  <div
+                    class="
+                      text-xs
+                      text-agricolus-600
+                    "
+                  >
+                    24 horas
+                  </div>
+
+                </div>
+
+
+                <svg
+                  viewBox="0 0 500 190"
+                  class="
+                    w-full
+                    mt-4
+                  "
+                >
+
+                  <!-- GRID -->
+
+                  <line
+                    x1="0"
+                    y1="30"
+                    x2="500"
+                    y2="30"
+                    stroke="#edf0ec"
+                  />
+
+                  <line
+                    x1="0"
+                    y1="80"
+                    x2="500"
+                    y2="80"
+                    stroke="#edf0ec"
+                  />
+
+                  <line
+                    x1="0"
+                    y1="130"
+                    x2="500"
+                    y2="130"
+                    stroke="#edf0ec"
+                  />
+
+                  <line
+                    x1="0"
+                    y1="180"
+                    x2="500"
+                    y2="180"
+                    stroke="#edf0ec"
+                  />
+
+
+                  <!-- TEMPERATURE -->
+
+                  <polyline
+                    points="
+                      0,135
+                      60,120
+                      110,130
+                      160,90
+                      220,100
+                      280,65
+                      340,75
+                      400,45
+                      450,60
+                      500,35
+                    "
+
+                    fill="none"
+                    stroke="#ef6c5b"
+                    stroke-width="4"
+
+                    class="weather-line"
+                  />
+
+
+                  <!-- HUMIDITY -->
+
+                  <polyline
+                    points="
+                      0,70
+                      60,80
+                      110,72
+                      160,100
+                      220,90
+                      280,115
+                      340,105
+                      400,120
+                      450,110
+                      500,130
+                    "
+
+                    fill="none"
+                    stroke="#5da44d"
+                    stroke-width="3"
+
+                    class="weather-line"
+                  />
+
+
+                  <!-- POINTS -->
+
+                  <circle
+                    cx="500"
+                    cy="35"
+                    r="5"
+                    fill="#ef6c5b"
+                  />
+
+                </svg>
+
+
+                <div
+                  class="
+                    flex
+                    gap-5
+                    text-xs
+                    text-gray-400
+                  "
+                >
+
+                  <span>
+                    <i
+                      class="
+                        inline-block
+                        w-2
+                        h-2
+                        bg-red-400
+                        rounded-full
+                        mr-1
+                      "
+                    ></i>
+
+                    Temperatura
+                  </span>
+
+
+                  <span>
+                    <i
+                      class="
+                        inline-block
+                        w-2
+                        h-2
+                        bg-agricolus-500
+                        rounded-full
+                        mr-1
+                      "
+                    ></i>
+
+                    Humedad
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              <!-- LAST UPDATE -->
+
+              <div
+                class="
+                  text-xs
+                  text-gray-400
+                  mt-4
+                  text-right
+                "
+              >
+                Última sincronización:
+                hoy, 10:30
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     PHYSICAL / VIRTUAL
+====================================================== -->
+
+<section
+  class="
+    py-24
+  "
+>
+
+  <div class="container-main">
+
+    <div
+      class="
+        text-center
+        max-w-3xl
+        mx-auto
+      "
+    >
+
+      <p
+        class="
+          uppercase
+          tracking-[3px]
+          text-agricolus-600
+          text-sm
+          font-bold
+        "
+      >
+        Tipos de estaciones
+      </p>
+
+
+      <h2
+        class="
+          mt-5
+          text-4xl
+          md:text-5xl
+          font-bold
+        "
+      >
+
+        Físicas o virtuales,
+        integradas en Agricolus
+
+      </h2>
+
+
+      <p
+        class="
+          mt-5
+          text-gray-600
+          text-lg
+        "
+      >
+
+        Elige la solución que mejor se adapte
+        a las características de tu explotación
+        y conecta los datos con tu plataforma.
+
+      </p>
+
+    </div>
+
+
+    <div
+      class="
+        grid
+        md:grid-cols-2
+        gap-7
+        mt-16
+      "
+    >
+
+
+      <!-- PHYSICAL -->
+
+      <div
+        class="
+          feature-card
+          rounded-[35px]
+          overflow-hidden
+          border
+          border-gray-100
+          bg-white
+        "
+      >
+
+        <div
+          class="
+            h-[280px]
+            overflow-hidden
+          "
+        >
+
+          <img
+            src="https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=1200&q=85"
+
+            class="
+              w-full
+              h-full
+              object-cover
+            "
+
+            alt="Estación meteorológica física"
+          >
+
+        </div>
+
+
+        <div class="p-8">
+
+          <div
+            class="
+              inline-flex
+              px-4
+              py-2
+              bg-agricolus-100
+              text-agricolus-700
+              rounded-full
+              text-sm
+              font-bold
+            "
+          >
+            Estaciones físicas
+          </div>
+
+
+          <h3
+            class="
+              text-3xl
+              font-bold
+              mt-5
+            "
+          >
+            Sensores directamente
+            en el campo
+          </h3>
+
+
+          <p
+            class="
+              mt-4
+              text-gray-600
+              leading-relaxed
+            "
+          >
+
+            Instala estaciones y sensores en tus
+            parcelas para recopilar información
+            meteorológica localizada.
+
+          </p>
+
+
+          <div
+            class="
+              mt-7
+              space-y-3
+              text-sm
+            "
+          >
+
+            <div
+              class="
+                flex
+                items-center
+                gap-3
+              "
+            >
+
+              <span
+                class="
+                  w-7
+                  h-7
+                  rounded-full
+                  bg-agricolus-100
+                  text-agricolus-700
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+                ✓
+              </span>
+
+              Temperatura
+
+            </div>
+
+
+            <div
+              class="
+                flex
+                items-center
+                gap-3
+              "
+            >
+
+              <span
+                class="
+                  w-7
+                  h-7
+                  rounded-full
+                  bg-agricolus-100
+                  text-agricolus-700
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+                ✓
+              </span>
+
+              Humedad
+
+            </div>
+
+
+            <div
+              class="
+                flex
+                items-center
+                gap-3
+              "
+            >
+
+              <span
+                class="
+                  w-7
+                  h-7
+                  rounded-full
+                  bg-agricolus-100
+                  text-agricolus-700
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+                ✓
+              </span>
+
+              Precipitación
+
+            </div>
+
+
+            <div
+              class="
+                flex
+                items-center
+                gap-3
+              "
+            >
+
+              <span
+                class="
+                  w-7
+                  h-7
+                  rounded-full
+                  bg-agricolus-100
+                  text-agricolus-700
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+                ✓
+              </span>
+
+              Viento y humedad foliar
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- VIRTUAL -->
+
+      <div
+        class="
+          feature-card
+          rounded-[35px]
+          overflow-hidden
+          border
+          border-gray-100
+          bg-white
+        "
+      >
+
+        <div
+          class="
+            h-[280px]
+            overflow-hidden
+            bg-agricolus-900
+            relative
+          "
+        >
+
+          <img
+            src="https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?auto=format&fit=crop&w=1200&q=85"
+
+            class="
+              absolute
+              inset-0
+              w-full
+              h-full
+              object-cover
+              opacity-60
+            "
+
+            alt="Datos meteorológicos"
+          >
+
+
+          <div
+            class="
+              absolute
+              inset-0
+              flex
+              items-center
+              justify-center
+            "
+          >
+
+            <div
+              class="
+                bg-white
+                rounded-3xl
+                shadow-xl
+                p-7
+                w-[250px]
+              "
+            >
+
+              <div
+                class="
+                  text-xs
+                  text-gray-400
+                "
+              >
+                ESTACIÓN VIRTUAL
+              </div>
+
+
+              <div
+                class="
+                  text-4xl
+                  font-bold
+                  text-agricolus-700
+                  mt-2
+                "
+              >
+                17.8°C
+              </div>
+
+
+              <div
+                class="
+                  flex
+                  justify-between
+                  mt-4
+                  text-xs
+                  text-gray-500
+                "
+              >
+
+                <span>
+                  💧 68%
+                </span>
+
+                <span>
+                  💨 2.1 m/s
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="p-8">
+
+          <div
+            class="
+              inline-flex
+              px-4
+              py-2
+              bg-blue-50
+              text-blue-700
+              rounded-full
+              text-sm
+              font-bold
+            "
+          >
+            Estaciones virtuales
+          </div>
+
+
+          <h3
+            class="
+              text-3xl
+              font-bold
+              mt-5
+            "
+          >
+            Información meteorológica
+            sin instalación física
+          </h3>
+
+
+          <p
+            class="
+              mt-4
+              text-gray-600
+              leading-relaxed
+            "
+          >
+
+            Utiliza información meteorológica
+            virtual integrada en la plataforma
+            para complementar el análisis de
+            tus cultivos.
+
+          </p>
+
+
+          <div
+            class="
+              mt-7
+              flex
+              items-center
+              gap-4
+            "
+          >
+
+            <div
+              class="
+                w-11
+                h-11
+                rounded-full
+                bg-blue-50
+                flex
+                items-center
+                justify-center
+              "
+            >
+              🌐
+            </div>
+
+
+            <div>
+
+              <div
+                class="font-bold"
+              >
+                Integración digital
+              </div>
+
+              <div
+                class="
+                  text-sm
+                  text-gray-500
+                "
+              >
+                Disponible dentro
+                de Agricolus.
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     PARTNERS
+====================================================== -->
+
+<section
+  class="
+    bg-[#f3f6ef]
+    py-24
+  "
+>
+
+  <div class="container-main">
+
+    <div
+      class="
+        text-center
+        max-w-3xl
+        mx-auto
+      "
+    >
+
+      <p
+        class="
+          uppercase
+          tracking-[3px]
+          text-agricolus-600
+          text-sm
+          font-bold
+        "
+      >
+        Integraciones
+      </p>
+
+
+      <h2
+        class="
+          mt-5
+          text-4xl
+          md:text-5xl
+          font-bold
+        "
+      >
+
+        Conecta las estaciones
+        que ya utilizas
+
+      </h2>
+
+
+      <p
+        class="
+          mt-5
+          text-gray-600
+          text-lg
+        "
+      >
+
+        Agricolus trabaja con diferentes
+        tecnologías y proveedores de estaciones
+        agrometeorológicas.
+
+      </p>
+
+    </div>
+
+
+    <!-- PARTNER LOGOS -->
+
+    <div
+      class="
+        grid
+        grid-cols-2
+        md:grid-cols-3
+        lg:grid-cols-6
+        gap-4
+        mt-14
+      "
+    >
+
+      <div
+        class="
+          h-28
+          bg-white
+          rounded-2xl
+          flex
+          items-center
+          justify-center
+          text-gray-500
+          font-bold
+          shadow-sm
+        "
+      >
+        PESSL
+      </div>
+
+
+      <div
+        class="
+          h-28
+          bg-white
+          rounded-2xl
+          flex
+          items-center
+          justify-center
+          text-gray-500
+          font-bold
+          shadow-sm
+        "
+      >
+        NETSENS
+      </div>
+
+
+      <div
+        class="
+          h-28
+          bg-white
+          rounded-2xl
+          flex
+          items-center
+          justify-center
+          text-gray-500
+          font-bold
+          shadow-sm
+        "
+      >
+        iFarming
+      </div>
+
+
+      <div
+        class="
+          h-28
+          bg-white
+          rounded-2xl
+          flex
+          items-center
+          justify-center
+          text-gray-500
+          font-bold
+          shadow-sm
+        "
+      >
+        DAVIS
+      </div>
+
+
+      <div
+        class="
+          h-28
+          bg-white
+          rounded-2xl
+          flex
+          items-center
+          justify-center
+          text-gray-500
+          font-bold
+          shadow-sm
+        "
+      >
+        CORDULUS
+      </div>
+
+
+      <div
+        class="
+          h-28
+          bg-white
+          rounded-2xl
+          flex
+          items-center
+          justify-center
+          text-gray-500
+          font-bold
+          shadow-sm
+        "
+      >
+        SENCROP
+      </div>
+
+    </div>
+
+
+    <!-- PARTNER NOTE -->
+
+    <div
+      class="
+        mt-8
+        text-center
+        text-gray-500
+        text-sm
+      "
+    >
+
+      ¿Tienes una estación que no aparece aquí?
+      Podemos estudiar sus posibilidades de integración.
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     HOW IT WORKS
+====================================================== -->
+
+<section
+  class="
+    py-24
+  "
+>
+
+  <div class="container-main">
+
+    <div
+      class="
+        max-w-3xl
+      "
+    >
+
+      <p
+        class="
+          uppercase
+          tracking-[3px]
+          text-agricolus-600
+          text-sm
+          font-bold
+        "
+      >
+        Cómo funciona
+      </p>
+
+
+      <h2
+        class="
+          section-line
+          mt-5
+          text-4xl
+          md:text-5xl
+          font-bold
+        "
+      >
+
+        Del sensor
+        a la decisión
+
+      </h2>
+
+    </div>
+
+
+    <div
+      class="
+        grid
+        md:grid-cols-4
+        gap-6
+        mt-16
+      "
+    >
+
+
+      <!-- STEP 1 -->
+
+      <div
+        class="
+          relative
+          feature-card
+          border
+          border-gray-100
+          rounded-3xl
+          p-7
+        "
+      >
+
+        <div
+          class="
+            w-12
+            h-12
+            rounded-full
+            bg-agricolus-600
+            text-white
+            flex
+            items-center
+            justify-center
+            font-bold
+            text-lg
+          "
+        >
+          01
+        </div>
+
+
+        <h3
+          class="
+            text-xl
+            font-bold
+            mt-6
+          "
+        >
+          Medición
+        </h3>
+
+
+        <p
+          class="
+            text-gray-500
+            mt-3
+            leading-relaxed
+          "
+        >
+
+          Los sensores recopilan información
+          meteorológica y ambiental.
+
+        </p>
+
+      </div>
+
+
+      <!-- STEP 2 -->
+
+      <div
+        class="
+          relative
+          feature-card
+          border
+          border-gray-100
+          rounded-3xl
+          p-7
+        "
+      >
+
+        <div
+          class="
+            w-12
+            h-12
+            rounded-full
+            bg-agricolus-600
+            text-white
+            flex
+            items-center
+            justify-center
+            font-bold
+            text-lg
+          "
+        >
+          02
+        </div>
+
+
+        <h3
+          class="
+            text-xl
+            font-bold
+            mt-6
+          "
+        >
+          Transmisión
+        </h3>
+
+
+        <p
+          class="
+            text-gray-500
+            mt-3
+            leading-relaxed
+          "
+        >
+
+          Los datos son transmitidos y
+          sincronizados con la plataforma.
+
+        </p>
+
+      </div>
+
+
+      <!-- STEP 3 -->
+
+      <div
+        class="
+          relative
+          feature-card
+          border
+          border-gray-100
+          rounded-3xl
+          p-7
+        "
+      >
+
+        <div
+          class="
+            w-12
+            h-12
+            rounded-full
+            bg-agricolus-600
+            text-white
+            flex
+            items-center
+            justify-center
+            font-bold
+            text-lg
+          "
+        >
+          03
+        </div>
+
+
+        <h3
+          class="
+            text-xl
+            font-bold
+            mt-6
+          "
+        >
+          Análisis
+        </h3>
+
+
+        <p
+          class="
+            text-gray-500
+            mt-3
+            leading-relaxed
+          "
+        >
+
+          Agricolus combina los datos con
+          información agronómica y modelos.
+
+        </p>
+
+      </div>
+
+
+      <!-- STEP 4 -->
+
+      <div
+        class="
+          relative
+          feature-card
+          border
+          border-gray-100
+          rounded-3xl
+          p-7
+        "
+      >
+
+        <div
+          class="
+            w-12
+            h-12
+            rounded-full
+            bg-agricolus-600
+            text-white
+            flex
+            items-center
+            justify-center
+            font-bold
+            text-lg
+          "
+        >
+          04
+        </div>
+
+
+        <h3
+          class="
+            text-xl
+            font-bold
+            mt-6
+          "
+        >
+          Decisión
+        </h3>
+
+
+        <p
+          class="
+            text-gray-500
+            mt-3
+            leading-relaxed
+          "
+        >
+
+          Obtén información que ayuda a
+          interpretar las condiciones del cultivo.
+
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     AGRONOMIC SECTION
+====================================================== -->
+
+<section
+  class="
+    bg-agricolus-50
+    py-24
+  "
+>
+
+  <div class="container-main">
+
+    <div
+      class="
+        grid
+        lg:grid-cols-2
+        gap-16
+        items-center
+      "
+    >
+
+
+      <!-- VISUAL -->
+
+      <div
+        class="
+          order-2
+          lg:order-1
+        "
+      >
+
+        <div
+          class="
+            relative
+            rounded-[35px]
+            overflow-hidden
+            shadow-soft
+          "
+        >
+
+          <img
+            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1400&q=85"
+
+            class="
+              w-full
+              h-[560px]
+              object-cover
+            "
+
+            alt="Agricultura de precisión"
+          >
+
+
+          <!-- FLOATING WEATHER -->
+
+          <div
+            class="
+              absolute
+              top-7
+              left-7
+              bg-white
+              rounded-2xl
+              shadow-xl
+              p-5
+              w-[230px]
+            "
+          >
+
+            <div
+              class="
+                text-xs
+                text-gray-400
+              "
+            >
+              CONDICIONES
+            </div>
+
+
+            <div
+              class="
+                flex
+                items-center
+                justify-between
+                mt-3
+              "
+            >
+
+              <div>
+
+                <div
+                  class="
+                    text-3xl
+                    font-bold
+                    text-agricolus-700
+                  "
+                >
+                  18.6°
+                </div>
+
+                <div
+                  class="
+                    text-xs
+                    text-gray-500
+                  "
+                >
+                  Temperatura
+                </div>
+
+              </div>
+
+
+              <div
+                class="
+                  text-4xl
+                "
+              >
+                ☀️
+              </div>
+
+            </div>
+
+
+            <div
+              class="
+                border-t
+                mt-4
+                pt-4
+                grid
+                grid-cols-2
+                gap-3
+                text-xs
+              "
+            >
+
+              <div>
+                <span class="text-gray-400">
+                  Humedad
+                </span>
+
+                <strong
+                  class="
+                    block
+                    mt-1
+                  "
+                >
+                  72%
+                </strong>
+              </div>
+
+
+              <div>
+                <span class="text-gray-400">
+                  Viento
+                </span>
+
+                <strong
+                  class="
+                    block
+                    mt-1
+                  "
+                >
+                  2.1 m/s
+                </strong>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- TEXT -->
+
+      <div
+        class="
+          order-1
+          lg:order-2
+        "
+      >
+
+        <p
+          class="
+            uppercase
+            tracking-[3px]
+            text-agricolus-600
+            text-sm
+            font-bold
+          "
+        >
+          Agricultura de precisión
+        </p>
+
+
+        <h2
+          class="
+            section-line
+            mt-5
+            text-4xl
+            md:text-5xl
+            font-bold
+            leading-tight
+          "
+        >
+
+          Meteorología
+          conectada con la agronomía
+
+        </h2>
+
+
+        <p
+          class="
+            mt-8
+            text-gray-600
+            text-lg
+            leading-relaxed
+          "
+        >
+
+          Los datos de las estaciones no están
+          aislados. Pueden combinarse con
+          información procedente de sensores,
+          previsiones meteorológicas, imágenes
+          satelitales y actividades de campo.
+
+        </p>
+
+
+        <div
+          class="
+            mt-9
+            space-y-5
+          "
+        >
+
+          <div
+            class="
+              flex
+              gap-4
+            "
+          >
+
+            <div
+              class="
+                w-11
+                h-11
+                rounded-full
+                bg-white
+                flex
+                items-center
+                justify-center
+                shadow-sm
+                shrink-0
+              "
+            >
+              🌱
+            </div>
+
+
+            <div>
+
+              <h3
+                class="
+                  font-bold
+                  text-lg
+                "
+              >
+                Estado del cultivo
+              </h3>
+
+              <p
+                class="
+                  text-gray-500
+                  mt-1
+                "
+              >
+                Relaciona las condiciones meteorológicas
+                con el desarrollo de las plantas.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="
+              flex
+              gap-4
+            "
+          >
+
+            <div
+              class="
+                w-11
+                h-11
+                rounded-full
+                bg-white
+                flex
+                items-center
+                justify-center
+                shadow-sm
+                shrink-0
+              "
+            >
+              💧
+            </div>
+
+
+            <div>
+
+              <h3
+                class="
+                  font-bold
+                  text-lg
+                "
+              >
+                Gestión del riego
+              </h3>
+
+              <p
+                class="
+                  text-gray-500
+                  mt-1
+                "
+              >
+                Utiliza la información meteorológica
+                junto con los modelos de riego.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="
+              flex
+              gap-4
+            "
+          >
+
+            <div
+              class="
+                w-11
+                h-11
+                rounded-full
+                bg-white
+                flex
+                items-center
+                justify-center
+                shadow-sm
+                shrink-0
+              "
+            >
+              🛡️
+            </div>
+
+
+            <div>
+
+              <h3
+                class="
+                  font-bold
+                  text-lg
+                "
+              >
+                Modelos de defensa
+              </h3>
+
+              <p
+                class="
+                  text-gray-500
+                  mt-1
+                "
+              >
+                Los parámetros meteorológicos
+                pueden alimentar modelos de predicción.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     INSTALLATION
+====================================================== -->
+
+<section
+  class="
+    py-24
+  "
+>
+
+  <div class="container-main">
+
+    <div
+      class="
+        grid
+        lg:grid-cols-2
+        gap-16
+        items-center
+      "
+    >
+
+
+      <!-- TEXT -->
+
+      <div>
+
+        <p
+          class="
+            uppercase
+            tracking-[3px]
+            text-agricolus-600
+            text-sm
+            font-bold
+          "
+        >
+          Instalación
+        </p>
+
+
+        <h2
+          class="
+            section-line
+            mt-5
+            text-4xl
+            md:text-5xl
+            font-bold
+          "
+        >
+
+          Una estación
+          adaptada al campo
+
+        </h2>
+
+
+        <p
+          class="
+            mt-8
+            text-gray-600
+            text-lg
+            leading-relaxed
+          "
+        >
+
+          La ubicación de una estación meteorológica
+          debe considerar el cultivo, las características
+          geomorfológicas de la parcela y las condiciones
+          de trabajo de los operadores.
+
+        </p>
+
+
+        <div
+          class="
+            mt-8
+            bg-agricolus-50
+            rounded-3xl
+            p-6
+          "
+        >
+
+          <div
+            class="
+              flex
+              gap-4
+            "
+          >
+
+            <div
+              class="
+                text-2xl
+              "
+            >
+              📍
+            </div>
+
+
+            <div>
+
+              <h3
+                class="
+                  font-bold
+                "
+              >
+                Ubicación adecuada
+              </h3>
+
+
+              <p
+                class="
+                  text-gray-500
+                  text-sm
+                  mt-2
+                  leading-relaxed
+                "
+              >
+
+                La instalación debe tener en cuenta
+                las necesidades del cultivo y las
+                condiciones específicas del terreno.
+
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="
+            mt-5
+            bg-agricolus-50
+            rounded-3xl
+            p-6
+          "
+        >
+
+          <div
+            class="
+              flex
+              gap-4
+            "
+          >
+
+            <div
+              class="
+                text-2xl
+              "
+            >
+              🚜
+            </div>
+
+
+            <div>
+
+              <h3
+                class="
+                  font-bold
+                "
+              >
+                Operaciones agrícolas
+              </h3>
+
+
+              <p
+                class="
+                  text-gray-500
+                  text-sm
+                  mt-2
+                  leading-relaxed
+                "
+              >
+
+                También es importante considerar
+                el paso de maquinaria y las actividades
+                habituales de los trabajadores.
+
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- VISUAL -->
+
+      <div
+        class="
+          relative
+        "
+      >
+
+        <div
+          class="
+            rounded-[35px]
+            overflow-hidden
+            shadow-soft
+          "
+        >
+
+          <img
+            src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1400&q=85"
+
+            class="
+              w-full
+              h-[560px]
+              object-cover
+            "
+
+            alt="Campo agrícola"
+          >
+
+        </div>
+
+
+        <!-- SENSOR -->
+
+        <div
+          class="
+            absolute
+            right-7
+            bottom-7
+            bg-white
+            rounded-3xl
+            shadow-xl
+            p-6
+            w-[250px]
+          "
+        >
+
+          <div
+            class="
+              flex
+              items-center
+              gap-3
+            "
+          >
+
+            <div
+              class="
+                w-12
+                h-12
+                rounded-full
+                bg-agricolus-100
+                flex
+                items-center
+                justify-center
+                text-xl
+              "
+            >
+              📡
+            </div>
+
+
+            <div>
+
+              <div
+                class="
+                  font-bold
+                "
+              >
+                Sensor conectado
+              </div>
+
+              <div
+                class="
+                  text-xs
+                  text-green-600
+                  mt-1
+                "
+              >
+                ● Online
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="
+              mt-5
+              border-t
+              pt-4
+              grid
+              grid-cols-2
+              gap-4
+              text-sm
+            "
+          >
+
+            <div>
+
+              <span
+                class="
+                  text-gray-400
+                  text-xs
+                "
+              >
+                Temp.
+              </span>
+
+              <strong
+                class="
+                  block
+                  mt-1
+                "
+              >
+                18.6°C
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span
+                class="
+                  text-gray-400
+                  text-xs
+                "
+              >
+                Lluvia
+              </span>
+
+              <strong
+                class="
+                  block
+                  mt-1
+                "
+              >
+                2.4 mm
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     CTA
+====================================================== -->
+
+<section
+  id="contacto"
+  class="
+    py-24
+  "
+>
+
+  <div class="container-main">
+
+    <div
+      class="
+        relative
+        overflow-hidden
+        rounded-[40px]
+        bg-agricolus-600
+        text-white
+      "
+    >
+
+      <div
+        class="
+          absolute
+          inset-0
+          opacity-15
+        "
+
+        style="
+          background-image:
+            url('https://images.unsplash.com/photo-1560493676-04071c5f467b?auto=format&fit=crop&w=1800&q=80');
+
+          background-size:cover;
+          background-position:center;
+        "
+      ></div>
+
+
+      <div
+        class="
+          relative
+          z-10
+          px-8
+          md:px-16
+          py-20
+          text-center
+        "
+      >
+
+        <p
+          class="
+            uppercase
+            tracking-[3px]
+            text-agricolus-200
+            text-sm
+            font-bold
+          "
+        >
+          Agricolus
+        </p>
+
+
+        <h2
+          class="
+            mt-5
+            text-4xl
+            md:text-5xl
+            font-bold
+          "
+        >
+
+          Lleva los datos
+          meteorológicos a tu campo
+
+        </h2>
+
+
+        <p
+          class="
+            mt-6
+            max-w-2xl
+            mx-auto
+            text-white/80
+            text-lg
+          "
+        >
+
+          Integra estaciones agrometeorológicas
+          físicas o virtuales con Agricolus y
+          centraliza la información que necesitas
+          para monitorizar tus cultivos.
+
+        </p>
+
+
+        <div
+          class="
+            mt-9
+            flex
+            flex-wrap
+            justify-center
+            gap-4
+          "
+        >
+
+          <a
+            href="#"
+
+            class="
+              bg-white
+              text-agricolus-800
+              px-8
+              py-4
+              rounded-full
+              font-bold
+              hover:bg-agricolus-50
+              transition
+            "
+          >
+            Solicitar información
+          </a>
+
+
+          <a
+            href="#"
+
+            class="
+              border
+              border-white/60
+              px-8
+              py-4
+              rounded-full
+              font-bold
+              hover:bg-white
+              hover:text-agricolus-800
+              transition
+            "
+          >
+            Contactar
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     FOOTER
+====================================================== -->
+
+<footer
+  class="
+    bg-[#202920]
+    text-white
+  "
+>
+
+  <div
+    class="
+      container-main
+      py-16
+    "
+  >
+
+    <div
+      class="
+        grid
+        md:grid-cols-2
+        lg:grid-cols-4
+        gap-12
+      "
+    >
+
+
+      <!-- BRAND -->
+
+      <div>
+
+        <div
+          class="
+            flex
+            items-center
+            gap-3
+          "
+        >
+
+          <div
+            class="
+              w-11
+              h-11
+              rounded-full
+              border
+              border-white/50
+              flex
+              items-center
+              justify-center
+            "
+          >
+            🌱
+          </div>
+
+
+          <div>
+
+            <div
+              class="
+                font-bold
+                text-xl
+              "
+            >
+              AGRICOLUS
+            </div>
+
+            <div
+              class="
+                text-[9px]
+                tracking-[3px]
+                text-white/50
+              "
+            >
+              PRECISION FARMING
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <p
+          class="
+            mt-6
+            text-white/50
+            leading-relaxed
+          "
+        >
+
+          Tecnología digital para una agricultura
+          más eficiente, conectada y sostenible.
+
+        </p>
+
+      </div>
+
+
+      <!-- SOLUTIONS -->
+
+      <div>
+
+        <h3
+          class="
+            font-bold
+            text-lg
+          "
+        >
+          Soluciones
+        </h3>
+
+
+        <div
+          class="
+            mt-5
+            space-y-3
+            text-white/50
+          "
+        >
+
+          <a
+            href="#"
+            class="block hover:text-white"
+          >
+            Satélite
+          </a>
+
+          <a
+            href="#"
+            class="block hover:text-white"
+          >
+            Riego y Nutrición
+          </a>
+
+          <a
+            href="#"
+            class="block hover:text-white"
+          >
+            Protección de cultivos
+          </a>
+
+          <a
+            href="#"
+            class="block hover:text-white"
+          >
+            AgriTrack
+          </a>
+
+          <a
+            href="#"
+            class="block hover:text-white"
+          >
+            Estaciones Agrometeo
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <!-- COMPANY -->
+
+      <div>
+
+        <h3
+          class="
+            font-bold
+            text-lg
+          "
+        >
+          Agricolus
+        </h3>
+
+
+        <div
+          class="
+            mt-5
+            space-y-3
+            text-white/50
+          "
+        >
+
+          <a
+            href="#"
+            class="block hover:text-white"
+          >
+            Academy
+          </a>
+
+          <a
+            href="#"
+            class="block hover:text-white"
+          >
+            Sostenibilidad
+          </a>
+
+          <a
+            href="#"
+            class="block hover:text-white"
+          >
+            Investigación
+          </a>
+
+          <a
+            href="#"
+            class="block hover:text-white"
+          >
+            Contactos
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <!-- CONTACT -->
+
+      <div>
+
+        <h3
+          class="
+            font-bold
+            text-lg
+          "
+        >
+          Contacto
+        </h3>
+
+
+        <div
+          class="
+            mt-5
+            space-y-4
+            text-white/50
+          "
+        >
+
+          <p>
+            Via Settevalli 320<br>
+            06129 Perugia, Italia
+          </p>
+
+          <p>
+            +39 075 99 75 503
+          </p>
+
+          <p>
+            discover@agricolus.com
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- BOTTOM -->
+
+    <div
+      class="
+        border-t
+        border-white/10
+        mt-14
+        pt-7
+        flex
+        flex-col
+        md:flex-row
+        justify-between
+        gap-4
+        text-sm
+        text-white/35
+      "
+    >
+
+      <p>
+        © 2026 Agricolus S.r.l.
+      </p>
+
+
+      <div
+        class="
+          flex
+          gap-6
+        "
+      >
+
+        <a
+          href="#"
+          class="hover:text-white"
+        >
+          Privacidad
+        </a>
+
+        <a
+          href="#"
+          class="hover:text-white"
+        >
+          Cookies
+        </a>
+
+        <a
+          href="#"
+          class="hover:text-white"
+        >
+          Legal
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</footer>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
+
+<script>
+
+  /*
+   * HEADER AL HACER SCROLL
+   */
+
+  const header =
+    document.querySelector('header');
+
+
+  window.addEventListener(
+    'scroll',
+    () => {
+
+      if (
+        window.scrollY > 60
+      ) {
+
+        header.classList.add(
+          'bg-[#203020]/95',
+          'backdrop-blur-md',
+          'shadow-lg'
+        );
+
+      } else {
+
+        header.classList.remove(
+          'bg-[#203020]/95',
+          'backdrop-blur-md',
+          'shadow-lg'
+        );
+
+      }
+
+    }
+  );
+
+
+
+  /*
+   * ANIMACIONES
+   */
+
+  const observer =
+    new IntersectionObserver(
+
+      (entries) => {
+
+        entries.forEach(
+          (entry) => {
+
+            if (
+              entry.isIntersecting
+            ) {
+
+              entry.target.classList.remove(
+                'opacity-0',
+                'translate-y-8'
+              );
+
+              entry.target.classList.add(
+                'opacity-100',
+                'translate-y-0'
+              );
+
+            }
+
+          }
+        );
+
+      },
+
+      {
+        threshold: .12
+      }
+
+    );
+
+
+  document
+    .querySelectorAll(
+      '.feature-card'
+    )
+    .forEach(
+      card => {
+
+        card.classList.add(
+          'opacity-0',
+          'translate-y-8',
+          'transition-all',
+          'duration-700'
+        );
+
+        observer.observe(card);
+
+      }
+    );
+
+
+
+  /*
+   * SMOOTH SCROLL
+   */
+
+  document
+    .querySelectorAll(
+      'a[href^="#"]'
+    )
+    .forEach(
+      anchor => {
+
+        anchor.addEventListener(
+          'click',
+          function(e) {
+
+            const id =
+              this.getAttribute(
+                'href'
+              );
+
+
+            const target =
+              document.querySelector(
+                id
+              );
+
+
+            if (
+              target
+            ) {
+
+              e.preventDefault();
+
+              target.scrollIntoView({
+
+                behavior:
+                  'smooth',
+
+                block:
+                  'start'
+
+              });
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+
+
+  /*
+   * ACTUALIZACIÓN SIMULADA
+   * DEL SENSOR DEL MOCKUP
+   */
+
+  const values = [
+    '18.6°C',
+    '18.8°C',
+    '19.1°C',
+    '18.9°C',
+    '18.5°C'
+  ];
+
+
+  let valueIndex = 0;
+
+
+  setInterval(
+    () => {
+
+      const temperature =
+        document.querySelector(
+          '.sensor-temperature'
+        );
+
+
+      if (
+        temperature
+      ) {
+
+        valueIndex =
+          (
+            valueIndex + 1
+          ) % values.length;
+
+        temperature.textContent =
+          values[valueIndex];
+
+      }
+
+    },
+
+    3000
+  );
+
+</script>
+
+
+</body>
+</html>

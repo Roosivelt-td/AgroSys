@@ -170,8 +170,17 @@ Crea la estructura de tablas y carga los datos maestros (seeders) y asi mismo ge
 docker compose exec app php artisan migrate:fresh --seed
 docker compose exec app php artisan storage:link
 ```
-
-### 🔄 6. Actualización de Código
+### 📥 6. Instalacion de npm
+Instalacion
+```bash
+docker compose run --rm node npm install
+```
+Inicializacion
+```bash
+docker compose run --rm node npm run build 
+docker compose docker compose restart node
+```
+### 🔄 7. Actualización de Código
 Si realizas cambios en el código PHP o vistas, simplemente reinicia los servicios:
 ```bash
 docker compose up -d

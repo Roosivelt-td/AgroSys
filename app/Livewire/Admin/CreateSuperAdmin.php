@@ -43,7 +43,7 @@ class CreateSuperAdmin extends Component
             'apellidos' => $this->apellidos,
             'email' => $this->email,
             'dni' => $this->dni,
-            'password' => Hash::make($this->password),
+            'password' => $this->password,
             'estado' => 1,
             'is_activo' => 1,
         ]);

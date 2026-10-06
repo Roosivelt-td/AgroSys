@@ -8,7 +8,9 @@ $activeClasses = ($active ?? false)
     : 'text-slate-500 dark:text-white/60 hover:bg-agri-l_card/50 dark:hover:bg-white/10 hover:text-agri-green dark:hover:text-white';
 @endphp
 
-<a {{ $attributes->merge(['class' => "$baseClasses $activeClasses"]) }} wire:navigate>
+<a {{ $attributes->merge(['class' => "$baseClasses $activeClasses"]) }}
+   @click="if(window.innerWidth < 768) mobileOpen = false"
+   wire:navigate>
     <div class="w-8 flex justify-center items-center shrink-0">
         <i class="{{ $icon }} text-lg transition-transform duration-500 group-hover:scale-110"></i>
     </div>

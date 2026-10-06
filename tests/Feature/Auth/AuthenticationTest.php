@@ -4,14 +4,14 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use App\Models\Rol;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Livewire\Livewire;
 use Tests\TestCase;
 use App\Livewire\Auth\Authentication;
 
 class AuthenticationTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     public function test_login_screen_can_be_rendered(): void
     {
@@ -24,11 +24,15 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
-        $user = User::factory()->create();
+        $rolAgri = Rol::firstOrCreate(['id' => 2], ['nombre' => 'Agricultor']);
+        $user = User::create([
+            'nombres' => 'Juan', 'apellidos' => 'Pérez', 'dni' => (string)rand(10000000, 99999999),
+            'email' => 'auth.test.' . rand(100, 999) . '@agrosys.com', 'password' => 'password', 'rol_id' => $rolAgri->id, 'is_activo' => true
+        ]);
 
         Livewire::test(Authentication::class)
-            ->set('loginForm.email', $user->email)
-            ->set('loginForm.password', 'password')
+            ->set('loginEmail', $user->email)
+            ->set('loginPassword', 'password')
             ->call('login')
             ->assertHasNoErrors()
             ->assertRedirect(route('dashboard', absolute: false));
@@ -38,13 +42,17 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
-        $user = User::factory()->create();
+        $rolAgri = Rol::firstOrCreate(['id' => 2], ['nombre' => 'Agricultor']);
+        $user = User::create([
+            'nombres' => 'Juan', 'apellidos' => 'Pérez', 'dni' => (string)rand(10000000, 99999999),
+            'email' => 'auth.test.' . rand(100, 999) . '@agrosys.com', 'password' => 'password', 'rol_id' => $rolAgri->id, 'is_activo' => true
+        ]);
 
         Livewire::test(Authentication::class)
-            ->set('loginForm.email', $user->email)
-            ->set('loginForm.password', 'wrong-password')
+            ->set('loginEmail', $user->email)
+            ->set('loginPassword', 'wrong-password')
             ->call('login')
-            ->assertHasErrors(['loginForm.email'])
+            ->assertHasErrors(['loginEmail'])
             ->assertNoRedirect();
 
         $this->assertGuest();
@@ -52,7 +60,11 @@ class AuthenticationTest extends TestCase
 
     public function test_navigation_menu_can_be_rendered(): void
     {
-        $user = User::factory()->create();
+        $rolAgri = Rol::firstOrCreate(['id' => 2], ['nombre' => 'Agricultor']);
+        $user = User::create([
+            'nombres' => 'Juan', 'apellidos' => 'Pérez', 'dni' => (string)rand(10000000, 99999999),
+            'email' => 'auth.test.' . rand(100, 999) . '@agrosys.com', 'password' => 'password', 'rol_id' => $rolAgri->id, 'is_activo' => true
+        ]);
 
         $this->actingAs($user);
 
@@ -63,7 +75,11 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_logout(): void
     {
-        $user = User::factory()->create();
+        $rolAgri = Rol::firstOrCreate(['id' => 2], ['nombre' => 'Agricultor']);
+        $user = User::create([
+            'nombres' => 'Juan', 'apellidos' => 'Pérez', 'dni' => (string)rand(10000000, 99999999),
+            'email' => 'auth.test.' . rand(100, 999) . '@agrosys.com', 'password' => 'password', 'rol_id' => $rolAgri->id, 'is_activo' => true
+        ]);
 
         $this->actingAs($user);
 

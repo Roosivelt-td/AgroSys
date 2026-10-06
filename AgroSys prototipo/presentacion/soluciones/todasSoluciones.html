@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Soluciones | Agricolus</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        agricolus: '#78B82A',
+                        darkgreen: '#173B27',
+                        softgreen: '#F1F7E9',
+                        textgray: '#59635B'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Inter, Arial, sans-serif;
+            color: #173B27;
+        }
+
+        .hero-grid {
+            background-image:
+                linear-gradient(rgba(23,59,39,.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(23,59,39,.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .solution-card {
+            transition: all .35s ease;
+        }
+
+        .solution-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 22px 50px rgba(23,59,39,.12);
+        }
+
+        .crop-card {
+            transition: all .3s ease;
+        }
+
+        .crop-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .crop-card img {
+            transition: transform .5s ease;
+        }
+
+        .crop-card:hover img {
+            transform: scale(1.07);
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header
+    x-data="{ open: false, solutionsOpen: false, quienesOpen: false }"
+    class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm"
+>
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+        <div class="h-[82px] flex items-center justify-between">
+            <!-- LOGO -->
+            <a href="../index.html" class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-full bg-agricolus flex items-center justify-center">
+                    <span class="text-white text-xl font-black">A</span>
+                </div>
+                <span class="text-2xl font-bold tracking-tight text-darkgreen">AGRICOLUS</span>
+            </a>
+
+            <!-- DESKTOP NAV -->
+            <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-darkgreen">
+                <!-- SOLUCIONES DROPDOWN -->
+                <div class="relative" @click.outside="solutionsOpen = false">
+                    <button
+                        @click="solutionsOpen = !solutionsOpen; quienesOpen = false"
+                        class="flex items-center gap-1 hover:text-agricolus transition py-2"
+                    >
+                        Soluciones
+                        <svg class="w-4 h-4 transition-transform" :class="solutionsOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div
+                        x-show="solutionsOpen"
+                        x-transition
+                        style="display: none;"
+                        class="absolute top-full left-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 px-2 z-50"
+                    >
+                        <a href="todasSoluciones.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Todas las soluciones</a>
+                        <a href="gestionAgronomica.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Gestión agronómica</a>
+                        <a href="monitoreoSatelital.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Monitoreo satelital</a>
+                        <a href="estacionesAgrometeo.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Estaciones agrometeo</a>
+                        <a href="defensaCultivos.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Defensa de cultivos</a>
+                        <a href="exploracionCultivos.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Exploración de cultivos</a>
+                        <a href="controlCadenaAgroalimentaria.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Control cadena agroalimentaria</a>
+                    </div>
+                </div>
+
+                <!-- QUIENES SOMOS DROPDOWN -->
+                <div class="relative" @click.outside="quienesOpen = false">
+                    <button
+                        @click="quienesOpen = !quienesOpen; solutionsOpen = false"
+                        class="flex items-center gap-1 hover:text-agricolus transition py-2"
+                    >
+                        Quiénes somos
+                        <svg class="w-4 h-4 transition-transform" :class="quienesOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div
+                        x-show="quienesOpen"
+                        x-transition
+                        style="display: none;"
+                        class="absolute top-full left-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 px-2 z-50"
+                    >
+                        <a href="../quieneSomos/empresa.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Empresa</a>
+                        <a href="../quieneSomos/investigacionIndustrial.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Investigación industrial</a>
+                        <a href="../quieneSomos/nuestraRed.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Nuestra red</a>
+                        <a href="../quieneSomos/tecnologia.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Tecnología</a>
+                    </div>
+                </div>
+
+                <a href="../academy.html" class="hover:text-agricolus transition">Academy</a>
+                <a href="../sostenibilidad.html" class="hover:text-agricolus transition">Sostenibilidad</a>
+                <a href="../contacto.html" class="hover:text-agricolus transition">Contacto</a>
+            </nav>
+
+            <!-- DESKTOP CTA -->
+            <div class="hidden lg:flex items-center gap-5">
+                <button class="text-sm font-semibold text-darkgreen">ES</button>
+                <a
+                    href="../contacto.html"
+                    class="bg-agricolus hover:bg-agricolusDark text-white px-6 py-3 rounded-full font-semibold transition shadow-sm"
+                >
+                    Reserva una demo
+                </a>
+            </div>
+
+            <!-- MOBILE BUTTON -->
+            <button
+                @click="open = !open"
+                class="lg:hidden text-darkgreen p-2"
+                aria-label="Menu"
+            >
+                <svg x-show="!open" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <svg x-show="open" style="display: none;" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- MOBILE MENU -->
+        <div
+            x-show="open"
+            x-transition
+            style="display: none;"
+            class="lg:hidden py-5 border-t border-gray-100 max-h-[80vh] overflow-y-auto"
+        >
+            <nav class="flex flex-col gap-3 text-darkgreen font-medium">
+                <!-- Mobile Soluciones Accordion -->
+                <div x-data="{ subSol: false }">
+                    <button @click="subSol = !subSol" class="flex items-center justify-between w-full py-2 hover:text-agricolus">
+                        <span>Soluciones</span>
+                        <svg class="w-4 h-4 transition-transform" :class="subSol ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="subSol" style="display: none;" class="pl-4 flex flex-col gap-2 py-2 text-sm text-gray-600">
+                        <a href="todasSoluciones.html" class="py-1 hover:text-agricolus">Todas las soluciones</a>
+                        <a href="gestionAgronomica.html" class="py-1 hover:text-agricolus">Gestión agronómica</a>
+                        <a href="monitoreoSatelital.html" class="py-1 hover:text-agricolus">Monitoreo satelital</a>
+                        <a href="estacionesAgrometeo.html" class="py-1 hover:text-agricolus">Estaciones agrometeo</a>
+                        <a href="defensaCultivos.html" class="py-1 hover:text-agricolus">Defensa de cultivos</a>
+                        <a href="exploracionCultivos.html" class="py-1 hover:text-agricolus">Exploración de cultivos</a>
+                        <a href="controlCadenaAgroalimentaria.html" class="py-1 hover:text-agricolus">Control cadena agroalimentaria</a>
+                    </div>
+                </div>
+
+                <!-- Mobile Quienes Somos Accordion -->
+                <div x-data="{ subQs: false }">
+                    <button @click="subQs = !subQs" class="flex items-center justify-between w-full py-2 hover:text-agricolus">
+                        <span>Quiénes somos</span>
+                        <svg class="w-4 h-4 transition-transform" :class="subQs ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="subQs" style="display: none;" class="pl-4 flex flex-col gap-2 py-2 text-sm text-gray-600">
+                        <a href="../quieneSomos/empresa.html" class="py-1 hover:text-agricolus">Empresa</a>
+                        <a href="../quieneSomos/investigacionIndustrial.html" class="py-1 hover:text-agricolus">Investigación industrial</a>
+                        <a href="../quieneSomos/nuestraRed.html" class="py-1 hover:text-agricolus">Nuestra red</a>
+                        <a href="../quieneSomos/tecnologia.html" class="py-1 hover:text-agricolus">Tecnología</a>
+                    </div>
+                </div>
+
+                <a href="../academy.html" class="py-2 hover:text-agricolus">Academy</a>
+                <a href="../sostenibilidad.html" class="py-2 hover:text-agricolus">Sostenibilidad</a>
+                <a href="../contacto.html" class="py-2 hover:text-agricolus">Contacto</a>
+
+                <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
+                    <span class="text-sm font-semibold">ES</span>
+                    <a
+                        href="../contacto.html"
+                        class="bg-agricolus hover:bg-agricolusDark text-white px-6 py-2.5 rounded-full font-semibold text-center transition"
+                    >
+                        Reserva una demo
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+<!-- =========================================================
+     HERO
+========================================================= -->
+
+<section class="pt-[82px] bg-softgreen overflow-hidden">
+
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+
+        <div class="min-h-[600px] grid lg:grid-cols-2 gap-12 items-center">
+
+            <!-- TEXT -->
+            <div class="py-20 lg:py-28">
+
+                <div class="inline-flex items-center gap-2 bg-white rounded-full px-4 py-2 mb-7 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-agricolus"></span>
+                    <span class="text-sm font-semibold text-darkgreen">
+                        SOLUCIONES AGRÍCOLAS
+                    </span>
+                </div>
+
+                <h1 class="text-5xl md:text-6xl lg:text-[68px] leading-[1.02] font-bold tracking-[-2px] text-darkgreen">
+                    Las mejores herramientas digitales
+                    <span class="text-agricolus">
+                        para tu agricultura
+                    </span>
+                </h1>
+
+                <p class="mt-7 max-w-xl text-lg md:text-xl leading-8 text-textgray">
+                    Todas las herramientas que necesitas para gestionar
+                    tu explotación agrícola de forma precisa, sencilla
+                    y eficiente, desde una única plataforma.
+                </p>
+
+                <div class="mt-9 flex flex-wrap gap-4">
+
+                    <a
+                        href="#explotacion"
+                        class="bg-darkgreen hover:bg-[#245337] text-white px-7 py-4 rounded-full font-semibold transition"
+                    >
+                        Descubre las soluciones
+                    </a>
+
+                    <a
+                        href="#contacto"
+                        class="border border-darkgreen text-darkgreen hover:bg-darkgreen hover:text-white px-7 py-4 rounded-full font-semibold transition"
+                    >
+                        Habla con nosotros
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- IMAGE -->
+            <div class="relative h-full min-h-[520px] flex items-end justify-center">
+
+                <div class="absolute w-[470px] h-[470px] rounded-full bg-[#DCEBC9] bottom-[-80px] right-[-40px]"></div>
+
+                <div class="relative z-10 w-full max-w-[580px]">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=85"
+                        class="w-full h-[500px] object-cover rounded-t-[180px] rounded-b-[35px] shadow-2xl"
+                        alt="Agricultura de precisión"
+                    >
+
+                    <div class="absolute left-6 bottom-6 bg-white rounded-2xl p-5 shadow-xl max-w-[230px]">
+
+                        <div class="text-3xl font-bold text-agricolus">
+                            01
+                        </div>
+
+                        <p class="mt-1 text-sm font-semibold text-darkgreen">
+                            Una plataforma para toda tu explotación
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     INTRO
+========================================================= -->
+
+<section class="py-24 bg-white">
+
+    <div class="max-w-5xl mx-auto px-6 text-center">
+
+        <span class="text-agricolus uppercase tracking-[3px] text-sm font-bold">
+            Una única plataforma
+        </span>
+
+        <h2 class="mt-5 text-4xl md:text-5xl font-bold tracking-tight text-darkgreen">
+            Elige la solución que mejor se adapte
+            a las necesidades de tu explotación
+        </h2>
+
+        <p class="mt-6 text-lg text-textgray leading-8 max-w-3xl mx-auto">
+            Agricolus reúne herramientas digitales para el seguimiento,
+            gestión y análisis de las actividades agrícolas, disponibles
+            desde ordenador y smartphone.
+        </p>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     EXPLOTACIÓN AGRÍCOLA
+========================================================= -->
+
+<section
+    id="explotacion"
+    class="py-24 bg-[#F7F9F5]"
+>
+
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+
+        <div class="max-w-3xl mb-14">
+
+            <span class="text-agricolus uppercase tracking-[3px] text-sm font-bold">
+                Explotación agrícola
+            </span>
+
+            <h2 class="mt-4 text-4xl md:text-5xl font-bold text-darkgreen">
+                Gestiona cada aspecto de tu explotación
+            </h2>
+
+            <p class="mt-5 text-lg text-textgray leading-8">
+                Herramientas para monitorizar los cultivos, gestionar
+                los recursos y tomar decisiones basadas en datos.
+            </p>
+
+        </div>
+
+
+        <!-- MAIN SOLUTIONS -->
+
+        <div class="grid md:grid-cols-3 gap-7">
+
+            <!-- SATELLITE -->
+            <article class="solution-card bg-white rounded-[28px] overflow-hidden">
+
+                <div class="h-64 overflow-hidden">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=900&q=80"
+                        class="w-full h-full object-cover"
+                        alt="Monitorización satelital"
+                    >
+
+                </div>
+
+                <div class="p-8">
+
+                    <span class="text-xs uppercase tracking-[2px] text-agricolus font-bold">
+                        Módulo
+                    </span>
+
+                    <h3 class="mt-3 text-2xl font-bold text-darkgreen">
+                        Satélite
+                    </h3>
+
+                    <p class="mt-4 text-textgray leading-7">
+                        Monitorización satelital para conocer el estado
+                        de los cultivos e identificar zonas críticas.
+                    </p>
+
+                    <a
+                        href="#"
+                        class="inline-flex mt-7 items-center gap-2 font-semibold text-darkgreen hover:text-agricolus"
+                    >
+                        Descubrir
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+            </article>
+
+
+            <!-- IRRIGATION -->
+            <article class="solution-card bg-white rounded-[28px] overflow-hidden">
+
+                <div class="h-64 overflow-hidden">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=900&q=80"
+                        class="w-full h-full object-cover"
+                        alt="Riego y nutrición"
+                    >
+
+                </div>
+
+                <div class="p-8">
+
+                    <span class="text-xs uppercase tracking-[2px] text-agricolus font-bold">
+                        Módulo
+                    </span>
+
+                    <h3 class="mt-3 text-2xl font-bold text-darkgreen">
+                        Riego y Nutrición
+                    </h3>
+
+                    <p class="mt-4 text-textgray leading-7">
+                        Optimiza el agua y los nutrientes aplicando
+                        los insumos según las necesidades reales.
+                    </p>
+
+                    <a
+                        href="#"
+                        class="inline-flex mt-7 items-center gap-2 font-semibold text-darkgreen hover:text-agricolus"
+                    >
+                        Descubrir
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+            </article>
+
+
+            <!-- DEFENSE -->
+            <article class="solution-card bg-white rounded-[28px] overflow-hidden">
+
+                <div class="h-64 overflow-hidden">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1592982537447-6f2a6a0a7c9a?auto=format&fit=crop&w=900&q=80"
+                        class="w-full h-full object-cover"
+                        alt="Defensa de cultivos"
+                    >
+
+                </div>
+
+                <div class="p-8">
+
+                    <span class="text-xs uppercase tracking-[2px] text-agricolus font-bold">
+                        Módulo
+                    </span>
+
+                    <h3 class="mt-3 text-2xl font-bold text-darkgreen">
+                        Defensa
+                    </h3>
+
+                    <p class="mt-4 text-textgray leading-7">
+                        Sistemas de apoyo a la decisión para la defensa
+                        y protección de cultivos.
+                    </p>
+
+                    <a
+                        href="#"
+                        class="inline-flex mt-7 items-center gap-2 font-semibold text-darkgreen hover:text-agricolus"
+                    >
+                        Descubrir
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+            </article>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     CULTIVOS
+========================================================= -->
+
+<section class="py-24 bg-white">
+
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+
+            <div>
+
+                <span class="text-agricolus uppercase tracking-[3px] text-sm font-bold">
+                    DSS específicos
+                </span>
+
+                <h2 class="mt-4 text-4xl md:text-5xl font-bold text-darkgreen">
+                    Soluciones para diferentes cultivos
+                </h2>
+
+            </div>
+
+            <p class="max-w-md text-textgray leading-7">
+                Modelos y herramientas diseñados para responder
+                a las necesidades específicas de cada cultivo.
+            </p>
+
+        </div>
+
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+            <!-- OLIVO -->
+            <div class="crop-card rounded-[24px] overflow-hidden relative h-[330px]">
+
+                <img
+                    src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=700&q=80"
+                    class="absolute inset-0 w-full h-full object-cover"
+                    alt="Olivo"
+                >
+
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+
+                <div class="absolute bottom-0 left-0 p-7 text-white">
+                    <h3 class="text-2xl font-bold">Olivo</h3>
+                    <p class="mt-1 text-white/80 text-sm">
+                        Gestión y protección
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- VID -->
+            <div class="crop-card rounded-[24px] overflow-hidden relative h-[330px]">
+
+                <img
+                    src="https://images.unsplash.com/photo-1473973266408-ed4e27abdd47?auto=format&fit=crop&w=700&q=80"
+                    class="absolute inset-0 w-full h-full object-cover"
+                    alt="Vid"
+                >
+
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+
+                <div class="absolute bottom-0 left-0 p-7 text-white">
+                    <h3 class="text-2xl font-bold">Vid</h3>
+                    <p class="mt-1 text-white/80 text-sm">
+                        DSS para viñedos
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- MAÍZ -->
+            <div class="crop-card rounded-[24px] overflow-hidden relative h-[330px]">
+
+                <img
+                    src="https://images.unsplash.com/photo-1601593768797-3f9e1f0a7e45?auto=format&fit=crop&w=700&q=80"
+                    class="absolute inset-0 w-full h-full object-cover"
+                    alt="Maíz"
+                >
+
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+
+                <div class="absolute bottom-0 left-0 p-7 text-white">
+                    <h3 class="text-2xl font-bold">Maíz</h3>
+                    <p class="mt-1 text-white/80 text-sm">
+                        Monitorización del cultivo
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- TOMATE -->
+            <div class="crop-card rounded-[24px] overflow-hidden relative h-[330px]">
+
+                <img
+                    src="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=700&q=80"
+                    class="absolute inset-0 w-full h-full object-cover"
+                    alt="Tomate"
+                >
+
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+
+                <div class="absolute bottom-0 left-0 p-7 text-white">
+                    <h3 class="text-2xl font-bold">Tomate</h3>
+                    <p class="mt-1 text-white/80 text-sm">
+                        Protección y previsión
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- TABACO -->
+            <div class="crop-card rounded-[24px] overflow-hidden relative h-[250px]">
+
+                <img
+                    src="https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=700&q=80"
+                    class="absolute inset-0 w-full h-full object-cover"
+                    alt="Tabaco"
+                >
+
+                <div class="absolute inset-0 bg-black/35"></div>
+
+                <h3 class="absolute bottom-6 left-7 text-2xl font-bold text-white">
+                    Tabaco
+                </h3>
+
+            </div>
+
+
+            <!-- CEREALES -->
+            <div class="crop-card rounded-[24px] overflow-hidden relative h-[250px]">
+
+                <img
+                    src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=700&q=80"
+                    class="absolute inset-0 w-full h-full object-cover"
+                    alt="Cereales"
+                >
+
+                <div class="absolute inset-0 bg-black/35"></div>
+
+                <h3 class="absolute bottom-6 left-7 text-2xl font-bold text-white">
+                    Cereales de invierno
+                </h3>
+
+            </div>
+
+
+            <!-- CÍTRICOS -->
+            <div class="crop-card rounded-[24px] overflow-hidden relative h-[250px]">
+
+                <img
+                    src="https://images.unsplash.com/photo-1547514701-42782101795e?auto=format&fit=crop&w=700&q=80"
+                    class="absolute inset-0 w-full h-full object-cover"
+                    alt="Cítricos"
+                >
+
+                <div class="absolute inset-0 bg-black/35"></div>
+
+                <h3 class="absolute bottom-6 left-7 text-2xl font-bold text-white">
+                    Cítricos
+                </h3>
+
+            </div>
+
+
+            <!-- MELOCOTONERO -->
+            <div class="crop-card rounded-[24px] overflow-hidden relative h-[250px]">
+
+                <img
+                    src="https://images.unsplash.com/photo-1498557850523-fd3d118b962e?auto=format&fit=crop&w=700&q=80"
+                    class="absolute inset-0 w-full h-full object-cover"
+                    alt="Melocotonero"
+                >
+
+                <div class="absolute inset-0 bg-black/35"></div>
+
+                <h3 class="absolute bottom-6 left-7 text-2xl font-bold text-white">
+                    Melocotonero
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     AGRITRACK
+========================================================= -->
+
+<section class="py-24 bg-darkgreen text-white overflow-hidden">
+
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+
+            <div>
+
+                <span class="text-[#9AD34D] uppercase tracking-[3px] text-sm font-bold">
+                    Cadena agroalimentaria
+                </span>
+
+                <h2 class="mt-5 text-4xl md:text-5xl font-bold leading-tight">
+                    AgriTrack
+                </h2>
+
+                <p class="mt-6 text-white/70 text-lg leading-8 max-w-xl">
+                    Herramientas digitales para las necesidades de toda
+                    la cadena agroalimentaria, desde la producción hasta
+                    la trazabilidad y gestión de los datos.
+                </p>
+
+                <a
+                    href="#"
+                    class="inline-flex mt-8 bg-agricolus hover:bg-[#8aca38] text-white px-7 py-4 rounded-full font-semibold transition"
+                >
+                    Descubre AgriTrack
+                </a>
+
+            </div>
+
+
+            <div class="relative">
+
+                <div class="absolute -inset-10 bg-agricolus/10 rounded-full blur-3xl"></div>
+
+                <img
+                    src="https://images.unsplash.com/photo-1492496913980-501348b61469?auto=format&fit=crop&w=1000&q=80"
+                    class="relative rounded-[35px] w-full h-[430px] object-cover"
+                    alt="Cadena agroalimentaria"
+                >
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     SENSORES Y MAQUINARIA
+========================================================= -->
+
+<section class="py-24 bg-[#F7F9F5]">
+
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+
+        <div class="text-center max-w-3xl mx-auto mb-14">
+
+            <span class="text-agricolus uppercase tracking-[3px] text-sm font-bold">
+                Sensores y maquinaria
+            </span>
+
+            <h2 class="mt-4 text-4xl md:text-5xl font-bold text-darkgreen">
+                Conecta tus herramientas de campo
+            </h2>
+
+            <p class="mt-5 text-lg text-textgray leading-8">
+                Integra estaciones meteorológicas y maquinaria agrícola
+                para disponer de una visión completa de tus operaciones.
+            </p>
+
+        </div>
+
+
+        <div class="grid md:grid-cols-2 gap-8">
+
+            <!-- WEATHER -->
+            <article class="solution-card bg-white rounded-[30px] overflow-hidden">
+
+                <div class="h-72">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=1000&q=80"
+                        class="w-full h-full object-cover"
+                        alt="Estaciones agrometeorológicas"
+                    >
+
+                </div>
+
+                <div class="p-9">
+
+                    <h3 class="text-2xl font-bold text-darkgreen">
+                        Estaciones agrometeorológicas
+                    </h3>
+
+                    <p class="mt-4 text-textgray leading-7">
+                        Compra o alquila estaciones meteorológicas
+                        integrables con Agricolus para recopilar datos
+                        directamente desde el campo.
+                    </p>
+
+                    <a href="#"
+                       class="inline-flex mt-7 font-semibold text-darkgreen hover:text-agricolus">
+                        Descubrir →
+                    </a>
+
+                </div>
+
+            </article>
+
+
+            <!-- MACHINERY -->
+            <article class="solution-card bg-white rounded-[30px] overflow-hidden">
+
+                <div class="h-72">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1592982537447-6f2a6a0a7c9a?auto=format&fit=crop&w=1000&q=80"
+                        class="w-full h-full object-cover"
+                        alt="Maquinaria agrícola"
+                    >
+
+                </div>
+
+                <div class="p-9">
+
+                    <h3 class="text-2xl font-bold text-darkgreen">
+                        Interoperabilidad de maquinaria
+                    </h3>
+
+                    <p class="mt-4 text-textgray leading-7">
+                        Conecta maquinaria agrícola de diferentes
+                        fabricantes y comparte los datos de tus
+                        operaciones de campo.
+                    </p>
+
+                    <a href="#"
+                       class="inline-flex mt-7 font-semibold text-darkgreen hover:text-agricolus">
+                        Descubrir →
+                    </a>
+
+                </div>
+
+            </article>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     INTEGRACIONES
+========================================================= -->
+
+<section class="py-24 bg-white">
+
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+
+        <div class="grid lg:grid-cols-[1fr_1.3fr] gap-16 items-center">
+
+            <div>
+
+                <span class="text-agricolus uppercase tracking-[3px] text-sm font-bold">
+                    Integraciones
+                </span>
+
+                <h2 class="mt-4 text-4xl md:text-5xl font-bold text-darkgreen">
+                    Lleva Agricolus a tus propios sistemas
+                </h2>
+
+                <p class="mt-6 text-lg text-textgray leading-8">
+                    Integra servicios de previsión y datos de imágenes
+                    con tus propias aplicaciones mediante nuestras APIs.
+                </p>
+
+            </div>
+
+
+            <div class="grid sm:grid-cols-2 gap-5">
+
+                <div class="border border-gray-200 rounded-[25px] p-8 hover:border-agricolus transition">
+
+                    <div class="w-12 h-12 rounded-xl bg-softgreen flex items-center justify-center mb-6">
+
+                        <span class="text-agricolus text-xl font-bold">
+                            API
+                        </span>
+
+                    </div>
+
+                    <h3 class="text-xl font-bold text-darkgreen">
+                        Agricolus APIs Forecast
+                    </h3>
+
+                    <p class="mt-3 text-textgray leading-6">
+                        Modelos de previsión para integraciones
+                        y servicios digitales.
+                    </p>
+
+                    <a href="#" class="inline-block mt-5 font-semibold text-agricolus">
+                        Más información →
+                    </a>
+
+                </div>
+
+
+                <div class="border border-gray-200 rounded-[25px] p-8 hover:border-agricolus transition">
+
+                    <div class="w-12 h-12 rounded-xl bg-softgreen flex items-center justify-center mb-6">
+
+                        <span class="text-agricolus text-xl font-bold">
+                            IMG
+                        </span>
+
+                    </div>
+
+                    <h3 class="text-xl font-bold text-darkgreen">
+                        Agricolus APIs Imagery
+                    </h3>
+
+                    <p class="mt-3 text-textgray leading-6">
+                        Acceso e integración de información
+                        e imágenes para agricultura.
+                    </p>
+
+                    <a href="#" class="inline-block mt-5 font-semibold text-agricolus">
+                        Más información →
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     CTA
+========================================================= -->
+
+<section
+    id="contacto"
+    class="py-24 bg-softgreen"
+>
+
+    <div class="max-w-5xl mx-auto px-6 text-center">
+
+        <div class="w-16 h-16 bg-agricolus rounded-full mx-auto flex items-center justify-center">
+
+            <span class="text-white text-2xl font-bold">
+                A
+            </span>
+
+        </div>
+
+        <h2 class="mt-7 text-4xl md:text-5xl font-bold text-darkgreen">
+            La solución integral para cada necesidad agronómica
+        </h2>
+
+        <p class="mt-6 text-lg text-textgray leading-8 max-w-2xl mx-auto">
+            Simplifica la gestión agrícola y toma decisiones basadas
+            en datos con las herramientas digitales de Agricolus.
+        </p>
+
+        <div class="mt-9 flex flex-wrap justify-center gap-4">
+
+            <a
+                href="#"
+                class="bg-darkgreen hover:bg-[#245337] text-white px-8 py-4 rounded-full font-semibold transition"
+            >
+                Empieza ahora
+            </a>
+
+            <a
+                href="#"
+                class="border border-darkgreen text-darkgreen hover:bg-darkgreen hover:text-white px-8 py-4 rounded-full font-semibold transition"
+            >
+                Contacta con nosotros
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer class="bg-[#10291C] text-white">
+
+    <div class="max-w-7xl mx-auto px-6 lg:px-10 py-16">
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
+
+            <!-- BRAND -->
+            <div>
+
+                <div class="flex items-center gap-2">
+
+                    <div class="w-9 h-9 rounded-full bg-agricolus flex items-center justify-center">
+                        <span class="font-black">A</span>
+                    </div>
+
+                    <span class="font-bold text-xl">
+                        AGRICOLUS
+                    </span>
+
+                </div>
+
+                <p class="mt-5 text-white/55 leading-7">
+                    Tecnología digital para una agricultura
+                    más precisa y sostenible.
+                </p>
+
+            </div>
+
+
+            <!-- SOLUTIONS -->
+            <div>
+
+                <h4 class="font-bold mb-5">
+                    Soluciones
+                </h4>
+
+                <div class="space-y-3 text-white/60 text-sm">
+
+                    <a href="#" class="block hover:text-white">
+                        Satélite
+                    </a>
+
+                    <a href="#" class="block hover:text-white">
+                        Riego y Nutrición
+                    </a>
+
+                    <a href="#" class="block hover:text-white">
+                        Defensa
+                    </a>
+
+                    <a href="#" class="block hover:text-white">
+                        AgriTrack
+                    </a>
+
+                    <a href="#" class="block hover:text-white">
+                        Estaciones agrometeorológicas
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- COMPANY -->
+            <div>
+
+                <h4 class="font-bold mb-5">
+                    Agricolus
+                </h4>
+
+                <div class="space-y-3 text-white/60 text-sm">
+
+                    <a href="#" class="block hover:text-white">
+                        Quiénes somos
+                    </a>
+
+                    <a href="#" class="block hover:text-white">
+                        Academia
+                    </a>
+
+                    <a href="#" class="block hover:text-white">
+                        Sostenibilidad
+                    </a>
+
+                    <a href="#" class="block hover:text-white">
+                        Contactos
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- CONTACT -->
+            <div>
+
+                <h4 class="font-bold mb-5">
+                    Contacto
+                </h4>
+
+                <div class="space-y-3 text-white/60 text-sm">
+
+                    <p>
+                        Via Settevalli 320
+                    </p>
+
+                    <p>
+                        06129 Perugia, Italia
+                    </p>
+
+                    <p>
+                        +39 075 99 75 503
+                    </p>
+
+                    <p>
+                        discover@agricolus.com
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="border-t border-white/10 mt-14 pt-7 flex flex-col md:flex-row justify-between gap-4 text-sm text-white/40">
+
+            <p>
+                © 2026 Agricolus S.r.l.
+            </p>
+
+            <div class="flex gap-6">
+
+                <a href="#" class="hover:text-white">
+                    Privacidad
+                </a>
+
+                <a href="#" class="hover:text-white">
+                    Cookies
+                </a>
+
+                <a href="#" class="hover:text-white">
+                    Legal
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</footer>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+    // Scroll suave para enlaces internos
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+
+        link.addEventListener('click', function(e) {
+
+            const target = document.querySelector(this.getAttribute('href'));
+
+            if (target) {
+
+                e.preventDefault();
+
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+            }
+
+        });
+
+    });
+
+
+    // Cambio visual del header al hacer scroll
+    window.addEventListener('scroll', () => {
+
+        const header = document.querySelector('header');
+
+        if (window.scrollY > 30) {
+
+            header.classList.add('shadow-sm');
+
+        } else {
+
+            header.classList.remove('shadow-sm');
+
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

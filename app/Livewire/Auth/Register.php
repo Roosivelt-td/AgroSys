@@ -249,8 +249,7 @@ class Register extends Component
             ),
             'dni' => $validated['dni'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']
-            ),
+            'password' => $validated['password'],
             'rol_id' => $rolAgricultor
                 ? $rolAgricultor->id
                 : 2,

@@ -41,6 +41,77 @@
             </a>
         </div>
     @else
+        <!-- SECCIÓN: STOCK COSECHADO DISPONIBLE PARA VENTA (LOTES LISTOS PARA COMERCIALIZAR) -->
+        @if(isset($cosechasDisponibles) && count($cosechasDisponibles) > 0)
+        <div class="space-y-4 bg-emerald-500/5 dark:bg-emerald-500/10 p-6 rounded-3xl border border-emerald-500/20 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-agri-green text-white flex items-center justify-center text-lg font-bold shadow-md">
+                        <i class="fa-solid fa-wheat-awn"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-800 dark:text-white italic uppercase leading-none">Stock Cosechado Disponible para Venta</h2>
+                        <p class="text-[10px] text-agri-green font-black uppercase tracking-widest mt-1">Lotes cosechados listos para comercializar</p>
+                    </div>
+                </div>
+                <span class="px-3 py-1 bg-emerald-500 text-white rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm">
+                    {{ count($cosechasDisponibles) }} {{ count($cosechasDisponibles) === 1 ? 'Lote Disponible' : 'Lotes Disponibles' }}
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-2">
+                @foreach($cosechasDisponibles as $cos)
+                @php
+                    $crop = $cos->labor->cultivo ?? null;
+                @endphp
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-white/5 shadow-md flex flex-col justify-between space-y-4 hover:border-agri-green transition-all">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-0.5 bg-amber-500 text-white rounded-lg text-[9px] font-black uppercase italic">
+                                LOTE: {{ $cos->lote_codigo }}
+                            </span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">
+                                {{ $cos->fecha_cosecha->format('d/m/Y') }}
+                            </span>
+                        </div>
+
+                        <div>
+                            <h4 class="text-base font-black text-slate-800 dark:text-white uppercase italic leading-tight">
+                                {{ $crop ? ($crop->detalleCatalogo->nombre ?? 'Cultivo') : 'Cultivo' }}
+                            </h4>
+                            <p class="text-[11px] font-bold text-agri-green uppercase italic">
+                                {{ $crop ? ($crop->variedad ?: 'Generica') : '' }} • Calidad {{ strtoupper($cos->calidad) }}
+                            </p>
+                        </div>
+
+                        @if($crop && $crop->terreno)
+                        <p class="text-[10px] text-slate-400 font-semibold uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-mountain text-slate-300"></i>
+                            <span>Terreno: {{ $crop->terreno->nombre }}</span>
+                        </p>
+                        @endif
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+                        <div>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Stock Disponible</p>
+                            <p class="text-lg font-black text-emerald-600 dark:text-emerald-400 italic leading-none mt-0.5">
+                                {{ number_format($cos->stock_disponible, 2) }} <span class="text-xs text-slate-400 uppercase font-bold">{{ $cos->unidad_medida }}</span>
+                            </p>
+                        </div>
+
+                        <button wire:click="quickSellCosecha({{ $cos->id }})"
+                                class="px-4 py-2 bg-agri-green hover:bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5 italic">
+                            <i class="fa-solid fa-cart-plus text-xs"></i>
+                            <span>Vender</span>
+                        </button>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         <!-- Filtros -->
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-white/5 shadow-md">
         <div class="w-full md:max-w-xs">
@@ -309,30 +380,13 @@
                 </div>
             </div>
             <div class="bg-slate-50 dark:bg-white/5 px-8 py-5 border-t border-slate-100 dark:border-white/5 flex justify-end">
-                <button @click=\"$dispatch('close')\" class=\"px-10 py-3 bg-slate-800 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-all italic\">Cerrar Informe</button>
+                <button @click="$dispatch('close')" class="px-10 py-3 bg-slate-800 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-all italic">Cerrar Informe</button>
             </div>
         </div>
         @endif
     </x-modal>
 
     <!-- MODALES DE ACCIÓN (AL FINAL PARA Z-INDEX) -->
-
-    <!-- 1. MODAL REGISTRO RÁPIDO COMPRADOR -->
-    <x-modal name="modal-add-comprador" :show="false">
-        <div class="bg-white dark:bg-agri-d_bg rounded-xl overflow-hidden shadow-2xl border border-slate-100 dark:border-white/10">
-            <div class="bg-[#003a38] px-6 py-4 flex justify-between items-center text-white">
-                <h3 class="text-lg font-black tracking-tighter uppercase italic">Nuevo Cliente</h3>
-                <button @click="$dispatch('close')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <form wire:submit.prevent="saveQuickComprador" class="p-6 space-y-5">
-                <div class="space-y-1">
-                    <label class="text-[9px] font-black uppercase text-slate-400">Nombre Completo *</label>
-                    <input type="text" wire:model="newCompNombre" class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 text-[11px] font-black uppercase">
-                </div>
-                <button type="submit" class="w-full py-3.5 bg-blue-600 text-white rounded-xl font-black text-[11px] uppercase tracking-[0.2em] italic">REGISTRAR Y SELECCIONAR</button>
-            </form>
-        </div>
-    </x-modal>
 
     <!-- 2. MODAL DE EDICIÓN INDIVIDUAL -->
     <x-modal name="modal-venta-manager" :show="false" focusable>
@@ -348,29 +402,91 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Cultivo -->
                     <div class="space-y-1.5">
-                        <label class="text-[9px] font-black uppercase text-agri-green italic tracking-widest">1. Cultivo / Campaña</label>
-                        <div class="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl p-3 text-xs font-black uppercase text-slate-500 italic">
-                             {{ $cultivoSeleccionadoLabel ?: 'Seleccione un cultivo' }}
-                        </div>
+                        <label class="text-[9px] font-black uppercase text-agri-green italic tracking-widest">1. Cultivo / Campaña *</label>
+                        <select wire:model.live="cultivoSeleccionadoId" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-black p-3.5 shadow-inner uppercase text-slate-800 dark:text-white">
+                            <option value="">SELECCIONAR CULTIVO COSECHADO</option>
+                            @foreach($resultsCultivos as $crop)
+                                <option value="{{ $crop->id }}">{{ $crop->display_name }} (Lote {{ $crop->nombre_lote }})</option>
+                            @endforeach
+                        </select>
+                        @error('cosecha_id') <p class="text-[8px] font-black text-rose-500 uppercase tracking-widest mt-1">Debes seleccionar un cultivo y lote cosechado.</p> @enderror
                     </div>
+
                     <!-- Lote / Calidad -->
                     <div class="space-y-1.5">
-                        <label class="text-[9px] font-black uppercase text-agri-green italic tracking-widest">2. Lote Cosechado</label>
-                        <div class="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl p-3 text-xs font-black uppercase text-slate-500 italic">
-                             {{ $cosechaSeleccionadaLabel ?: 'Seleccione un lote' }}
-                        </div>
+                        <label class="text-[9px] font-black uppercase text-agri-green italic tracking-widest">2. Lote Cosechado *</label>
+                        <select wire:model.live="cosecha_id" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-black p-3.5 shadow-inner uppercase text-slate-800 dark:text-white" {{ !$cultivoSeleccionadoId ? 'disabled' : '' }}>
+                            <option value="">{{ $cultivoSeleccionadoId ? 'SELECCIONAR LOTE COSECHADO' : 'PRIMERO SELECCIONE UN CULTIVO' }}</option>
+                            @foreach($resultsCosechas as $cos)
+                                <option value="{{ $cos->id }}">
+                                    {{ $cos->display_label }} — Stock: {{ number_format($cos->available_stock, 2) }} {{ strtoupper($cos->unidad_medida) }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-50 dark:border-white/5">
-                    <div class="space-y-1.5">
-                        <label class="text-[9px] font-black uppercase text-slate-400">Comprador / Cliente *</label>
-                        <select wire:model="comprador_id" class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-xs font-bold p-3.5 shadow-inner uppercase">
-                            <option value="">SELECCIONAR COMPRADOR</option>
-                            @foreach(\App\Models\Comprador::orderBy('nombre')->get() as $c)
-                                <option value="{{ $c->id }}">{{ $c->nombre }}</option>
-                            @endforeach
-                        </select>
+                    <!-- Comprador / Cliente con Búsqueda Dinámica y Botón '+' -->
+                    <div class="space-y-1.5 relative" @click.outside="showCompradores = false">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[9px] font-black uppercase text-slate-400">Comprador / Cliente *</label>
+                            <button type="button"
+                                    wire:click="openAddComprador"
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 bg-agri-green/10 hover:bg-agri-green text-agri-green hover:text-white rounded-lg text-[9px] font-black uppercase tracking-wider transition-all shadow-xs"
+                                    title="Registrar Nuevo Cliente">
+                                <i class="fa-solid fa-plus text-[10px]"></i>
+                                <span>Nuevo Cliente</span>
+                            </button>
+                        </div>
+
+                        <!-- Si ya está seleccionado -->
+                        @if($comprador_id && $compradorSeleccionadoNombre)
+                            <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-800 border border-agri-green/30 rounded-xl p-3 shadow-inner">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-user-tie text-agri-green text-sm"></i>
+                                    <span class="text-xs font-black uppercase text-slate-800 dark:text-white">{{ $compradorSeleccionadoNombre }}</span>
+                                </div>
+                                <button type="button" wire:click="$set('comprador_id', null); $set('compradorSeleccionadoNombre', ''); showCompradores = true" class="text-slate-400 hover:text-rose-500 p-1 transition-colors">
+                                    <i class="fa-solid fa-xmark text-sm"></i>
+                                </button>
+                            </div>
+                        @else
+                            <div class="relative">
+                                <input type="text"
+                                       wire:model.live="queryComprador"
+                                       @focus="showCompradores = true"
+                                       placeholder="ESCRIBA PARA BUSCAR O FILTRAR CLIENTE..."
+                                       class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold p-3.5 shadow-inner uppercase text-slate-800 dark:text-white focus:ring-agri-green">
+                                <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            </div>
+
+                            <!-- Lista Desplegable Autocompletada -->
+                            @if($showCompradores || strlen($queryComprador) > 0)
+                            <div class="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto custom-scrollbar divide-y divide-slate-100 dark:divide-white/5">
+                                @forelse($resultsCompradores as $c)
+                                    <div wire:click="selectComprador({{ $c->id }}, '{{ addslashes($c->nombre) }}')"
+                                         class="p-3 hover:bg-agri-green/10 dark:hover:bg-white/10 cursor-pointer transition-colors flex items-center justify-between">
+                                        <div>
+                                            <p class="text-xs font-black uppercase text-slate-800 dark:text-white">{{ $c->nombre }}</p>
+                                            @if($c->direccion)
+                                                <p class="text-[9px] text-slate-400 font-bold uppercase"><i class="fa-solid fa-location-dot mr-1"></i>{{ $c->direccion }}</p>
+                                            @endif
+                                        </div>
+                                        <i class="fa-solid fa-check text-agri-green opacity-0 group-hover:opacity-100"></i>
+                                    </div>
+                                @empty
+                                    <div class="p-4 text-center space-y-2">
+                                        <p class="text-xs text-slate-400 font-bold">No se encontraron clientes con este nombre.</p>
+                                        <button type="button" wire:click="openAddComprador" class="px-4 py-2 bg-agri-green text-white rounded-lg text-[10px] font-black uppercase tracking-wider">
+                                            + Registrar "{{ strtoupper($queryComprador) }}"
+                                        </button>
+                                    </div>
+                                @endforelse
+                            </div>
+                            @endif
+                        @endif
+                        @error('comprador_id') <p class="text-[8px] font-black text-rose-500 uppercase tracking-widest mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-[9px] font-black uppercase text-slate-400">Fecha de Venta *</label>
@@ -584,6 +700,49 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </x-modal>
+
+    <!-- 5. MODAL REGISTRO RÁPIDO COMPRADOR (PUESTO AL FINAL PARA SOBREPONERSE CON Z-INDEX SUPERIOR) -->
+    <x-modal name="modal-add-comprador" :show="false">
+        <div class="bg-white dark:bg-agri-d_bg rounded-2xl overflow-hidden shadow-2xl border border-slate-100 dark:border-white/10 relative z-[10000]">
+            <div class="bg-[#003a38] px-6 py-4 flex justify-between items-center text-white">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-agri-green"></i>
+                    <h3 class="text-base font-black tracking-tighter uppercase italic">Nuevo Cliente / Comprador</h3>
+                </div>
+                <button type="button" @click="$dispatch('close')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form wire:submit.prevent="saveQuickComprador" class="p-6 space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[9px] font-black uppercase text-slate-400">Nombre / Razón Social *</label>
+                    <input type="text" wire:model="newCompNombre" required placeholder="EJ. JUAN PÉREZ / AGROIMPORT S.A." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs font-bold uppercase text-slate-800 dark:text-white">
+                    <x-input-error :messages="$errors->get('newCompNombre')" class="mt-1 text-xs" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black uppercase text-slate-400">DNI / RUC</label>
+                        <input type="text" wire:model="newCompRucDni" placeholder="Opcional" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs font-bold uppercase text-slate-800 dark:text-white">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black uppercase text-slate-400">Teléfono</label>
+                        <input type="text" wire:model="newCompTelf" placeholder="Opcional" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs font-bold text-slate-800 dark:text-white">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[9px] font-black uppercase text-slate-400">Dirección / Ubicación (Para diferenciar personas con el mismo nombre)</label>
+                    <input type="text" wire:model="newCompDir" placeholder="EJ. AV. PRINCIPAL 123, LIMA" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs font-bold uppercase text-slate-800 dark:text-white">
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-white/5">
+                    <button type="button" @click="$dispatch('close')" class="px-5 py-2.5 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-slate-200 transition-all">Cancelar</button>
+                    <button type="submit" class="px-8 py-2.5 bg-agri-green hover:bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-wider shadow-md transition-all">
+                        Registrar y Seleccionar
+                    </button>
+                </div>
+            </form>
         </div>
     </x-modal>
 </div>

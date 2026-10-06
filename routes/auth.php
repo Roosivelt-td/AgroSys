@@ -22,6 +22,11 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::post('logout', function (\App\Livewire\Actions\Logout $logout) {
+        $logout();
+        return redirect('/');
+    })->name('logout');
+
     Route::get('verify-email', VerifyEmail::class)
         ->name('verification.notice');
 

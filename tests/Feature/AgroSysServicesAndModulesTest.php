@@ -143,14 +143,14 @@ class AgroSysServicesAndModulesTest extends TestCase
         $testOrg->update(['nombre' => 'Empresa Audit Test Editada']);
         $this->assertDatabaseHas('historial_procesos', [
             'tabla_afectada' => 'organizaciones',
-            'accion' => 'UPDATE'
+            'accion' => 'UPDATED'
         ]);
 
         // Probar DELETE audit
         $testOrg->delete();
         $this->assertDatabaseHas('historial_procesos', [
             'tabla_afectada' => 'organizaciones',
-            'accion' => 'DELETE'
+            'accion' => 'DELETED'
         ]);
     }
 

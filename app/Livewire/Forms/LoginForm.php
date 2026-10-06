@@ -21,6 +21,15 @@ class LoginForm extends Form
     #[Validate('boolean')]
     public bool $remember = false;
 
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Ingresa un correo electrónico válido.',
+            'password.required' => 'La contraseña es obligatoria.',
+        ];
+    }
+
     /**
      * Attempt to authenticate the request's credentials.
      *

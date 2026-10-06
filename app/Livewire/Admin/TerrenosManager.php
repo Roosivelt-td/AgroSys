@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\Terreno;
 use App\Models\MiembroOrganizacion;
 use App\Models\ArchivoMultimedia;
+use App\Models\HistorialProceso;
 use App\Services\AgroStorageService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -49,6 +50,14 @@ class TerrenosManager extends Component
     public $landPhoto;
     public $currentPhotoPath;
 
+    // Propiedades para Renovación de Alquiler de Terreno
+    public $renewTerrenoId = null;
+    public $renewTerrenoNombre = '';
+    public $renewFechaAlquiler = '';
+    public $renewFechaVencimiento = '';
+    public $renewCostoAnual = 0;
+    public $renewModalidad = 'global';
+
     // Versión para forzar re-montado de componentes React en Modales
     public $modalVersion = 0;
 
@@ -80,6 +89,49 @@ class TerrenosManager extends Component
         $this->landWater = 'Riego por goteo';
         $this->landStatus = 'activo';
         $this->modalVersion++;
+    }
+
+    public function openRenewModal($id)
+    {
+        $terreno = Terreno::findOrFail($id);
+        $this->renewTerrenoId = $terreno->id;
+        $this->renewTerrenoNombre = $terreno->nombre;
+        $this->renewFechaAlquiler = date('Y-m-d');
+        $this->renewFechaVencimiento = Carbon::now()->addYear()->format('Y-m-d');
+        $this->renewCostoAnual = $terreno->costo_alquiler_anual;
+        $this->renewModalidad = $terreno->alquiler_modalidad ?: 'global';
+
+        $this->dispatch('open-modal', 'modal-renew-alquiler');
+    }
+
+    public function renewAlquiler()
+    {
+        $this->validate([
+            'renewFechaAlquiler' => 'required|date',
+            'renewFechaVencimiento' => 'required|date|after:renewFechaAlquiler',
+            'renewCostoAnual' => 'required|numeric|min:0|max:10000000',
+        ], [
+            'renewFechaAlquiler.required' => 'La fecha de inicio del nuevo contrato es obligatoria.',
+            'renewFechaVencimiento.required' => 'La fecha de vencimiento es obligatoria.',
+            'renewFechaVencimiento.after' => 'La fecha de vencimiento debe ser posterior al inicio.',
+            'renewCostoAnual.required' => 'El costo del alquiler es obligatorio.',
+        ]);
+
+        $terreno = Terreno::findOrFail($this->renewTerrenoId);
+
+        // Actualizamos los datos del nuevo contrato de alquiler en el terreno.
+        // NOTA IMPORTANTE DE INTEGRIDAD FINANCIERA HISTÓRICA:
+        // Los registros pasados de cultivos cosechados conservan intactas sus cifras históricas.
+        $terreno->update([
+            'fecha_alquiler' => $this->renewFechaAlquiler,
+            'fecha_vencimiento_alquiler' => $this->renewFechaVencimiento,
+            'costo_alquiler_anual' => $this->renewCostoAnual,
+            'alquiler_modalidad' => $this->renewModalidad,
+        ]);
+
+        $this->dispatch('close-modal', 'modal-renew-alquiler');
+        $this->reset(['renewTerrenoId', 'renewTerrenoNombre', 'renewFechaAlquiler', 'renewFechaVencimiento', 'renewCostoAnual', 'renewModalidad']);
+        session()->flash('status', "El contrato de alquiler del terreno '{$terreno->nombre}' ha sido renovado exitosamente. Ahora está habilitado para nuevas campañas.");
     }
 
     public function updatedLandRentMod($value)
@@ -367,7 +419,7 @@ class TerrenosManager extends Component
             ->get()
             ->map(function($t) use ($user) {
                 $esMio = $t->usuario_id === $user->id;
-                $isExpired = $t->fecha_vencimiento_alquiler && $t->fecha_vencimiento_alquiler->isPast();
+                $isExpired = $t->is_alquiler_vencido;
 
                 // Si es un terreno alquilado y venció
                 if ($t->tipo_tenencia === 'alquilado' && $isExpired) {

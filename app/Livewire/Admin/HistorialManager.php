@@ -4,7 +4,11 @@ namespace App\Livewire\Admin;
 
 use App\Models\HistorialProceso;
 use App\Models\Organizacion;
-use App\Models\RolesOrganizacion;
+use App\Models\Terreno;
+use App\Models\Cultivo;
+use App\Models\Labor;
+use App\Models\Cosecha;
+use App\Models\Venta;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -16,6 +20,12 @@ class HistorialManager extends Component
 
     public $search = '';
     public $selectedItem = null;
+    public $selectedUserLog = null;
+    public $selectedTerreno = null;
+    public $selectedCultivo = null;
+    public $selectedLabor = null;
+    public $selectedCosecha = null;
+    public $selectedVenta = null;
 
     // Filtros
     public $filterCategory = ''; // 'all', 'super_admin', 'admin_org', 'supervisor', 'agricultor'
@@ -31,6 +41,41 @@ class HistorialManager extends Component
         $this->selectedItem = null;
     }
 
+    public function showUserDetails($id)
+    {
+        $this->selectedUserLog = HistorialProceso::with(['usuario.rol', 'usuario.membresias.organizacion', 'organizacion'])->find($id);
+        $this->selectedTerreno = null;
+        $this->selectedCultivo = null;
+        $this->selectedLabor = null;
+        $this->selectedCosecha = null;
+        $this->selectedVenta = null;
+
+        if ($this->selectedUserLog) {
+            $tabla = $this->selectedUserLog->tabla_afectada;
+            if ($tabla === 'terrenos') {
+                $this->selectedTerreno = Terreno::withTrashed()->find($this->selectedUserLog->registro_id);
+            } elseif ($tabla === 'cultivos') {
+                $this->selectedCultivo = Cultivo::with(['detalleCatalogo', 'terreno'])->find($this->selectedUserLog->registro_id);
+            } elseif ($tabla === 'labores') {
+                $this->selectedLabor = Labor::with(['detalleCatalogo', 'cultivo.detalleCatalogo', 'cultivo.terreno'])->find($this->selectedUserLog->registro_id);
+            } elseif ($tabla === 'cosechas') {
+                $this->selectedCosecha = Cosecha::with(['labor.cultivo.detalleCatalogo', 'labor.cultivo.terreno'])->find($this->selectedUserLog->registro_id);
+            } elseif ($tabla === 'ventas') {
+                $this->selectedVenta = Venta::with(['cosecha.labor.cultivo.detalleCatalogo'])->find($this->selectedUserLog->registro_id);
+            }
+        }
+    }
+
+    public function closeUserDetails()
+    {
+        $this->selectedUserLog = null;
+        $this->selectedTerreno = null;
+        $this->selectedCultivo = null;
+        $this->selectedLabor = null;
+        $this->selectedCosecha = null;
+        $this->selectedVenta = null;
+    }
+
     public function render()
     {
         $query = HistorialProceso::with(['usuario.rol', 'organizacion'])
@@ -39,7 +84,13 @@ class HistorialManager extends Component
         if ($this->search) {
             $query->where(function($q) {
                 $q->where('descripcion', 'like', '%' . $this->search . '%')
-                  ->orWhere('tabla_afectada', 'like', '%' . $this->search . '%');
+                  ->orWhere('tabla_afectada', 'like', '%' . $this->search . '%')
+                  ->orWhereHas('usuario', function($u) {
+                      $u->where('nombres', 'like', '%' . $this->search . '%')
+                        ->orWhere('apellidos', 'like', '%' . $this->search . '%')
+                        ->orWhere('email', 'like', '%' . $this->search . '%')
+                        ->orWhere('dni', 'like', '%' . $this->search . '%');
+                  });
             });
         }
 
@@ -56,7 +107,6 @@ class HistorialManager extends Component
                     $query->whereHas('usuario.membresias.roles.rolDetalle', fn($q) => $q->where('nombre', 'Supervisor'));
                     break;
                 case 'agricultor':
-                    // Usuario que es Agricultor global y no tiene otros cargos superiores o simplemente agricultor interno
                     $query->whereHas('usuario', fn($q) => $q->where('rol_id', 2));
                     break;
             }

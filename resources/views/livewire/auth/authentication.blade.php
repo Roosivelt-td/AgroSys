@@ -1,225 +1,279 @@
-<div class="min-h-screen w-full relative overflow-hidden bg-black font-sans flex items-center justify-center">
-    <!-- Background Image with Cinematic Overlay -->
-    <div class="absolute inset-0 z-0">
-        <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2832&auto=format&fit=crop"
-             alt="Campos Agrícolas"
-             class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-br from-black/95 via-black/40 to-black/90"></div>
-    </div>
+<div x-data="{ showPassword: false }">
+    <div class="text-[#173B27] bg-white font-sans">
 
-    <!-- Main Responsive Grid Container -->
-    <div class="relative z-10 w-full max-w-[1600px] mx-auto h-screen flex flex-col lg:flex-row items-center justify-center px-6 md:px-20 gap-10">
+        <style>
+            .container-main {
+                width: min(1180px, calc(100% - 40px));
+                margin: auto;
+            }
+            .hero-grid {
+                background-image:
+                    linear-gradient(rgba(23,59,39,.045) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(23,59,39,.045) 1px, transparent 1px);
+                background-size: 48px 48px;
+            }
+            .auth-card {
+                transition: transform .35s ease, box-shadow .35s ease;
+            }
+            .auth-card:hover {
+                box-shadow: 0 25px 70px rgba(23,59,39,.12);
+            }
+        </style>
 
-        <!-- Left Section: Branding (Hidden on Mobile) -->
-        <div class="hidden lg:flex flex-1 flex-col items-start select-none animate-in fade-in slide-in-from-left-10 duration-1000">
-            <h1 class="text-[8rem] xl:text-[11rem] font-black italic tracking-tighter drop-shadow-[0_20px_20px_rgba(0,0,0,0.8)] leading-none whitespace-nowrap">
-                <span class="bg-gradient-to-b from-[#55cd44] via-[#2d9e1c] to-[#1b5e0f] bg-clip-text text-transparent py-2">Agro</span><span class="bg-gradient-to-b from-[#ff8a00] via-[#e65100] to-[#b71c1c] bg-clip-text text-transparent py-2">Sys</span>
-            </h1>
-            <p class="text-white text-2xl xl:text-3xl font-bold mt-6 tracking-tight drop-shadow-xl italic opacity-80 max-w-xl">
-                Tecnología que hace crecer el campo
-            </p>
-        </div>
+        <!-- =========================================================
+             HERO / AUTH SECTION
+        ========================================================= -->
+        <section class="pt-12 pb-20 bg-[#F7F9F5] hero-grid overflow-hidden min-h-[calc(100vh-82px)] flex items-center">
+            <div class="max-w-7xl mx-auto px-6 lg:px-10 py-8 w-full">
 
-        <!-- Right Section: Auth Card & Icons -->
-        <div class="flex flex-col items-center justify-center w-full max-w-[450px] animate-in fade-in zoom-in duration-1000">
+                <div class="grid lg:grid-cols-12 gap-12 items-center">
 
-            <!-- Transparent Auth Card -->
-            <div class="w-full bg-black/40 backdrop-blur-3xl border border-white/10 rounded-[4rem] p-10 md:p-14 shadow-[0_50px_100px_-20px_rgba(0,0,0,1)] transition-all duration-700 hover:border-white/20 relative overflow-hidden">
-
-                <!-- Inner Branding -->
-                <div class="text-center mb-10">
-                    <h2 class="text-4xl font-black italic tracking-tighter drop-shadow-lg mb-2 whitespace-nowrap">
-                        <span class="bg-gradient-to-b from-[#55cd44] to-[#1b5e0f] bg-clip-text text-transparent py-1">Agro</span><span class="bg-gradient-to-b from-[#ff8a00] to-[#b71c1c] bg-clip-text text-transparent py-1">Sys</span>
-                    </h2>
-                    <p class="text-white/30 text-[10px] font-black uppercase tracking-[0.4em] italic">
-                        @if($mode === 'login') Iniciar Sesión @elseif($mode === 'register') Registro @else Recuperar Cuenta @endif
-                    </p>
-                    <div class="w-14 h-1 bg-gradient-to-r from-agri-green to-orange-600 rounded-full mx-auto mt-4 opacity-40"></div>
-                </div>
-
-                <x-auth-session-status class="mb-6" :status="session('status')" />
-
-                <!-- LOGIN FORM -->
-                @if($mode === 'login')
-                <form wire:submit="login" class="space-y-6">
-                    <div class="relative">
-                        <div class="flex items-center bg-[#eef2f7] rounded-xl overflow-hidden shadow-inner h-14 border-b-4 border-agri-green transition-all">
-                            <div class="w-12 flex items-center justify-center text-agri-green border-r border-slate-200/50">
-                                <i class="fa-regular fa-id-badge text-lg"></i>
-                            </div>
-                            <input wire:model="loginForm.email" type="email" required autofocus placeholder="raul@agrosys.com" class="flex-1 bg-transparent border-none text-slate-800 text-sm focus:ring-0 outline-none px-4 font-bold placeholder:text-slate-400">
+                    <!-- LEFT PANEL: Hero Info Showcase -->
+                    <div class="lg:col-span-5 space-y-6">
+                        <div class="inline-flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm border border-gray-100">
+                            <img src="{{ asset('AgroSys_logo.png') }}" alt="AgroSys Logo" class="w-4 h-4 object-contain inline-block mr-1 align-middle">
+                            <span class="text-xs font-bold uppercase tracking-[2px] text-[#173B27]">Acceso a la plataforma</span>
                         </div>
-                        <x-input-error :messages="$errors->get('loginForm.email')" class="mt-1" />
+
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-[#173B27]">
+                            Potencia la gestión de tu campo con <span style="color: #0a5f18;">Agro</span><span style="color: #f54e05;">Sys</span>
+                        </h1>
+
+                        <p class="text-lg text-[#5E665F] leading-8">
+                            Ingresa o crea tu cuenta para acceder a la tecnología de monitoreo satelital, análisis agronómico y control total de tus terrenos y cultivos.
+                        </p>
+
+                        <!-- Feature highlights -->
+                        <div class="space-y-4 pt-4 border-t border-gray-200/60">
+                            <div class="flex items-center gap-3 text-sm font-semibold text-[#173B27]">
+                                <div class="w-7 h-7 rounded-full bg-[#e8f1dc] text-[#78B82A] flex items-center justify-center font-bold">✓</div>
+                                <span>Monitoreo satelital en tiempo real</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm font-semibold text-[#173B27]">
+                                <div class="w-7 h-7 rounded-full bg-[#e8f1dc] text-[#78B82A] flex items-center justify-center font-bold">✓</div>
+                                <span>Modelos predictivos de riego y plagas</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm font-semibold text-[#173B27]">
+                                <div class="w-7 h-7 rounded-full bg-[#e8f1dc] text-[#78B82A] flex items-center justify-center font-bold">✓</div>
+                                <span>Cuaderno de campo digital y trazabilidad</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="relative" x-data="{ show: false }">
-                        <div class="flex items-center bg-[#eef2f7] rounded-xl overflow-hidden shadow-inner h-14 border-b-4 border-slate-300 focus-within:border-agri-green transition-all">
-                            <div class="w-12 flex items-center justify-center text-slate-400 border-r border-slate-200/50">
-                                <i class="fa-solid fa-key text-lg"></i>
-                            </div>
-                            <input wire:model="loginForm.password" :type="show ? 'text' : 'password'" required placeholder="••••••••" class="flex-1 bg-transparent border-none text-slate-800 text-sm focus:ring-0 outline-none px-4 font-bold placeholder:text-slate-400">
-                            <button type="button" @click="show = !show" class="w-10 h-full flex items-center justify-center text-slate-300 hover:text-agri-green transition-colors">
-                                <i class="fa-regular" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    <!-- RIGHT PANEL: Livewire Auth Card -->
+                    <div class="lg:col-span-7 bg-white rounded-[32px] p-8 md:p-12 shadow-xl border border-gray-100 auth-card">
+
+                        <!-- Mode Switcher Tabs -->
+                        @if($mode !== 'waiting_authorization')
+                        <div class="flex items-center justify-center bg-[#F7F9F5] p-1.5 rounded-full border border-gray-100 mb-8 max-w-sm mx-auto w-full">
+                            <button type="button"
+                                    wire:click="setMode('login')"
+                                    class="flex-1 py-3 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all duration-300 {{ $mode === 'login' ? 'bg-[#173B27] text-white shadow-md' : 'text-gray-500 hover:text-[#173B27]' }}">
+                                Iniciar sesión
+                            </button>
+                            <button type="button"
+                                    wire:click="setMode('register')"
+                                    class="flex-1 py-3 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all duration-300 {{ $mode === 'register' ? 'bg-[#173B27] text-white shadow-md' : 'text-gray-500 hover:text-[#173B27]' }}">
+                                Registrarse
                             </button>
                         </div>
-                        <x-input-error :messages="$errors->get('loginForm.password')" class="mt-1" />
-                    </div>
+                        @endif
 
-                    <button type="submit" class="w-full py-3.5 bg-agri-green text-white rounded-full font-black uppercase text-[14px] tracking-[0.3em] shadow-[0_20px_40px_-10px_rgba(0,186,46,0.5)] hover:scale-105 active:scale-95 transition-all mt-6 relative overflow-hidden group/btn italic">
-                        <span class="relative z-10">Iniciar sesión</span>
-                        <div class="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500"></div>
-                    </button>
+                        <x-auth-session-status class="mb-6" :status="session('status')" />
 
-                    <div class="text-center pt-2">
-                        <button type="button" wire:click="setMode('forgot')" class="text-[12px] font-black text-white/20 hover:text-agri-green uppercase tracking-[0.3em] transition-colors italic">
-                            ¿Olvidaste tu contraseña?
-                        </button>
-                    </div>
-                </form>
-                @endif
-
-                <!-- REGISTER FORM -->
-                @if($mode === 'register')
-                <form wire:submit="register" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="relative">
-                            <div class="flex items-center bg-[#eef2f7] rounded-xl overflow-hidden shadow-inner h-12 border-b-2 border-agri-green">
-                                <input wire:model.live="nombres"
-                                       type="text"
-                                       required
-                                       placeholder="Nombres"
-                                       class="w-full bg-transparent border-none text-slate-800 text-xs focus:ring-0 px-4 font-bold"
-                                       oninput="this.value = this.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ ]/g, '').replace(/(\s{2,})/g, ' ')">
+                        <!-- LOGIN MODE -->
+                        @if($mode === 'login')
+                        <form wire:submit="login" class="space-y-5 max-w-md mx-auto w-full">
+                            <div class="text-center mb-4 space-y-1">
+                                <h2 class="text-2xl font-bold text-[#173B27]">Bienvenido de nuevo</h2>
+                                <p class="text-xs text-[#5E665F]">Ingresa tus credenciales para acceder a la plataforma</p>
                             </div>
-                            <x-input-error :messages="$errors->get('nombres')" class="mt-1" />
-                        </div>
-                        <div class="relative">
-                            <div class="flex items-center bg-[#eef2f7] rounded-xl overflow-hidden shadow-inner h-12 border-b-2 border-agri-green">
-                                <input wire:model.live="apellidos"
-                                       type="text"
-                                       required
-                                       placeholder="Apellidos"
-                                       class="w-full bg-transparent border-none text-slate-800 text-xs focus:ring-0 px-4 font-bold"
-                                       oninput="this.value = this.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ ]/g, '').replace(/(\s{2,})/g, ' ')">
+
+                            <!-- Email -->
+                            <div>
+                                <label class="block text-xs font-bold text-[#173B27] uppercase tracking-wider mb-2">Correo electrónico</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                                        <i class="fa-regular fa-envelope text-sm"></i>
+                                    </div>
+                                    <input wire:model="loginEmail"
+                                           name="loginEmail"
+                                           type="email"
+                                           required
+                                           autofocus
+                                           autocomplete="username"
+                                           placeholder="tu@email.com"
+                                           class="w-full pl-11 pr-4 py-3.5 bg-[#F7F9F5] border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#78B82A] focus:border-transparent transition">
+                                </div>
+                                <x-input-error :messages="$errors->get('loginEmail')" class="mt-1 text-xs" />
                             </div>
-                            <x-input-error :messages="$errors->get('apellidos')" class="mt-1" />
+
+                            <!-- Password -->
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="block text-xs font-bold text-[#173B27] uppercase tracking-wider">Contraseña</label>
+                                    <button type="button" wire:click="setMode('forgot')" class="text-xs font-bold text-[#78B82A] hover:underline">
+                                        ¿Olvidaste tu contraseña?
+                                    </button>
+                                </div>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                                        <i class="fa-solid fa-lock text-sm"></i>
+                                    </div>
+                                    <input wire:model="loginPassword"
+                                           name="loginPassword"
+                                           :type="showPassword ? 'text' : 'password'"
+                                           required
+                                           autocomplete="current-password"
+                                           placeholder="••••••••"
+                                           class="w-full pl-11 pr-11 py-3.5 bg-[#F7F9F5] border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#78B82A] focus:border-transparent transition">
+                                    <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600">
+                                        <i class="fa-regular" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                    </button>
+                                </div>
+                                <x-input-error :messages="$errors->get('loginPassword')" class="mt-1 text-xs" />
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="w-full py-4 bg-[#173B27] hover:bg-[#245337] text-white rounded-full font-bold text-sm uppercase tracking-wider shadow-md transition transform hover:-translate-y-0.5 active:translate-y-0">
+                                Iniciar sesión
+                            </button>
+                        </form>
+                        @endif
+
+                        <!-- WAITING AUTHORIZATION MODE -->
+                        @if($mode === 'waiting_authorization')
+                        <div wire:poll.2s="checkAuthorizationStatus" class="space-y-6 max-w-md mx-auto w-full text-center py-4">
+                            <div class="w-16 h-16 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto text-3xl animate-pulse">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                            </div>
+
+                            <div class="space-y-2">
+                                <h2 class="text-2xl font-bold text-[#173B27]">Sesión Activa Detectada</h2>
+                                <p class="text-xs text-[#5E665F] leading-relaxed">
+                                    Esta cuenta ya tiene una sesión abierta en otro dispositivo. Se ha enviado una solicitud de autorización al dispositivo activo.
+                                </p>
+                            </div>
+
+                            <div class="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs space-y-2 text-left">
+                                <div class="flex items-center justify-between text-amber-800 font-bold">
+                                    <span>Estado de la Solicitud:</span>
+                                    <span class="inline-flex items-center gap-1.5 text-amber-600 font-black">
+                                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                                        Esperando confirmación...
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-amber-700 leading-normal">
+                                    Por seguridad, el usuario en el dispositivo activo debe ingresar su contraseña para autorizar la transferencia de sesión.
+                                </p>
+                            </div>
+
+                            <button type="button"
+                                    wire:click="cancelWaitingAuthorization"
+                                    class="w-full py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full font-bold text-xs uppercase tracking-wider transition">
+                                Cancelar y volver
+                            </button>
                         </div>
+                        @endif
+
+                        <!-- REGISTER MODE -->
+                        @if($mode === 'register')
+                        <form wire:submit="register" class="space-y-4 max-w-md mx-auto w-full">
+                            <div class="text-center mb-4 space-y-1">
+                                <h2 class="text-2xl font-bold text-[#173B27]">Crea tu cuenta en <span style="color: #0a5f18;">Agro</span><span style="color: #f54e05;">Sys</span></h2>
+                                <p class="text-xs text-[#5E665F]">Únete para gestionar tus terrenos, cultivos y operaciones agrícolas</p>
+                            </div>
+
+                            <!-- Nombres y Apellidos -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-[#173B27] uppercase tracking-wider mb-1">Nombres</label>
+                                    <input wire:model="nombres" type="text" required placeholder="Nombres"
+                                           class="w-full px-4 py-3 bg-[#F7F9F5] border border-gray-200 rounded-2xl text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#78B82A]"
+                                           oninput="this.value = this.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ ]/g, '').replace(/(\s{2,})/g, ' ')">
+                                    <x-input-error :messages="$errors->get('nombres')" class="mt-1 text-xs" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-[#173B27] uppercase tracking-wider mb-1">Apellidos</label>
+                                    <input wire:model="apellidos" type="text" required placeholder="Apellidos"
+                                           class="w-full px-4 py-3 bg-[#F7F9F5] border border-gray-200 rounded-2xl text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#78B82A]"
+                                           oninput="this.value = this.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ ]/g, '').replace(/(\s{2,})/g, ' ')">
+                                    <x-input-error :messages="$errors->get('apellidos')" class="mt-1 text-xs" />
+                                </div>
+                            </div>
+
+                            <!-- DNI -->
+                            <div>
+                                <label class="block text-xs font-bold text-[#173B27] uppercase tracking-wider mb-1">DNI (8 dígitos)</label>
+                                <input wire:model="dni" type="text" inputmode="numeric" maxlength="8" required placeholder="12345678"
+                                       class="w-full px-4 py-3 bg-[#F7F9F5] border border-gray-200 rounded-2xl text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#78B82A]"
+                                       onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                                <x-input-error :messages="$errors->get('dni')" class="mt-1 text-xs" />
+                            </div>
+
+                            <!-- Email -->
+                            <div>
+                                <label class="block text-xs font-bold text-[#173B27] uppercase tracking-wider mb-1">Correo electrónico</label>
+                                <input wire:model="email" type="email" required placeholder="tu@email.com"
+                                       class="w-full px-4 py-3 bg-[#F7F9F5] border border-gray-200 rounded-2xl text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#78B82A]">
+                                <x-input-error :messages="$errors->get('email')" class="mt-1 text-xs" />
+                            </div>
+
+                            <!-- Contraseñas -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-[#173B27] uppercase tracking-wider mb-1">Contraseña</label>
+                                    <input wire:model="password" type="password" required placeholder="••••••••"
+                                           class="w-full px-4 py-3 bg-[#F7F9F5] border border-gray-200 rounded-2xl text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#78B82A]">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-[#173B27] uppercase tracking-wider mb-1">Confirmar</label>
+                                    <input wire:model="password_confirmation" type="password" required placeholder="••••••••"
+                                           class="w-full px-4 py-3 bg-[#F7F9F5] border border-gray-200 rounded-2xl text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#78B82A]">
+                                </div>
+                            </div>
+                            <x-input-error :messages="$errors->get('password')" class="mt-1 text-xs" />
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="w-full py-4 bg-[#78B82A] hover:bg-[#609B20] text-white rounded-full font-bold text-sm uppercase tracking-wider shadow-md transition transform hover:-translate-y-0.5 active:translate-y-0 mt-2">
+                                Crear mi cuenta
+                            </button>
+                        </form>
+                        @endif
+
+                        <!-- FORGOT MODE -->
+                        @if($mode === 'forgot')
+                        <form wire:submit="sendResetLink" class="space-y-5 max-w-md mx-auto w-full">
+                            <div class="text-center mb-4 space-y-1">
+                                <h2 class="text-2xl font-bold text-[#173B27]">Recuperar contraseña</h2>
+                                <p class="text-xs text-[#5E665F]">Ingresa tu correo y te enviaremos las instrucciones de acceso</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-[#173B27] uppercase tracking-wider mb-2">Correo registrado</label>
+                                <input wire:model="forgotEmail" type="email" required placeholder="tu@email.com"
+                                       class="w-full px-4 py-3.5 bg-[#F7F9F5] border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#78B82A]">
+                                <x-input-error :messages="$errors->get('forgotEmail')" class="mt-1 text-xs" />
+                            </div>
+
+                            <button type="submit" class="w-full py-4 bg-[#173B27] hover:bg-[#245337] text-white rounded-full font-bold text-sm uppercase tracking-wider shadow-md transition">
+                                Enviar instrucciones
+                            </button>
+
+                            <div class="text-center pt-2">
+                                <button type="button" wire:click="setMode('login')" class="text-xs font-bold text-[#78B82A] hover:underline">
+                                    ← Volver a Iniciar sesión
+                                </button>
+                            </div>
+                        </form>
+                        @endif
+
                     </div>
 
-                    <div class="relative">
-                        <div class="flex items-center bg-[#eef2f7] rounded-xl overflow-hidden shadow-inner h-12 border-b-2 border-agri-green">
-                            <div class="w-10 flex items-center justify-center text-agri-green border-r border-slate-200/30">
-                                <i class="fa-regular fa-address-card"></i>
-                            </div>
-                            <input wire:model="dni"
-                                   type="text"
-                                   inputmode="numeric"
-                                   pattern="[0-9]*"
-                                   maxlength="8"
-                                   required
-                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57"
-                                   placeholder="DNI (8 dígitos)"
-                                   class="flex-1 bg-transparent border-none text-slate-800 text-xs focus:ring-0 px-4 font-bold placeholder:text-slate-400">
-                        </div>
-                        <x-input-error :messages="$errors->get('dni')" class="mt-1" />
-                    </div>
-
-                    <div class="relative">
-                        <div class="flex items-center bg-[#eef2f7] rounded-xl overflow-hidden shadow-inner h-12 border-b-2 border-agri-green">
-                            <div class="w-10 flex items-center justify-center text-agri-green border-r border-slate-200/30">
-                                <i class="fa-regular fa-envelope"></i>
-                            </div>
-                            <input wire:model="email" type="email" required placeholder="Email" class="flex-1 bg-transparent border-none text-slate-800 text-xs focus:ring-0 px-4 font-bold">
-                        </div>
-                        <x-input-error :messages="$errors->get('email')" class="mt-1" />
-                    </div>
-
-                    <div class="relative">
-                        <div class="flex items-center bg-[#eef2f7] rounded-xl overflow-hidden shadow-inner h-12 border-b-2 border-slate-300 focus-within:border-agri-green">
-                            <div class="w-10 flex items-center justify-center text-slate-400 border-r border-slate-200/30">
-                                <i class="fa-solid fa-lock"></i>
-                            </div>
-                            <input wire:model="password" type="password" required placeholder="Contraseña" class="flex-1 bg-transparent border-none text-slate-800 text-xs focus:ring-0 px-4 font-bold">
-                        </div>
-                    </div>
-
-                    <div class="relative">
-                        <div class="flex items-center bg-[#eef2f7] rounded-xl overflow-hidden shadow-inner h-12 border-b-2 border-slate-300 focus-within:border-agri-green">
-                            <div class="w-10 flex items-center justify-center text-slate-400 border-r border-slate-200/30">
-                                <i class="fa-solid fa-lock-open"></i>
-                            </div>
-                            <input wire:model="password_confirmation" type="password" required placeholder="Confirmar" class="flex-1 bg-transparent border-none text-slate-800 text-xs focus:ring-0 px-4 font-bold">
-                        </div>
-                    </div>
-                    <x-input-error :messages="$errors->get('password')" class="mt-1" />
-
-                    <button type="submit" class="w-full py-3.5 bg-agri-green text-white rounded-full font-black uppercase text-[12px] tracking-[0.2em] shadow-lg hover:scale-105 active:scale-95 transition-all mt-4 relative overflow-hidden group/btn italic">
-                        <span class="relative z-10">Unirme ahora</span>
-                        <div class="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500"></div>
-                    </button>
-                </form>
-                @endif
-
-                <!-- FORGOT PASSWORD FORM -->
-                @if($mode === 'forgot')
-                <form wire:submit="sendResetLink" class="space-y-6">
-                    <p class="text-white/50 text-[14px] text-center italic leading-relaxed">
-                        Ingresa tu email institucional y te enviaremos las instrucciones de recuperación.
-                    </p>
-                    <div class="relative">
-                        <div class="flex items-center bg-[#eef2f7] rounded-xl overflow-hidden shadow-inner h-14 border-b-4 border-agri-green transition-all">
-                            <div class="w-12 flex items-center justify-center text-agri-green border-r border-slate-200/50">
-                                <i class="fa-solid fa-paper-plane"></i>
-                            </div>
-                            <input wire:model="forgotEmail" type="email" required placeholder="tu-correo@agrosys.com" class="flex-1 bg-transparent border-none text-slate-800 text-sm focus:ring-0 outline-none px-4 font-bold placeholder:text-slate-400">
-                        </div>
-                        <x-input-error :messages="$errors->get('forgotEmail')" class="mt-1" />
-                    </div>
-
-                    <button type="submit" class="w-full py-3.5 bg-agri-green text-white rounded-full font-black uppercase text-[12px] tracking-[0.3em] shadow-lg hover:scale-105 active:scale-95 transition-all mt-6 relative overflow-hidden group/btn italic">
-                        <span class="relative z-10">Enviar Instrucciones</span>
-                        <div class="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500"></div>
-                    </button>
-                </form>
-                @endif
-
-                <!-- Footer Section -->
-                <div class="mt-8 text-center border-t border-white/5 pt-8">
-                    @if($mode === 'login')
-                        <p class="text-[12px] text-white/20 font-black uppercase tracking-[0.2em]">
-                            ¿Nuevo miembro?
-                            <button type="button" wire:click="setMode('register')" class="text-agri-green font-black ml-2 hover:underline tracking-widest italic transition-all">Únete ahora</button>
-                        </p>
-                    @else
-                        <p class="text-[12px] text-white/20 font-black uppercase tracking-[0.2em]">
-                            ¿Ya tienes cuenta?
-                            <button type="button" wire:click="setMode('login')" class="text-agri-green font-black ml-2 hover:underline tracking-widest italic transition-all">Inicia sesión</button>
-                        </p>
-                    @endif
                 </div>
+
             </div>
+        </section>
 
-            <!-- Features Icons (Positioned below Card for better Responsiveness) -->
-            <div class="flex items-center justify-center space-x-10 mt-12 w-full select-none">
-                <div class="flex flex-col items-center group">
-                    <div class="w-14 h-14 rounded-3xl bg-white/5 backdrop-blur-3xl border border-white/10 flex items-center justify-center text-white text-xl group-hover:bg-agri-green group-hover:border-agri-green group-hover:scale-110 transition-all duration-700 shadow-2xl">
-                        <i class="fa-solid fa-seedling"></i>
-                    </div>
-                    <span class="text-[10px] font-black uppercase text-white/50 mt-4 tracking-[0.4em] group-hover:text-white transition-colors">Campo</span>
-                </div>
-                <div class="flex flex-col items-center group">
-                    <div class="w-14 h-14 rounded-3xl bg-white/5 backdrop-blur-3xl border border-white/10 flex items-center justify-center text-white text-xl group-hover:bg-agri-green group-hover:border-agri-green group-hover:scale-110 transition-all duration-700 shadow-2xl">
-                        <i class="fa-solid fa-microchip"></i>
-                    </div>
-                    <span class="text-[10px] font-black uppercase text-white/50 mt-4 tracking-[0.4em] group-hover:text-white transition-colors">Tecnología</span>
-                </div>
-                <div class="flex flex-col items-center group">
-                    <div class="w-14 h-14 rounded-3xl bg-white/5 backdrop-blur-3xl border border-white/10 flex items-center justify-center text-white text-xl group-hover:bg-agri-green group-hover:border-agri-green group-hover:scale-110 transition-all duration-700 shadow-2xl">
-                        <i class="fa-solid fa-rocket"></i>
-                    </div>
-                    <span class="text-[10px] font-black uppercase text-white/50 mt-4 tracking-[0.4em] group-hover:text-white transition-colors">Futuro</span>
-                </div>
-            </div>
-        </div>
     </div>
 </div>

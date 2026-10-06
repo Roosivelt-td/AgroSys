@@ -2,7 +2,23 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome');
+Route::view('/', 'presentacion.index');
+
+// Vistas de Información y Soluciones Agronómicas (Carpeta resources/views/presentacion)
+Route::view('soluciones/monitoreo-satelital', 'presentacion.monitoreo-satelital')->name('soluciones.satelital');
+Route::view('soluciones/gestion-agronomica', 'presentacion.gestion-agronomica')->name('soluciones.agronomica');
+Route::view('soluciones/defensa-cultivos', 'presentacion.defensa-cultivos')->name('soluciones.defensa');
+Route::view('soluciones/exploracion-cultivos', 'presentacion.exploracion-cultivos')->name('soluciones.exploracion');
+Route::view('soluciones/control-cadena', 'presentacion.control-cadena')->name('soluciones.controlCadena');
+Route::view('soluciones/estaciones-agrometeo', 'presentacion.estaciones-agrometeo')->name('soluciones.agrometeo');
+Route::view('soluciones/todas-las-soluciones', 'presentacion.todas-soluciones')->name('soluciones.todas');
+Route::view('soluciones/tecnologia', 'presentacion.tecnologia')->name('soluciones.tecnologia');
+Route::view('soluciones/nuestra-red', 'presentacion.nuestra-red')->name('soluciones.nuestraRed');
+Route::view('soluciones/investigacion', 'presentacion.investigacion-industrial')->name('soluciones.investigacion');
+Route::view('sostenibilidad', 'presentacion.sostenibilidad-cadena')->name('soluciones.sostenibilidad');
+Route::view('academy', 'presentacion.academy-profesional')->name('soluciones.academy');
+Route::view('quienes-somos', 'presentacion.quienes-somos-empresa')->name('soluciones.empresa');
+Route::view('contactos', 'presentacion.contactos-asesoria')->name('soluciones.contactos');
 
 Route::middleware('auth')->group(function () {
     // Dashboard y Perfil comunes

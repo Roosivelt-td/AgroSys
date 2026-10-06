@@ -44,7 +44,7 @@ class ModelsAndObserverTest extends TestCase
     }
 
     /**
-     * Test AgroAuditObserver creates audit log when models are created/updated/deleted.
+     * Test AgroAuditObserver records audit logs when models are created/updated/deleted.
      */
     public function test_observer_records_historial_procesos(): void
     {
@@ -58,12 +58,12 @@ class ModelsAndObserverTest extends TestCase
             'tipo_tenencia' => 'propio'
         ]);
 
-        // Verificar que el observador registró la creación en historial_procesos
+        // Verificar que el observador registró la creación en historial_procesos con su acción correspondiente
         $this->assertDatabaseHas('historial_procesos', [
             'usuario_id' => $this->user->id,
             'tabla_afectada' => 'terrenos',
             'registro_id' => $terreno->id,
-            'accion' => 'INSERT'
+            'accion' => 'REGISTRO TERRENO'
         ]);
 
         // Actualizar terreno
@@ -73,7 +73,7 @@ class ModelsAndObserverTest extends TestCase
             'usuario_id' => $this->user->id,
             'tabla_afectada' => 'terrenos',
             'registro_id' => $terreno->id,
-            'accion' => 'UPDATE'
+            'accion' => 'EDICIÓN TERRENO'
         ]);
     }
 

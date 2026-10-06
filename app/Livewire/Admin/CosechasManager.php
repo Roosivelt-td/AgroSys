@@ -405,7 +405,7 @@ class CosechasManager extends Component
                 }
             }
 
-            $crop->update(['fecha_cosecha_finalizada' => $this->fecha_cosecha_edit]);
+            $crop->updateQuietly(['fecha_cosecha_finalizada' => $this->fecha_cosecha_edit]);
         });
 
         $this->dispatch('close-modal', 'modal-edit-harvest-result');

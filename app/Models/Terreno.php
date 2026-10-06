@@ -94,13 +94,45 @@ class Terreno extends Model
     }
 
     /**
-     * Verifica si el alquiler ha vencido.
+     * Verifica si el contrato de alquiler ha finalizado (por fecha o por fin de campaña).
      */
-    public function getIsAlquilerVencidoAttribute()
+    public function getIsAlquilerVencidoAttribute(): bool
     {
-        return $this->tipo_tenencia === 'alquilado' &&
-               $this->fecha_vencimiento_alquiler &&
-               $this->fecha_vencimiento_alquiler->isPast();
+        if ($this->tipo_tenencia !== 'alquilado') {
+            return false;
+        }
+
+        // 1. Por Fecha de Vencimiento de Contrato
+        if ($this->fecha_vencimiento_alquiler && $this->fecha_vencimiento_alquiler->isPast()) {
+            return true;
+        }
+
+        // 2. Por Modalidad Campaña / Cosecha Finalizada:
+        if ($this->alquiler_modalidad === 'por_campana' || $this->alquiler_modalidad === 'campana' || $this->alquiler_modalidad === 'cosecha') {
+            $hasCultivos = $this->cultivos()->exists();
+            $activeCultivos = $this->cultivos()->whereIn('estado', ['Planificado', 'En crecimiento'])->exists();
+            if ($hasCultivos && !$activeCultivos) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Indica si el terreno está habilitado para recibir nuevos cultivos.
+     */
+    public function getIsHabilitadoParaCultivoAttribute(): bool
+    {
+        if ($this->estado_terreno === 'inactivo' || $this->estado === 0) {
+            return false;
+        }
+
+        if ($this->is_alquiler_vencido) {
+            return false;
+        }
+
+        return $this->area_disponible > 0;
     }
 
     /**
@@ -108,6 +140,10 @@ class Terreno extends Model
      */
     public function getAreaDisponibleAttribute()
     {
+        if ($this->is_alquiler_vencido) {
+            return 0; // Si el alquiler finalizó, no tiene área disponible para nuevos cultivos
+        }
+
         return max(0, $this->hectareas - $this->area_ocupada);
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Terreno;
 use App\Models\CatalogoCultivo;
 use App\Models\MiembroOrganizacion;
 use App\Models\ArchivoMultimedia;
+use App\Models\HistorialProceso;
 use App\Services\AgroStorageService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -201,7 +202,16 @@ class CultivosManager extends Component
         }
 
         $this->validate([
-            'terreno_id' => 'required|exists:terrenos,id',
+            'terreno_id' => [
+                'required',
+                'exists:terrenos,id',
+                function ($attribute, $value, $fail) {
+                    $terreno = Terreno::find($value);
+                    if ($terreno && $terreno->is_alquiler_vencido && !$this->cropId) {
+                        $fail("El contrato de alquiler de este terreno ha finalizado. Debe renovar el alquiler en 'Mis Terrenos' para habilitar nuevas siembras.");
+                    }
+                }
+            ],
             'catalogo_cultivo_id' => 'required|exists:catalogo_cultivos,id',
             'nombre_lote' => 'required|string|min:2|max:100',
             'variedad' => 'nullable|string|max:100',
@@ -224,16 +234,28 @@ class CultivosManager extends Component
             'plantas_estimadas' => 'nullable|integer|min:0|max:10000000',
             'rendimiento_esperado_tn_ha' => 'nullable|numeric|min:0|max:10000',
             'observaciones' => 'nullable|string|max:1000',
-            'cropPhoto' => 'nullable|image|max:10240',
+            'cropPhoto' => 'nullable|file|mimes:jpg,jpeg,png,webp,gif|max:10240',
+        ], [
+            'terreno_id.required' => 'Debes seleccionar un terreno.',
+            'catalogo_cultivo_id.required' => 'Debes seleccionar el cultivo a sembrar.',
+            'nombre_lote.required' => 'El código/nombre del lote es obligatorio.',
+            'area_destinada.required' => 'El área destinada es obligatoria.',
+            'area_destinada.max' => 'El área no puede superar la superficie disponible del terreno.',
+            'cropPhoto.mimes' => 'La imagen debe ser de formato JPG, PNG, WEBP o GIF.',
+            'cropPhoto.max' => 'La imagen no puede pesar más de 10 MB.',
         ]);
 
         $user = Auth::user();
         $photoPath = $this->currentPhotoPath;
 
         if ($this->cropPhoto) {
-            $fileData = AgroStorageService::storeUserFile($this->cropPhoto, $user, 'cultivo', $this->selectedOrgId);
-            $photoPath = $fileData['ruta_completa'];
-            ArchivoMultimedia::create($fileData);
+            try {
+                $fileData = AgroStorageService::storeUserFile($this->cropPhoto, $user, 'cultivo', $this->selectedOrgId);
+                $photoPath = $fileData['ruta_completa'];
+                ArchivoMultimedia::create($fileData);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Error al guardar evidencia fotográfica de cultivo: ' . $e->getMessage());
+            }
         }
 
         // Si quitamos fecha_siembra del form, usamos fecha_planificada por defecto
@@ -264,10 +286,11 @@ class CultivosManager extends Component
         ];
 
         if ($this->cropId) {
-            Cultivo::find($this->cropId)->update($data);
+            $cultivo = Cultivo::findOrFail($this->cropId);
+            $cultivo->update($data);
             $msg = "Campaña actualizada.";
         } else {
-            Cultivo::create($data);
+            $cultivo = Cultivo::create($data);
             $msg = "Siembra registrada.";
         }
 

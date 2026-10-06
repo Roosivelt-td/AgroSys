@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Precisión en el campo | App Agricolus</title>
+
+  <!-- =====================================================
+       TAILWIND
+  ====================================================== -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            agricolus: {
+              50: '#f3f8f1',
+              100: '#e4f0df',
+              200: '#c9dfc0',
+              300: '#a8cc9c',
+              400: '#7fb96e',
+              500: '#5ca64c',
+              600: '#478c3c',
+              700: '#377130',
+              800: '#2d5b29',
+              900: '#244b22'
+            }
+          },
+          boxShadow: {
+            soft: '0 20px 60px rgba(35,65,32,.12)',
+            phone: '0 30px 80px rgba(0,0,0,.20)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- =====================================================
+       ALPINE
+  ====================================================== -->
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
+  </script>
+
+  <style>
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #252925;
+    }
+
+    .container-main {
+      width: min(1180px, calc(100% - 40px));
+      margin: auto;
+    }
+
+    .hero-gradient {
+      background:
+        linear-gradient(
+          90deg,
+          rgba(25,57,23,.90),
+          rgba(25,57,23,.62) 48%,
+          rgba(25,57,23,.15)
+        );
+    }
+
+    .green-line {
+      position: relative;
+    }
+
+    .green-line::after {
+      content: "";
+      position: absolute;
+      width: 55px;
+      height: 3px;
+      background: #5ca64c;
+      left: 0;
+      bottom: -15px;
+    }
+
+    .phone {
+      border: 8px solid #202520;
+      border-radius: 38px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 35px 80px rgba(0,0,0,.25);
+    }
+
+    .phone-notch {
+      width: 100px;
+      height: 23px;
+      background: #202520;
+      border-radius: 0 0 18px 18px;
+      margin: auto;
+      position: relative;
+      z-index: 10;
+    }
+
+    .feature-card {
+      transition: .35s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-7px);
+      box-shadow: 0 20px 50px rgba(36,75,34,.13);
+    }
+
+    .step-line {
+      position: absolute;
+      top: 38px;
+      left: 16%;
+      right: 16%;
+      height: 2px;
+      background: #c9dfc0;
+    }
+
+    @media(max-width:768px) {
+      .step-line {
+        display:none;
+      }
+    }
+
+  </style>
+</head>
+
+
+<body class="bg-white">
+
+
+<!-- =====================================================
+     HEADER
+====================================================== -->
+
+<header
+    x-data="{ open: false, solutionsOpen: false, quienesOpen: false }"
+    class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm"
+>
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+        <div class="h-[82px] flex items-center justify-between">
+            <!-- LOGO -->
+            <a href="../index.html" class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-full bg-agricolus flex items-center justify-center">
+                    <span class="text-white text-xl font-black">A</span>
+                </div>
+                <span class="text-2xl font-bold tracking-tight text-darkgreen">AGRICOLUS</span>
+            </a>
+
+            <!-- DESKTOP NAV -->
+            <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-darkgreen">
+                <!-- SOLUCIONES DROPDOWN -->
+                <div class="relative" @click.outside="solutionsOpen = false">
+                    <button
+                        @click="solutionsOpen = !solutionsOpen; quienesOpen = false"
+                        class="flex items-center gap-1 hover:text-agricolus transition py-2"
+                    >
+                        Soluciones
+                        <svg class="w-4 h-4 transition-transform" :class="solutionsOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div
+                        x-show="solutionsOpen"
+                        x-transition
+                        style="display: none;"
+                        class="absolute top-full left-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 px-2 z-50"
+                    >
+                        <a href="todasSoluciones.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Todas las soluciones</a>
+                        <a href="gestionAgronomica.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Gestión agronómica</a>
+                        <a href="monitoreoSatelital.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Monitoreo satelital</a>
+                        <a href="estacionesAgrometeo.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Estaciones agrometeo</a>
+                        <a href="defensaCultivos.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Defensa de cultivos</a>
+                        <a href="exploracionCultivos.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Exploración de cultivos</a>
+                        <a href="controlCadenaAgroalimentaria.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Control cadena agroalimentaria</a>
+                    </div>
+                </div>
+
+                <!-- QUIENES SOMOS DROPDOWN -->
+                <div class="relative" @click.outside="quienesOpen = false">
+                    <button
+                        @click="quienesOpen = !quienesOpen; solutionsOpen = false"
+                        class="flex items-center gap-1 hover:text-agricolus transition py-2"
+                    >
+                        Quiénes somos
+                        <svg class="w-4 h-4 transition-transform" :class="quienesOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div
+                        x-show="quienesOpen"
+                        x-transition
+                        style="display: none;"
+                        class="absolute top-full left-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 px-2 z-50"
+                    >
+                        <a href="../quieneSomos/empresa.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Empresa</a>
+                        <a href="../quieneSomos/investigacionIndustrial.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Investigación industrial</a>
+                        <a href="../quieneSomos/nuestraRed.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Nuestra red</a>
+                        <a href="../quieneSomos/tecnologia.html" class="block px-4 py-2.5 rounded-xl hover:bg-softgreen hover:text-agricolus transition text-sm">Tecnología</a>
+                    </div>
+                </div>
+
+                <a href="../academy.html" class="hover:text-agricolus transition">Academy</a>
+                <a href="../sostenibilidad.html" class="hover:text-agricolus transition">Sostenibilidad</a>
+                <a href="../contacto.html" class="hover:text-agricolus transition">Contacto</a>
+            </nav>
+
+            <!-- DESKTOP CTA -->
+            <div class="hidden lg:flex items-center gap-5">
+                <button class="text-sm font-semibold text-darkgreen">ES</button>
+                <a
+                    href="../contacto.html"
+                    class="bg-agricolus hover:bg-agricolusDark text-white px-6 py-3 rounded-full font-semibold transition shadow-sm"
+                >
+                    Reserva una demo
+                </a>
+            </div>
+
+            <!-- MOBILE BUTTON -->
+            <button
+                @click="open = !open"
+                class="lg:hidden text-darkgreen p-2"
+                aria-label="Menu"
+            >
+                <svg x-show="!open" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <svg x-show="open" style="display: none;" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- MOBILE MENU -->
+        <div
+            x-show="open"
+            x-transition
+            style="display: none;"
+            class="lg:hidden py-5 border-t border-gray-100 max-h-[80vh] overflow-y-auto"
+        >
+            <nav class="flex flex-col gap-3 text-darkgreen font-medium">
+                <!-- Mobile Soluciones Accordion -->
+                <div x-data="{ subSol: false }">
+                    <button @click="subSol = !subSol" class="flex items-center justify-between w-full py-2 hover:text-agricolus">
+                        <span>Soluciones</span>
+                        <svg class="w-4 h-4 transition-transform" :class="subSol ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="subSol" style="display: none;" class="pl-4 flex flex-col gap-2 py-2 text-sm text-gray-600">
+                        <a href="todasSoluciones.html" class="py-1 hover:text-agricolus">Todas las soluciones</a>
+                        <a href="gestionAgronomica.html" class="py-1 hover:text-agricolus">Gestión agronómica</a>
+                        <a href="monitoreoSatelital.html" class="py-1 hover:text-agricolus">Monitoreo satelital</a>
+                        <a href="estacionesAgrometeo.html" class="py-1 hover:text-agricolus">Estaciones agrometeo</a>
+                        <a href="defensaCultivos.html" class="py-1 hover:text-agricolus">Defensa de cultivos</a>
+                        <a href="exploracionCultivos.html" class="py-1 hover:text-agricolus">Exploración de cultivos</a>
+                        <a href="controlCadenaAgroalimentaria.html" class="py-1 hover:text-agricolus">Control cadena agroalimentaria</a>
+                    </div>
+                </div>
+
+                <!-- Mobile Quienes Somos Accordion -->
+                <div x-data="{ subQs: false }">
+                    <button @click="subQs = !subQs" class="flex items-center justify-between w-full py-2 hover:text-agricolus">
+                        <span>Quiénes somos</span>
+                        <svg class="w-4 h-4 transition-transform" :class="subQs ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="subQs" style="display: none;" class="pl-4 flex flex-col gap-2 py-2 text-sm text-gray-600">
+                        <a href="../quieneSomos/empresa.html" class="py-1 hover:text-agricolus">Empresa</a>
+                        <a href="../quieneSomos/investigacionIndustrial.html" class="py-1 hover:text-agricolus">Investigación industrial</a>
+                        <a href="../quieneSomos/nuestraRed.html" class="py-1 hover:text-agricolus">Nuestra red</a>
+                        <a href="../quieneSomos/tecnologia.html" class="py-1 hover:text-agricolus">Tecnología</a>
+                    </div>
+                </div>
+
+                <a href="../academy.html" class="py-2 hover:text-agricolus">Academy</a>
+                <a href="../sostenibilidad.html" class="py-2 hover:text-agricolus">Sostenibilidad</a>
+                <a href="../contacto.html" class="py-2 hover:text-agricolus">Contacto</a>
+
+                <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
+                    <span class="text-sm font-semibold">ES</span>
+                    <a
+                        href="../contacto.html"
+                        class="bg-agricolus hover:bg-agricolusDark text-white px-6 py-2.5 rounded-full font-semibold text-center transition"
+                    >
+                        Reserva una demo
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+
+<!-- =====================================================
+     HERO
+====================================================== -->
+
+<section
+  class="relative min-h-[700px] flex items-center overflow-hidden"
+  style="
+    background-image:url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=2200&q=85');
+    background-size:cover;
+    background-position:center;
+  "
+>
+
+  <div class="absolute inset-0 hero-gradient"></div>
+
+
+  <div class="container-main relative z-10 pt-24">
+
+    <div class="grid lg:grid-cols-2 gap-14 items-center">
+
+
+      <!-- HERO TEXT -->
+
+      <div class="text-white">
+
+        <div
+          class="uppercase tracking-[4px] text-agricolus-300
+                 text-sm font-bold mb-7"
+        >
+          Agricultura de precisión
+        </div>
+
+
+        <h1
+          class="text-5xl md:text-6xl lg:text-[66px]
+                 font-bold leading-[1.05]"
+        >
+
+          Precisión en
+          <span class="text-agricolus-300">
+            el campo
+          </span>
+
+        </h1>
+
+
+        <p
+          class="mt-8 text-lg md:text-xl
+                 leading-relaxed text-white/90 max-w-xl"
+        >
+          Agricolus apoya tu trabajo con una app para
+          agricultura de precisión y gestión completa de
+          las fincas.
+        </p>
+
+
+        <p
+          class="mt-5 text-white/75
+                 leading-relaxed max-w-xl"
+        >
+          Monitorea tus parcelas, optimiza el uso de los
+          insumos y organiza de la mejor manera las
+          actividades en campo.
+        </p>
+
+
+        <div class="mt-9 flex flex-wrap gap-4">
+
+          <a
+            href="#descarga"
+            class="bg-agricolus-500
+                   hover:bg-agricolus-400
+                   px-7 py-4 rounded-full
+                   font-bold transition"
+          >
+            Descargar la app
+          </a>
+
+          <a
+            href="#funciones"
+            class="border border-white/60
+                   hover:bg-white hover:text-agricolus-900
+                   px-7 py-4 rounded-full
+                   font-bold transition"
+          >
+            Ver funcionalidades
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <!-- PHONE -->
+
+      <div
+        class="hidden md:flex justify-center lg:justify-end
+               relative"
+      >
+
+        <div class="relative w-[300px]">
+
+          <div class="phone">
+
+            <div class="phone-notch"></div>
+
+            <img
+              src="https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=700&q=85"
+              class="w-full h-[560px] object-cover"
+              alt="App Agricolus"
+            />
+
+          </div>
+
+
+          <!-- FLOATING -->
+
+          <div
+            class="absolute -left-20 bottom-20
+                   bg-white rounded-2xl
+                   p-5 shadow-xl w-[210px]"
+          >
+
+            <div class="text-agricolus-600 font-bold text-xl">
+              Agricultura inteligente
+            </div>
+
+            <p class="text-gray-500 text-sm mt-2">
+              Todos tus datos de campo en un solo lugar.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     DOWNLOAD
+====================================================== -->
+
+<section id="descarga" class="py-20 bg-white">
+
+  <div class="container-main">
+
+    <div
+      class="max-w-4xl mx-auto
+             text-center"
+    >
+
+      <p
+        class="uppercase tracking-[3px]
+               text-agricolus-600
+               font-bold text-sm"
+      >
+        App Agricolus
+      </p>
+
+
+      <h2
+        class="text-4xl md:text-5xl
+               font-bold mt-4"
+      >
+        Lleva la agricultura de precisión
+        contigo
+      </h2>
+
+
+      <p
+        class="mt-6 text-gray-600 text-lg
+               leading-relaxed"
+      >
+        Comienza mapeando los campos directamente
+        desde tu smartphone y descubre todas las
+        funciones de Agricolus.
+      </p>
+
+
+      <div
+        class="mt-9 flex flex-wrap
+               justify-center gap-4"
+      >
+
+        <a
+          href="#"
+          class="bg-black text-white
+                 rounded-xl px-6 py-4
+                 flex items-center gap-3"
+        >
+
+          <span class="text-2xl"></span>
+
+          <div class="text-left">
+
+            <div class="text-[10px]">
+              Descargar en
+            </div>
+
+            <div class="font-bold">
+              App Store
+            </div>
+
+          </div>
+
+        </a>
+
+
+        <a
+          href="#"
+          class="bg-black text-white
+                 rounded-xl px-6 py-4
+                 flex items-center gap-3"
+        >
+
+          <span class="text-2xl">▶</span>
+
+          <div class="text-left">
+
+            <div class="text-[10px]">
+              Disponible en
+            </div>
+
+            <div class="font-bold">
+              Google Play
+            </div>
+
+          </div>
+
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     THREE STEPS
+====================================================== -->
+
+<section class="bg-agricolus-50 py-24">
+
+  <div class="container-main">
+
+    <div class="text-center">
+
+      <p
+        class="text-agricolus-600
+               uppercase tracking-[3px]
+               text-sm font-bold"
+      >
+        Cómo funciona
+      </p>
+
+      <h2 class="mt-4 text-4xl md:text-5xl font-bold">
+        Del campo al dato
+      </h2>
+
+    </div>
+
+
+    <div
+      class="relative grid md:grid-cols-3
+             gap-10 mt-16"
+    >
+
+      <div class="step-line"></div>
+
+
+      <!-- STEP 1 -->
+
+      <div class="relative text-center">
+
+        <div
+          class="relative z-10 mx-auto
+                 w-20 h-20 rounded-full
+                 bg-agricolus-600 text-white
+                 flex items-center justify-center
+                 text-2xl font-bold
+                 shadow-lg"
+        >
+          01
+        </div>
+
+        <h3 class="font-bold text-xl mt-7">
+          Mapea y registra
+        </h3>
+
+        <p class="text-gray-600 mt-4 leading-relaxed">
+          Dibuja tus campos, geolocaliza parcelas
+          y registra las actividades directamente
+          desde el smartphone.
+        </p>
+
+      </div>
+
+
+      <!-- STEP 2 -->
+
+      <div class="relative text-center">
+
+        <div
+          class="relative z-10 mx-auto
+                 w-20 h-20 rounded-full
+                 bg-agricolus-600 text-white
+                 flex items-center justify-center
+                 text-2xl font-bold
+                 shadow-lg"
+        >
+          02
+        </div>
+
+        <h3 class="font-bold text-xl mt-7">
+          Recopila los datos
+        </h3>
+
+        <p class="text-gray-600 mt-4 leading-relaxed">
+          Recoge observaciones, fotografías,
+          notas, trampas y datos de monitoreo
+          durante el trabajo en campo.
+        </p>
+
+      </div>
+
+
+      <!-- STEP 3 -->
+
+      <div class="relative text-center">
+
+        <div
+          class="relative z-10 mx-auto
+                 w-20 h-20 rounded-full
+                 bg-agricolus-600 text-white
+                 flex items-center justify-center
+                 text-2xl font-bold
+                 shadow-lg"
+        >
+          03
+        </div>
+
+        <h3 class="font-bold text-xl mt-7">
+          Monitorea los cultivos
+        </h3>
+
+        <p class="text-gray-600 mt-4 leading-relaxed">
+          Consulta imágenes satelitales,
+          meteorología y modelos predictivos
+          para tomar mejores decisiones.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     FEATURES
+====================================================== -->
+
+<section id="funciones" class="py-24">
+
+  <div class="container-main">
+
+    <div class="max-w-3xl">
+
+      <p
+        class="uppercase tracking-[3px]
+               text-agricolus-600
+               text-sm font-bold"
+      >
+        Funcionalidades
+      </p>
+
+      <h2
+        class="green-line mt-5
+               text-4xl md:text-5xl
+               font-bold leading-tight"
+      >
+        Todas las funcionalidades
+        para la agricultura de precisión
+        en una sola app
+      </h2>
+
+    </div>
+
+
+    <div
+      class="grid md:grid-cols-2
+             lg:grid-cols-3 gap-6 mt-16"
+    >
+
+
+      <!-- CARD -->
+
+      <div class="feature-card bg-white rounded-3xl p-8 border border-gray-100">
+
+        <div
+          class="w-14 h-14 rounded-2xl
+                 bg-agricolus-100
+                 flex items-center justify-center
+                 text-2xl"
+        >
+          🗺️
+        </div>
+
+        <h3 class="font-bold text-xl mt-7">
+          Campos y parcelas
+        </h3>
+
+        <p class="text-gray-600 mt-4 leading-relaxed">
+          Dibuja los campos en el mapa o utiliza
+          la detección automática y geolocaliza
+          parcelas con diferentes cultivos.
+        </p>
+
+      </div>
+
+
+      <!-- CARD -->
+
+      <div class="feature-card bg-white rounded-3xl p-8 border border-gray-100">
+
+        <div
+          class="w-14 h-14 rounded-2xl
+                 bg-agricolus-100
+                 flex items-center justify-center
+                 text-2xl"
+        >
+          📝
+        </div>
+
+        <h3 class="font-bold text-xl mt-7">
+          Notas
+        </h3>
+
+        <p class="text-gray-600 mt-4 leading-relaxed">
+          Añade notas, fotografías y notas de voz
+          y asócialas a campos o posiciones
+          específicas.
+        </p>
+
+      </div>
+
+
+      <!-- CARD -->
+
+      <div class="feature-card bg-white rounded-3xl p-8 border border-gray-100">
+
+        <div
+          class="w-14 h-14 rounded-2xl
+                 bg-agricolus-100
+                 flex items-center justify-center
+                 text-2xl"
+        >
+          📍
+        </div>
+
+        <h3 class="font-bold text-xl mt-7">
+          Mapa
+        </h3>
+
+        <p class="text-gray-600 mt-4 leading-relaxed">
+          Visualiza los datos de los campos,
+          geolocaliza la información y compara
+          parcelas según diferentes parámetros.
+        </p>
+
+      </div>
+
+
+      <!-- CARD -->
+
+      <div class="feature-card bg-white rounded-3xl p-8 border border-gray-100">
+
+        <div
+          class="w-14 h-14 rounded-2xl
+                 bg-agricolus-100
+                 flex items-center justify-center
+                 text-2xl"
+        >
+          🚜
+        </div>
+
+        <h3 class="font-bold text-xl mt-7">
+          Actividades
+        </h3>
+
+        <p class="text-gray-600 mt-4 leading-relaxed">
+          Registra operaciones agrícolas y
+          planifica las actividades que deben
+          realizarse en el campo.
+        </p>
+
+      </div>
+
+
+      <!-- CARD -->
+
+      <div class="feature-card bg-white rounded-3xl p-8 border border-gray-100">
+
+        <div
+          class="w-14 h-14 rounded-2xl
+                 bg-agricolus-100
+                 flex items-center justify-center
+                 text-2xl"
+        >
+          📦
+        </div>
+
+        <h3 class="font-bold text-xl mt-7">
+          Almacén
+        </h3>
+
+        <p class="text-gray-600 mt-4 leading-relaxed">
+          Sigue los movimientos de la explotación,
+          desde las compras hasta las cosechas,
+          manteniendo las existencias bajo control.
+        </p>
+
+      </div>
+
+
+      <!-- CARD -->
+
+      <div class="feature-card bg-white rounded-3xl p-8 border border-gray-100">
+
+        <div
+          class="w-14 h-14 rounded-2xl
+                 bg-agricolus-100
+                 flex items-center justify-center
+                 text-2xl"
+        >
+          🌾
+        </div>
+
+        <h3 class="font-bold text-xl mt-7">
+          Exploración de cultivos
+        </h3>
+
+        <p class="text-gray-600 mt-4 leading-relaxed">
+          Registra y geolocaliza datos sobre
+          fenología, plagas, enfermedades
+          y anomalías.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     SECTION 1 — MAP
+====================================================== -->
+
+<section class="bg-[#f4f5ee] py-24">
+
+  <div class="container-main">
+
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+
+
+      <div>
+
+        <p
+          class="text-agricolus-600
+                 uppercase tracking-[3px]
+                 text-sm font-bold"
+        >
+          Gestión de campo
+        </p>
+
+        <h2
+          class="mt-5 text-4xl md:text-5xl
+                 font-bold leading-tight"
+        >
+          Mapea los campos
+          y registra las actividades
+        </h2>
+
+
+        <p
+          class="mt-7 text-gray-600
+                 text-lg leading-relaxed"
+        >
+          Toda la información de tus parcelas
+          directamente en el mapa. Visualiza
+          cultivos, variedades, actividades
+          y observaciones desde un único lugar.
+        </p>
+
+
+        <div class="mt-9 space-y-5">
+
+          <div class="flex gap-4">
+
+            <div
+              class="w-9 h-9 shrink-0
+                     rounded-full bg-agricolus-600
+                     text-white flex items-center
+                     justify-center"
+            >
+              ✓
+            </div>
+
+            <div>
+              <h3 class="font-bold">
+                Dibuja tus campos
+              </h3>
+
+              <p class="text-gray-500 mt-1">
+                Crea y actualiza fácilmente
+                la cartografía de tu explotación.
+              </p>
+            </div>
+
+          </div>
+
+
+          <div class="flex gap-4">
+
+            <div
+              class="w-9 h-9 shrink-0
+                     rounded-full bg-agricolus-600
+                     text-white flex items-center
+                     justify-center"
+            >
+              ✓
+            </div>
+
+            <div>
+              <h3 class="font-bold">
+                Registra las operaciones
+              </h3>
+
+              <p class="text-gray-500 mt-1">
+                Mantén actualizado tu registro
+                agrícola digital.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- IMAGE -->
+
+      <div class="relative">
+
+        <div
+          class="rounded-[35px]
+                 overflow-hidden
+                 shadow-soft"
+        >
+
+          <img
+            src="https://images.unsplash.com/photo-1560493676-04071c5f467b?auto=format&fit=crop&w=1400&q=85"
+            class="w-full h-[500px] object-cover"
+            alt="Mapeo agrícola"
+          >
+
+        </div>
+
+        <div
+          class="absolute
+                 -bottom-7 -left-7
+                 bg-white rounded-2xl
+                 shadow-xl p-6"
+        >
+
+          <div class="text-agricolus-600 text-3xl font-bold">
+            GPS
+          </div>
+
+          <p class="text-gray-500 text-sm mt-1">
+            Datos geolocalizados
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     SECTION 2 — DATA
+====================================================== -->
+
+<section class="py-24">
+
+  <div class="container-main">
+
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+
+
+      <!-- PHONE IMAGE -->
+
+      <div class="relative order-2 lg:order-1">
+
+        <div
+          class="rounded-[35px]
+                 overflow-hidden
+                 shadow-soft"
+        >
+
+          <img
+            src="https://images.unsplash.com/photo-1581092921461-eab62e97a780?auto=format&fit=crop&w=1400&q=85"
+            class="w-full h-[520px] object-cover"
+            alt="Recopilación de datos"
+          >
+
+        </div>
+
+      </div>
+
+
+      <!-- TEXT -->
+
+      <div class="order-1 lg:order-2">
+
+        <p
+          class="text-agricolus-600
+                 uppercase tracking-[3px]
+                 text-sm font-bold"
+        >
+          Datos en campo
+        </p>
+
+        <h2
+          class="mt-5 text-4xl md:text-5xl
+                 font-bold leading-tight"
+        >
+          Recopila los datos
+          directamente en campo
+        </h2>
+
+
+        <p
+          class="mt-7 text-gray-600
+                 text-lg leading-relaxed"
+        >
+          Convierte las observaciones realizadas
+          durante el trabajo diario en información
+          digital y geolocalizada.
+        </p>
+
+
+        <div class="mt-9 grid sm:grid-cols-2 gap-5">
+
+          <div class="bg-agricolus-50 rounded-2xl p-5">
+
+            <div class="text-2xl">
+              🐛
+            </div>
+
+            <h3 class="font-bold mt-3">
+              Trampas y capturas
+            </h3>
+
+            <p class="text-sm text-gray-500 mt-2">
+              Registra las trampas y capturas
+              de insectos plaga.
+            </p>
+
+          </div>
+
+
+          <div class="bg-agricolus-50 rounded-2xl p-5">
+
+            <div class="text-2xl">
+              🌿
+            </div>
+
+            <h3 class="font-bold mt-3">
+              Exploración
+            </h3>
+
+            <p class="text-sm text-gray-500 mt-2">
+              Registra fenología, plagas,
+              enfermedades y anomalías.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     SECTION 3 — SATELLITE
+====================================================== -->
+
+<section class="bg-[#263a25] text-white py-24">
+
+  <div class="container-main">
+
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+
+
+      <div>
+
+        <p
+          class="text-agricolus-300
+                 uppercase tracking-[3px]
+                 text-sm font-bold"
+        >
+          Agricultura conectada
+        </p>
+
+        <h2
+          class="mt-5 text-4xl md:text-5xl
+                 font-bold leading-tight"
+        >
+          Monitorea tus cultivos
+          con datos avanzados
+        </h2>
+
+
+        <p
+          class="mt-7 text-white/70
+                 text-lg leading-relaxed"
+        >
+          Combina satélites, sensores de campo,
+          meteorología y modelos de predicción
+          para obtener una visión completa del
+          estado de tus cultivos.
+        </p>
+
+
+        <div class="mt-10 space-y-6">
+
+          <div class="flex gap-4">
+
+            <div
+              class="w-11 h-11 rounded-full
+                     bg-agricolus-500
+                     flex items-center justify-center
+                     shrink-0"
+            >
+              🛰️
+            </div>
+
+            <div>
+
+              <h3 class="font-bold text-lg">
+                Imágenes de satélite
+              </h3>
+
+              <p class="text-white/60 mt-1">
+                Consulta índices de vigor,
+                clorofila y estrés hídrico.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="flex gap-4">
+
+            <div
+              class="w-11 h-11 rounded-full
+                     bg-agricolus-500
+                     flex items-center justify-center
+                     shrink-0"
+            >
+              ☁️
+            </div>
+
+            <div>
+
+              <h3 class="font-bold text-lg">
+                Meteorología
+              </h3>
+
+              <p class="text-white/60 mt-1">
+                Consulta previsiones de siete días
+                y datos de estaciones conectadas.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="flex gap-4">
+
+            <div
+              class="w-11 h-11 rounded-full
+                     bg-agricolus-500
+                     flex items-center justify-center
+                     shrink-0"
+            >
+              📊
+            </div>
+
+            <div>
+
+              <h3 class="font-bold text-lg">
+                Modelos predictivos
+              </h3>
+
+              <p class="text-white/60 mt-1">
+                Detecta estrés y recibe información
+                sobre las necesidades del cultivo.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- IMAGE -->
+
+      <div>
+
+        <div
+          class="rounded-[35px]
+                 overflow-hidden
+                 border border-white/10"
+        >
+
+          <img
+            src="https://images.unsplash.com/photo-1523742817394-9f5f9c1b4e9a?auto=format&fit=crop&w=1400&q=85"
+            class="w-full h-[560px] object-cover"
+            alt="Agricultura de precisión"
+          >
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     WEATHER / SATELLITE CARDS
+====================================================== -->
+
+<section class="py-24 bg-white">
+
+  <div class="container-main">
+
+    <div class="text-center max-w-3xl mx-auto">
+
+      <p
+        class="uppercase tracking-[3px]
+               text-agricolus-600
+               text-sm font-bold"
+      >
+        Información inteligente
+      </p>
+
+      <h2
+        class="mt-4 text-4xl md:text-5xl
+               font-bold"
+      >
+        Una visión completa
+        de tus cultivos
+      </h2>
+
+    </div>
+
+
+    <div
+      class="grid md:grid-cols-3
+             gap-6 mt-16"
+    >
+
+      <div
+        class="relative h-[390px]
+               rounded-[30px] overflow-hidden
+               group"
+      >
+
+        <img
+          src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1000&q=85"
+          class="absolute inset-0 w-full h-full
+                 object-cover group-hover:scale-105
+                 transition duration-700"
+        >
+
+        <div
+          class="absolute inset-0
+                 bg-gradient-to-t
+                 from-black/80 to-transparent"
+        ></div>
+
+        <div class="absolute bottom-7 left-7 right-7 text-white">
+
+          <div class="text-3xl">
+            🛰️
+          </div>
+
+          <h3 class="text-2xl font-bold mt-3">
+            Imágenes de satélite
+          </h3>
+
+          <p class="text-white/70 mt-2 text-sm">
+            Analiza el vigor y el estado
+            de tus cultivos.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="relative h-[390px]
+               rounded-[30px] overflow-hidden
+               group"
+      >
+
+        <img
+          src="https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=1000&q=85"
+          class="absolute inset-0 w-full h-full
+                 object-cover group-hover:scale-105
+                 transition duration-700"
+        >
+
+        <div
+          class="absolute inset-0
+                 bg-gradient-to-t
+                 from-black/80 to-transparent"
+        ></div>
+
+        <div class="absolute bottom-7 left-7 right-7 text-white">
+
+          <div class="text-3xl">
+            🌦️
+          </div>
+
+          <h3 class="text-2xl font-bold mt-3">
+            Tiempo
+          </h3>
+
+          <p class="text-white/70 mt-2 text-sm">
+            Consulta las condiciones meteorológicas
+            de tus parcelas.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="relative h-[390px]
+               rounded-[30px] overflow-hidden
+               group"
+      >
+
+        <img
+          src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=85"
+          class="absolute inset-0 w-full h-full
+                 object-cover group-hover:scale-105
+                 transition duration-700"
+        >
+
+        <div
+          class="absolute inset-0
+                 bg-gradient-to-t
+                 from-black/80 to-transparent"
+        ></div>
+
+        <div class="absolute bottom-7 left-7 right-7 text-white">
+
+          <div class="text-3xl">
+            📈
+          </div>
+
+          <h3 class="text-2xl font-bold mt-3">
+            Modelos predictivos
+          </h3>
+
+          <p class="text-white/70 mt-2 text-sm">
+            Anticipa las necesidades
+            de tus cultivos.
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     ADVANTAGES
+====================================================== -->
+
+<section class="bg-agricolus-50 py-24">
+
+  <div class="container-main">
+
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+
+
+      <div>
+
+        <p
+          class="text-agricolus-600
+                 uppercase tracking-[3px]
+                 text-sm font-bold"
+        >
+          ¿Por qué utilizar la app?
+        </p>
+
+        <h2
+          class="mt-5 text-4xl md:text-5xl
+                 font-bold leading-tight"
+        >
+          Del trabajo de campo
+          a una gestión digital
+        </h2>
+
+
+        <p
+          class="mt-7 text-gray-600
+                 text-lg leading-relaxed"
+        >
+          Simplifica la gestión agrícola registrando
+          las operaciones y observaciones en tiempo
+          real desde tu smartphone.
+        </p>
+
+
+        <div class="mt-10 space-y-5">
+
+          <div
+            class="bg-white rounded-2xl p-5
+                   flex gap-4 shadow-sm"
+          >
+
+            <div
+              class="w-10 h-10 rounded-full
+                     bg-agricolus-100
+                     flex items-center justify-center"
+            >
+              ✓
+            </div>
+
+            <div>
+
+              <h3 class="font-bold">
+                Menos papel
+              </h3>
+
+              <p class="text-gray-500 mt-1 text-sm">
+                Todos tus registros agrícolas
+                digitalizados.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="bg-white rounded-2xl p-5
+                   flex gap-4 shadow-sm"
+          >
+
+            <div
+              class="w-10 h-10 rounded-full
+                     bg-agricolus-100
+                     flex items-center justify-center"
+            >
+              ✓
+            </div>
+
+            <div>
+
+              <h3 class="font-bold">
+                Datos sincronizados
+              </h3>
+
+              <p class="text-gray-500 mt-1 text-sm">
+                La información se sincroniza
+                con la plataforma web.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="bg-white rounded-2xl p-5
+                   flex gap-4 shadow-sm"
+          >
+
+            <div
+              class="w-10 h-10 rounded-full
+                     bg-agricolus-100
+                     flex items-center justify-center"
+            >
+              ✓
+            </div>
+
+            <div>
+
+              <h3 class="font-bold">
+                Decisiones basadas en datos
+              </h3>
+
+              <p class="text-gray-500 mt-1 text-sm">
+                Utiliza mapas, meteorología y
+                modelos para planificar.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="relative">
+
+        <div
+          class="rounded-[35px]
+                 overflow-hidden
+                 shadow-soft"
+        >
+
+          <img
+            src="https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=1400&q=85"
+            class="w-full h-[560px] object-cover"
+            alt="Agricultor usando smartphone"
+          >
+
+        </div>
+
+
+        <div
+          class="absolute
+                 -bottom-8 -right-8
+                 bg-agricolus-600
+                 text-white rounded-3xl
+                 p-7 w-[230px]"
+        >
+
+          <div class="text-4xl font-bold">
+            100%
+          </div>
+
+          <p class="mt-2 text-white/80 text-sm">
+            Gestión digital y conectada
+            de tus actividades.
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     FINAL APP DOWNLOAD
+====================================================== -->
+
+<section class="py-24">
+
+  <div class="container-main">
+
+    <div
+      class="relative overflow-hidden
+             rounded-[40px]
+             bg-agricolus-700
+             text-white"
+    >
+
+      <div
+        class="absolute inset-0 opacity-20"
+        style="
+          background-image:url('https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1800&q=85');
+          background-size:cover;
+          background-position:center;
+        "
+      ></div>
+
+
+      <div
+        class="relative z-10
+               grid lg:grid-cols-2
+               gap-10 items-center
+               px-8 md:px-16
+               py-20"
+      >
+
+        <div>
+
+          <p
+            class="uppercase tracking-[3px]
+                   text-agricolus-200
+                   text-sm font-bold"
+          >
+            App Agricolus
+          </p>
+
+          <h2
+            class="mt-5 text-4xl md:text-5xl
+                   font-bold leading-tight"
+          >
+            Lleva la precisión
+            al campo
+          </h2>
+
+          <p
+            class="mt-6 text-white/80
+                   text-lg leading-relaxed"
+          >
+            Mapea, registra, monitoriza y toma
+            decisiones directamente desde
+            tu smartphone.
+          </p>
+
+
+          <div class="mt-8 flex flex-wrap gap-4">
+
+            <a
+              href="#"
+              class="bg-white text-agricolus-800
+                     px-7 py-4 rounded-full
+                     font-bold hover:bg-agricolus-50
+                     transition"
+            >
+              Descargar la app
+            </a>
+
+            <a
+              href="#"
+              class="border border-white/60
+                     px-7 py-4 rounded-full
+                     font-bold hover:bg-white
+                     hover:text-agricolus-800
+                     transition"
+            >
+              Reserva una demo
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="flex justify-center">
+
+          <div class="phone w-[230px]">
+
+            <div class="phone-notch"></div>
+
+            <img
+              src="https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=600&q=85"
+              class="w-full h-[430px] object-cover"
+              alt="Aplicación Agricolus"
+            >
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     NEWSLETTER
+====================================================== -->
+
+<section class="py-20 bg-white">
+
+  <div class="container-main">
+
+    <div
+      class="max-w-3xl mx-auto
+             text-center"
+    >
+
+      <p
+        class="uppercase tracking-[3px]
+               text-agricolus-600
+               text-sm font-bold"
+      >
+        Newsletter
+      </p>
+
+      <h2
+        class="mt-4 text-4xl
+               font-bold"
+      >
+        ¿Quieres profundizar
+        en la agricultura de precisión?
+      </h2>
+
+      <p class="mt-5 text-gray-600">
+        Mantente actualizado sobre tecnología,
+        agricultura de precisión y novedades
+        de Agricolus.
+      </p>
+
+
+      <form
+        class="mt-8 flex flex-col sm:flex-row
+               gap-3 max-w-xl mx-auto"
+        @submit.prevent="
+          alert('Gracias por suscribirte')
+        "
+      >
+
+        <input
+          type="email"
+          required
+          placeholder="Tu correo electrónico"
+          class="flex-1 px-5 py-4
+                 rounded-full
+                 border border-gray-200
+                 outline-none
+                 focus:border-agricolus-500"
+        >
+
+        <button
+          class="bg-agricolus-600
+                 hover:bg-agricolus-700
+                 text-white px-7 py-4
+                 rounded-full font-bold"
+        >
+          Suscribirme
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     FOOTER
+====================================================== -->
+
+<footer class="bg-[#202920] text-white">
+
+  <div class="container-main py-16">
+
+    <div
+      class="grid md:grid-cols-2
+             lg:grid-cols-4 gap-12"
+    >
+
+
+      <!-- BRAND -->
+
+      <div>
+
+        <div class="flex items-center gap-3">
+
+          <div
+            class="w-11 h-11 rounded-full
+                   border border-white/50
+                   flex items-center justify-center"
+          >
+            🌱
+          </div>
+
+          <div>
+
+            <div class="font-bold text-xl">
+              AGRICOLUS
+            </div>
+
+            <div
+              class="text-[9px]
+                     tracking-[3px]
+                     text-white/50"
+            >
+              PRECISION FARMING
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <p
+          class="text-white/50
+                 mt-6 leading-relaxed"
+        >
+          Tecnología y agricultura de precisión
+          para una gestión más eficiente y
+          sostenible de los cultivos.
+        </p>
+
+      </div>
+
+
+      <!-- SOLUTIONS -->
+
+      <div>
+
+        <h3 class="font-bold text-lg">
+          Soluciones
+        </h3>
+
+        <div
+          class="mt-5 space-y-3
+                 text-white/50"
+        >
+
+          <a href="#" class="block hover:text-white">
+            Monitoreo satelital
+          </a>
+
+          <a href="#" class="block hover:text-white">
+            Gestión agronómica
+          </a>
+
+          <a href="#" class="block hover:text-white">
+            Protección de cultivos
+          </a>
+
+          <a href="#" class="block hover:text-white">
+            App Agricolus
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <!-- COMPANY -->
+
+      <div>
+
+        <h3 class="font-bold text-lg">
+          Agricolus
+        </h3>
+
+        <div
+          class="mt-5 space-y-3
+                 text-white/50"
+        >
+
+          <a href="#" class="block hover:text-white">
+            Academy
+          </a>
+
+          <a href="#" class="block hover:text-white">
+            Sostenibilidad
+          </a>
+
+          <a href="#" class="block hover:text-white">
+            Investigación
+          </a>
+
+          <a href="#" class="block hover:text-white">
+            Contactos
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <!-- CONTACT -->
+
+      <div>
+
+        <h3 class="font-bold text-lg">
+          Contacto
+        </h3>
+
+        <div
+          class="mt-5 space-y-4
+                 text-white/50"
+        >
+
+          <p>
+            Via Settevalli 320<br>
+            06129 Perugia, Italia
+          </p>
+
+          <p>
+            +39 075 99 75 503
+          </p>
+
+          <p>
+            discover@agricolus.com
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- BOTTOM -->
+
+    <div
+      class="border-t border-white/10
+             mt-14 pt-7
+             flex flex-col md:flex-row
+             justify-between gap-4
+             text-sm text-white/35"
+    >
+
+      <p>
+        © 2026 Agricolus S.r.l.
+      </p>
+
+      <div class="flex gap-6">
+
+        <a href="#" class="hover:text-white">
+          Privacidad
+        </a>
+
+        <a href="#" class="hover:text-white">
+          Cookies
+        </a>
+
+        <a href="#" class="hover:text-white">
+          Legal
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</footer>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
+
+<script>
+
+  /*
+   * Header dinámico
+   */
+
+  const header = document.querySelector('header');
+
+  window.addEventListener('scroll', () => {
+
+    if (window.scrollY > 50) {
+
+      header.classList.add(
+        'bg-[#203020]/95',
+        'backdrop-blur-md',
+        'shadow-lg'
+      );
+
+    } else {
+
+      header.classList.remove(
+        'bg-[#203020]/95',
+        'backdrop-blur-md',
+        'shadow-lg'
+      );
+
+    }
+
+  });
+
+
+  /*
+   * Smooth scroll
+   */
+
+  document
+    .querySelectorAll('a[href^="#"]')
+    .forEach(anchor => {
+
+      anchor.addEventListener('click', function(e) {
+
+        const target =
+          document.querySelector(
+            this.getAttribute('href')
+          );
+
+        if (target) {
+
+          e.preventDefault();
+
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+
+        }
+
+      });
+
+    });
+
+
+  /*
+   * Reveal animation
+   */
+
+  const observer =
+    new IntersectionObserver(
+      entries => {
+
+        entries.forEach(entry => {
+
+          if (entry.isIntersecting) {
+
+            entry.target.classList.remove(
+              'opacity-0',
+              'translate-y-8'
+            );
+
+            entry.target.classList.add(
+              'opacity-100',
+              'translate-y-0'
+            );
+
+          }
+
+        });
+
+      },
+      {
+        threshold: .12
+      }
+    );
+
+
+  document
+    .querySelectorAll('.feature-card')
+    .forEach(card => {
+
+      card.classList.add(
+        'opacity-0',
+        'translate-y-8',
+        'transition-all',
+        'duration-700'
+      );
+
+      observer.observe(card);
+
+    });
+
+</script>
+
+
+</body>
+</html>

@@ -62,12 +62,26 @@
     </head>
     <body class="antialiased bg-agri-l_bg dark:bg-agri-d_bg text-slate-800 transition-colors duration-300">
 
-        <div class="flex h-screen overflow-hidden">
-            <!-- SIDEBAR UNIFICADO -->
+        <div class="flex h-screen overflow-hidden relative">
+            <!-- FONDO SEMITRANSPARENTE MÓVIL (Tocar cualquier parte del espacio en blanco de la derecha oculta el menú) -->
+            <div x-show="mobileOpen"
+                 @click="mobileOpen = false"
+                 x-cloak
+                 x-transition:enter="transition-opacity ease-linear duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition-opacity ease-linear duration-300"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden cursor-pointer"
+                 title="Toca para cerrar el menú">
+            </div>
+
+            <!-- SIDEBAR UNIFICADO (En escritorio muestra iconos/expandido, en móvil muestra menú completo con textos) -->
             <aside
                 class="fixed inset-y-0 left-0 z-50 flex flex-col sidebar-transition bg-agri-l_sidebar dark:bg-agri-d_sidebar shadow-2xl md:relative md:translate-x-0 border-r border-slate-100 dark:border-white/5"
                 :class="{
-                    'w-64': !sidebarCollapsed || mobileOpen,
+                    'w-72': !sidebarCollapsed || mobileOpen,
                     'w-20': sidebarCollapsed && !mobileOpen,
                     '-translate-x-full': !mobileOpen && window.innerWidth < 768,
                     'translate-x-0': mobileOpen
@@ -80,9 +94,13 @@
                 <!-- HEADER UNIFICADO -->
                 <header class="h-20 bg-agri-l_sidebar dark:bg-agri-d_sidebar border-b border-slate-100 dark:border-white/5 flex items-center justify-between px-6 md:px-10 sticky top-0 z-30 shadow-sm transition-colors duration-500">
                     <div class="flex items-center flex-1 space-x-6">
-                        <button @click="if(window.innerWidth >= 768) { sidebarCollapsed = !sidebarCollapsed } else { mobileOpen = !mobileOpen }" class="text-slate-400 dark:text-white/60 hover:text-agri-green transition-all">
+                        <!-- Botón 1: Alternar Menú (En móvil abre el menú completo con textos, en escritorio colapsa a iconos) -->
+                        <button @click="if(window.innerWidth >= 768) { sidebarCollapsed = !sidebarCollapsed } else { mobileOpen = !mobileOpen }"
+                                class="text-slate-400 dark:text-white/60 hover:text-agri-green transition-all p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10"
+                                aria-label="Alternar Menú">
                             <i class="fa-solid fa-bars-staggered text-xl"></i>
                         </button>
+
                         <div class="hidden md:flex items-center w-full max-w-[400px] bg-white/50 dark:bg-white/10 px-5 py-2.5 rounded-full border border-slate-200 dark:border-white/10">
                             <input type="text" placeholder="Buscar..." class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder-slate-400 dark:text-white py-0">
                             <i class="fa-solid fa-magnifying-glass text-slate-300 dark:text-white/20 text-sm"></i>
@@ -108,32 +126,37 @@
                             <div x-show="profileOpen" @click.away="profileOpen = false" x-cloak x-transition class="absolute right-0 mt-4 w-64 bg-white dark:bg-slate-900 shadow-2xl rounded-xl border border-slate-100 dark:border-white/10 z-50 p-2">
                                 <div class="p-4 border-b border-slate-50 dark:border-white/5 text-center">
                                     <p class="text-sm font-black italic text-slate-800 dark:text-white">{{ Auth::user()->nombres }}</p>
-                                    <p class="text-[10px] text-slate-400">{{ Auth::user()->email }}</p>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{{ Auth::user()->email }}</p>
                                 </div>
                                 <div class="p-2 space-y-1">
-                                    <a href="{{ route('profile') }}" class="flex items-center px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-agri-l_card dark:hover:bg-white/5 hover:text-agri-green rounded-lg transition-all" wire:navigate>
-                                        <i class="fa-regular fa-user-circle mr-3 text-lg"></i> Ver mi Perfil
+                                    <a href="{{ route('profile') }}" class="flex items-center px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-agri-green rounded-lg transition-all">
+                                        <i class="fa-solid fa-user-gear mr-3 text-sm"></i> Mi Perfil
                                     </a>
-
-                                    <a href="{{ route('profile.actividad') }}" class="flex items-center px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-agri-l_card dark:hover:bg-white/5 hover:text-agri-green rounded-lg transition-all" wire:navigate>
-                                        <i class="fa-solid fa-clock-rotate-left mr-3 text-lg"></i> Mi Actividad
+                                    <a href="{{ route('profile.actividad') }}" class="flex items-center px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-agri-green rounded-lg transition-all">
+                                        <i class="fa-solid fa-clock-rotate-left mr-3 text-sm"></i> Mi Actividad
                                     </a>
 
                                     @if(Auth::user()->rol_id !== 1)
-                                        <button @click="$dispatch('open-modal', 'create-organization'); profileOpen = false" class="w-full flex items-center px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-agri-l_card dark:hover:bg-white/5 hover:text-agri-green rounded-lg transition-all text-left">
-                                            <i class="fa-solid fa-building-circle-plus mr-3 text-lg"></i> Solicitar Organización
+                                        <button @click="$dispatch('open-modal', 'create-organization'); profileOpen = false" class="w-full flex items-center px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-agri-green rounded-lg transition-all text-left">
+                                            <i class="fa-solid fa-building-circle-plus mr-3 text-sm"></i> Solicitar Organización
                                         </button>
-                                        <button @click="$dispatch('open-modal', 'join-organization'); profileOpen = false" class="w-full flex items-center px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-agri-l_card dark:hover:bg-white/5 hover:text-agri-green rounded-lg transition-all text-left">
-                                            <i class="fa-solid fa-paper-plane mr-3 text-lg"></i> Solicitar Unirse
+                                        <button @click="$dispatch('open-modal', 'join-organization'); profileOpen = false" class="w-full flex items-center px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-agri-green rounded-lg transition-all text-left">
+                                            <i class="fa-solid fa-paper-plane mr-3 text-sm"></i> Solicitar Unirse
                                         </button>
                                     @else
-                                        <button @click="$dispatch('open-modal', 'create-superadmin'); profileOpen = false" class="w-full flex items-center px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-agri-l_card dark:hover:bg-white/5 hover:text-rose-500 rounded-lg transition-all text-left">
-                                            <i class="fa-solid fa-user-shield mr-3 text-lg"></i> Crear Nuevo Super Admin
+                                        <button @click="$dispatch('open-modal', 'create-superadmin'); profileOpen = false" class="w-full flex items-center px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-rose-500 rounded-lg transition-all text-left">
+                                            <i class="fa-solid fa-user-shield mr-3 text-sm"></i> Crear Nuevo Super Admin
                                         </button>
                                     @endif
 
                                     <div class="my-1 border-t border-slate-100 dark:border-white/5"></div>
-                                    <livewire:layout.navigation />
+
+                                    <form method="POST" action="{{ route('logout') }}" class="w-full">
+                                        @csrf
+                                        <button type="submit" class="w-full flex items-center px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all text-left">
+                                            <i class="fa-solid fa-power-off mr-3 text-sm"></i> Cerrar Sesión
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -155,5 +178,7 @@
         @can('superadmin-only')
             <x-modal name="create-superadmin" :show="false" focusable><livewire:admin.create-super-admin /></x-modal>
         @endcan
+
+        <livewire:layout.auth-security-watcher />
     </body>
 </html>

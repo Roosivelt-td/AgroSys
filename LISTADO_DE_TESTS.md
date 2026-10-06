@@ -106,3 +106,5 @@
 
 ### 16. `tests/Feature/ExampleTest.php` (1 Test)
 * `test_the_application_returns_a_successful_response`: Verificación de respuesta exitosa en la ruta raíz del proyecto.
+
+docker exec agrosys-app php artisan db:seed --class=AgroSysProductionSeeder --force

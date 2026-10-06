@@ -103,7 +103,53 @@ class SuperAdmin extends Component
             $tempU->addMonth();
         }
 
-        // 4. ANÁLISIS FINANCIERO GLOBAL (BALANCE DE RENTABILIDAD)
+        // --- 4. ESTADÍSTICAS DE USO Y FÓRMULA MATEMÁTICA DE HORAS ACTIVAS (ÚLTIMOS 7 DÍAS) ---
+        $labelsUso = [];
+        $dataHorasUso = [];
+        $dataPromedioHorasUso = [];
+        $dataTasaActividadPct = [];
+        $dataEventosUso = [];
+        $dataUsersActivosUso = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $dateUso = Carbon::now()->subDays($i);
+            $labelsUso[] = $dateUso->translatedFormat('D d M');
+
+            // 1. Total de eventos/procesos registrados en ese día
+            $eventosDia = HistorialProceso::whereDate('created_at', $dateUso->format('Y-m-d'))->count();
+
+            // 2. Usuarios únicos activos realizando procesos ese día
+            $usersDia = HistorialProceso::whereDate('created_at', $dateUso->format('Y-m-d'))
+                ->distinct('usuario_id')
+                ->count('usuario_id');
+
+            // 3. Suma total de horas estimadas de uso activo
+            $horasTotalesSuma = round(min(48, $eventosDia * 0.5), 1);
+
+            // 4. División / Promedio de horas por usuario activo: H_promedio = Suma_Horas / Usuarios_Activos
+            $promedioHoras = $usersDia > 0 ? round($horasTotalesSuma / $usersDia, 1) : 0;
+
+            // 5. Probabilidad / Tasa de Actividad respecto a la jornada laboral estándar (8h)
+            $tasaPct = $usersDia > 0 ? round(min(100, ($promedioHoras / 8) * 100)) : 0;
+
+            $dataHorasUso[] = $horasTotalesSuma;
+            $dataPromedioHorasUso[] = $promedioHoras;
+            $dataTasaActividadPct[] = $tasaPct;
+            $dataEventosUso[] = $eventosDia;
+            $dataUsersActivosUso[] = $usersDia;
+        }
+
+        $usersActivosHoy = HistorialProceso::whereDate('created_at', Carbon::today())
+            ->distinct('usuario_id')
+            ->count('usuario_id');
+
+        $usersActivosSemana = HistorialProceso::whereBetween('created_at', [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()->endOfDay()])
+            ->distinct('usuario_id')
+            ->count('usuario_id');
+
+        $procesosHoy = HistorialProceso::whereDate('created_at', Carbon::today())->count();
+
+        // 5. ANÁLISIS FINANCIERO GLOBAL (BALANCE DE RENTABILIDAD)
         // Ventas Brutas
         $globalVentas = DB::table('ventas')
             ->whereBetween('created_at', [$fDP, $fHP])
@@ -122,12 +168,12 @@ class SuperAdmin extends Component
         // Alquileres (Solo terrenos alquilados)
         $globalAlquileres = DB::table('terrenos')
             ->where('tipo_tenencia', 'alquilado')
-            ->sum('costo_alquiler_anual'); // Nota: Simplificado a anual por ahora
+            ->sum('costo_alquiler_anual');
 
         $globalInversion = $globalCostosLabores + $globalFletes + ($globalAlquileres / 12 * ($diffP + 1));
         $globalGanancia = $globalVentas - $globalInversion;
 
-        // 5. LISTAS Y KPIS GLOBALES
+        // 6. LISTAS Y KPIS GLOBALES
         $orgsList = Organizacion::orderBy('nombre')->get();
         $usersList = User::with('rol')->orderBy('nombres')->get();
         $terrenosList = Terreno::with('responsable')->get();
@@ -170,6 +216,8 @@ class SuperAdmin extends Component
             'labelsProd' => $labelsProd, 'dataSiembras' => $dataSiembras, 'dataCosechas' => $dataCosechas,
             'labelsOrgs' => $labelsOrgs, 'dataOrgs' => $dataOrgs,
             'labelsUsers' => $labelsUsers, 'dataUsers' => $dataUsers,
+            'labelsUso' => $labelsUso, 'dataHorasUso' => $dataHorasUso, 'dataPromedioHorasUso' => $dataPromedioHorasUso, 'dataTasaActividadPct' => $dataTasaActividadPct, 'dataEventosUso' => $dataEventosUso, 'dataUsersActivosUso' => $dataUsersActivosUso,
+            'usersActivosHoy' => $usersActivosHoy, 'usersActivosSemana' => $usersActivosSemana, 'procesosHoy' => $procesosHoy,
             'topCultivos' => $topCultivos, 'cosechaPorProducto' => $cosechaPorProducto,
             'actividadGlobal' => HistorialProceso::with('usuario')->orderBy('created_at', 'desc')->take(5)->get(),
             'mesesLista' => [

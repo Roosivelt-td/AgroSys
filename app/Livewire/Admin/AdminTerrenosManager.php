@@ -28,10 +28,16 @@ class AdminTerrenosManager extends Component
 
         HistorialProceso::create([
             'usuario_id' => Auth::id(),
+            'organizacion_id' => $terreno->organizacion_id,
             'tabla_afectada' => 'terrenos',
             'registro_id' => $id,
-            'accion' => 'DELETE',
-            'descripcion' => "Terreno global '{$nombre}' eliminado por Super Admin."
+            'accion' => 'ELIMINACIÓN TERRENO',
+            'descripcion' => "Se eliminó un terreno: '{$nombre}' por Super Admin.",
+            'detalles_previos' => [
+                'nombre' => $terreno->nombre,
+                'ubicacion' => $terreno->ubicacion,
+                'hectareas' => $terreno->hectareas,
+            ]
         ]);
 
         session()->flash('status', 'Terreno eliminado del sistema.');

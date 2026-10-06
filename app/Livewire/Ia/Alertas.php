@@ -38,8 +38,8 @@ class Alertas extends Component
     {
         $user = Auth::user();
 
-        // Verificar si es Supervisor o Admin en alguna organización
-        $this->isSupervisorOrAdmin = MiembroOrganizacion::where('usuario_id', $user->id)
+        // Verificar si es Super Admin (rol_id === 1) o es Supervisor/Admin en alguna organización
+        $this->isSupervisorOrAdmin = ($user->rol_id === 1) || MiembroOrganizacion::where('usuario_id', $user->id)
             ->where('estado', 1)
             ->whereHas('roles.rolDetalle', fn($q) => $q->whereIn('nombre', ['Supervisor', 'Administrador']))
             ->exists();
@@ -65,7 +65,7 @@ class Alertas extends Component
             ->orderBy('fecha_sugerida', 'asc')
             ->get();
 
-        // Si no hay sugerencias pendientes, cargamos unas simuladas de IA para demostración
+        // Si no hay sugerencias pendientes, cargamos sugerencias de IA para demostración
         if ($this->alertasIa->isEmpty() && $this->sugerenciasSupervisor->isEmpty() && !$this->isSupervisorOrAdmin) {
             $this->alertasIa = collect([
                 (object)[
@@ -76,7 +76,7 @@ class Alertas extends Component
                 ],
                 (object)[
                     'titulo' => 'Detección Temprana de Plaga',
-                    'descripcion' => 'Análisis de imágenes satelitales sugiere presencia de "Roya del Café" en el lote 4.',
+                    'descripcion' => 'Análisis de imágenes satelitales sugiere presencia de "Roya de la Cebolla" en el Lote PTFI.',
                     'tipo' => 'advertencia',
                     'confianza' => 0.72
                 ]
@@ -143,7 +143,7 @@ class Alertas extends Component
     {
         $user = Auth::user();
 
-        // Si es Supervisor o Admin, cargamos las sugerencias globales para su tablero
+        // Si es Supervisor, Admin u Homólogo SaaS, cargamos las sugerencias globales para su tablero
         $sugerenciasGlobales = collect();
         $totalEnviadas = 0;
         $totalCumplidas = 0;
@@ -152,11 +152,14 @@ class Alertas extends Component
         if ($this->isSupervisorOrAdmin) {
             $misOrgs = MiembroOrganizacion::where('usuario_id', $user->id)->pluck('organizacion_id');
 
-            $query = SugerenciaTarea::with(['agricultor', 'supervisor', 'cultivo.terreno', 'organizacion'])
-                ->where(function($q) use ($user, $misOrgs) {
+            $query = SugerenciaTarea::with(['agricultor', 'supervisor', 'cultivo.terreno', 'organizacion']);
+
+            if ($user->rol_id !== 1) {
+                $query->where(function($q) use ($user, $misOrgs) {
                     $q->where('supervisor_usuario_id', $user->id)
                       ->orWhereIn('organizacion_id', $misOrgs);
                 });
+            }
 
             $todas = $query->latest()->get();
 
