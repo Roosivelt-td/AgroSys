@@ -17,11 +17,12 @@ class AgroStorageService
      * @param UploadedFile $file
      * @param User $user
      * @param string $category 'perfil', 'portada', 'terreno', 'cultivo', 'labor'
-     * @param int|null $orgId
+     * @param int|string|null $orgId
      * @return array
      */
-    public static function storeUserFile(UploadedFile $file, User $user, string $category, ?int $orgId = null): array
+    public static function storeUserFile(UploadedFile $file, User $user, string $category, int|string|null $orgId = null): array
     {
+        $orgId = !empty($orgId) ? (int)$orgId : null;
         $userHash = md5($user->email);
         $mime = $file->getMimeType();
 
@@ -74,8 +75,10 @@ class AgroStorageService
     /**
      * Ejecuta el proceso físico de subida y normalización de nombres
      */
-    private static function executeUpload(UploadedFile $file, string $path, int $userId, ?int $orgId = null): array
+    private static function executeUpload(UploadedFile $file, string $path, int $userId, int|string|null $orgId = null): array
     {
+        $orgId = !empty($orgId) ? (int)$orgId : null;
+
         // Nomenclatura AgroSys: dia-mes-año_horaminseg_nombre
         $now = Carbon::now()->format('d-m-Y_His');
         $originalName = $file->getClientOriginalName();

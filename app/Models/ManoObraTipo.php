@@ -16,6 +16,22 @@ class ManoObraTipo extends Model
 
     protected $fillable = ['nombre'];
 
+    /**
+     * Garantiza que siempre existan los tipos de mano de obra base en el sistema.
+     */
+    public static function garantizarTiposBase()
+    {
+        $tipos = static::all();
+        if ($tipos->isEmpty()) {
+            $defaultNames = ['Jornalero', 'Operador de Maquinaria', 'Especialista Técnico'];
+            foreach ($defaultNames as $nombre) {
+                static::firstOrCreate(['nombre' => $nombre]);
+            }
+            $tipos = static::all();
+        }
+        return $tipos;
+    }
+
     public function registrosManoObra()
     {
         return $this->hasMany(ManoObra::class, 'tipo_id');

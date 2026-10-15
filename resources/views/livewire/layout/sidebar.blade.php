@@ -87,7 +87,8 @@
         </div>
         @endif
 
-        <!-- Section: SUPERVISIÓN (Solo Supervisores) -->
+        <!-- Section: SUPERVISIÓN (Exclusivo para Supervisores / Admins de Org, NO SuperAdmin) -->
+        @if(auth()->user()->rol_id !== 1)
         @can('supervisor-org')
         <div>
             <div class="px-3 mb-2" x-show="!sidebarCollapsed || mobileOpen" x-transition>
@@ -97,12 +98,13 @@
                 <x-sidebar-link :href="route('supervisor.agricultores')" :active="request()->routeIs('supervisor.agricultores') || request()->routeIs('supervisor.agricultor.*')" icon="fa-solid fa-people-roof">
                     {{ __('Mis Agricultores') }}
                 </x-sidebar-link>
-                <x-sidebar-link href="#" icon="fa-solid fa-list-check">
+                <x-sidebar-link :href="route('supervisor.tareas')" :active="request()->routeIs('supervisor.tareas')" icon="fa-solid fa-list-check">
                     {{ __('Tareas y Sugerencias') }}
                 </x-sidebar-link>
             </div>
         </div>
         @endcan
+        @endif
 
         <!-- Section: ADMINISTRACIÓN OPERATIVA / MI PRODUCCIÓN -->
         <div>
@@ -181,7 +183,7 @@
                 <x-sidebar-link :href="route('chat.index')" :active="request()->routeIs('chat.index')" icon="fa-solid fa-comments">
                     {{ __('Mensajería Técnica') }}
                 </x-sidebar-link>
-                <x-sidebar-link href="#" icon="fa-solid fa-calendar-days">
+                <x-sidebar-link :href="route('eventos.index')" :active="request()->routeIs('eventos.index')" icon="fa-solid fa-calendar-days">
                     {{ __('Eventos y Reuniones') }}
                 </x-sidebar-link>
             </div>

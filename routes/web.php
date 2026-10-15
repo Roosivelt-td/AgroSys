@@ -71,6 +71,10 @@ Route::middleware('auth')->group(function () {
     Route::get('mensajeria', \App\Livewire\Chat\ChatManager::class)
         ->name('chat.index');
 
+    // Eventos y Reuniones
+    Route::get('eventos-reuniones', \App\Livewire\Admin\EventosManager::class)
+        ->name('eventos.index');
+
     // Gestión Interna de Miembros (Miembros de Org)
     Route::get('organizacion/{id}/miembros', \App\Livewire\Admin\GestionMiembros::class)
         ->name('admin.organizacion.miembros');
@@ -88,6 +92,10 @@ Route::middleware('auth')->group(function () {
     Route::get('supervision/agricultor/{id}', \App\Livewire\Admin\AgricultorSupervisionDetail::class)
         ->name('supervisor.agricultor.detalle')
         ->middleware('can:supervisor-org');
+
+    // Tareas y Sugerencias del Supervisor
+    Route::get('supervision/tareas-sugerencias', \App\Livewire\Supervisor\TareasSugerenciasManager::class)
+        ->name('supervisor.tareas');
 
     // Solicitudes Internas (Admin de Org)
     Route::get('organizacion/solicitudes', \App\Livewire\Admin\SolicitudesInternas::class)

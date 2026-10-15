@@ -47,6 +47,8 @@ return new class extends Migration
             $table->enum('tipo_ciclo', ['ciclo_corto', 'perenne']);
             $table->integer('vida_util_estimada_meses')->nullable();
             $table->integer('dias_a_cosecha_promedio')->nullable();
+            $table->decimal('rendimiento_min_tn_ha', 8, 2)->nullable();
+            $table->decimal('rendimiento_max_tn_ha', 8, 2)->nullable();
             $table->text('instrucciones_base_riego')->nullable();
             $table->text('instrucciones_base_plagas')->nullable();
             $table->string('foto_path', 255)->nullable();

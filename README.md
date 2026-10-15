@@ -171,14 +171,14 @@ docker compose exec app php artisan migrate:fresh --seed
 docker compose exec app php artisan storage:link
 ```
 ### 📥 6. Instalacion de npm
-Instalacion
+Instalación
 ```bash
 docker compose run --rm node npm install
 ```
-Inicializacion
+Inicialización
 ```bash
 docker compose run --rm node npm run build 
-docker compose docker compose restart node
+docker compose restart node
 ```
 ### 🔄 7. Actualización de Código
 Si realizas cambios en el código PHP o vistas, simplemente reinicia los servicios:

@@ -3,6 +3,7 @@
 namespace App\Livewire\Layout;
 
 use App\Models\Notificacion;
+use App\Models\SugerenciaTarea;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -21,23 +22,55 @@ class NotificationCenter extends Component
         Notificacion::where('usuario_id', Auth::id())->update(['leido' => 1]);
     }
 
-    public function goToTramite($id)
+    public function handleNotificationClick($id)
     {
-        $notif = Notificacion::find($id);
-        if (!$notif || !$notif->solicitud_id) return;
+        $notif = Notificacion::where('usuario_id', Auth::id())->find($id);
+        if (!$notif) return;
 
         $notif->update(['leido' => 1]);
 
-        // Guardamos en sesión el ID de la solicitud para que el componente destino lo abra
-        session()->flash('open_solicitud', $notif->solicitud_id);
-
-        if (Auth::user()->rol_id === 1) {
-            return $this->redirect(route('admin.solicitudes'), navigate: true);
-        } elseif (Auth::user()->esAdminDeOrganizacion()) {
-            return $this->redirect(route('admin.solicitudes.internas'), navigate: true);
-        } else {
-            return $this->redirect(route('profile.tramites'), navigate: true);
+        // Redirección si la notificación es de un evento o reunión
+        if ($notif->tipo === 'evento') {
+            return $this->redirect(route('eventos.index'), navigate: true);
         }
+
+        // Redirección si la notificación es de una sugerencia o instrucción técnica
+        $isSugerenciaNotif = ($notif->tipo === 'sugerencia') ||
+            $notif->sugerencia_id ||
+            str_contains(mb_strtolower($notif->titulo), 'sugerencia') ||
+            str_contains(mb_strtolower($notif->titulo), 'instrucción') ||
+            str_contains(mb_strtolower($notif->titulo), 'tarea');
+
+        if ($isSugerenciaNotif) {
+            if ($notif->sugerencia_id) {
+                session()->flash('open_sugerencia', $notif->sugerencia_id);
+            } else {
+                $sug = SugerenciaTarea::where('agricultor_usuario_id', Auth::id())->latest()->first();
+                if ($sug) {
+                    session()->flash('open_sugerencia', $sug->id);
+                }
+            }
+
+            return $this->redirect(route('supervisor.tareas'), navigate: true);
+        }
+
+        // Redirección si la notificación está vinculada a un trámite / solicitud
+        if ($notif->solicitud_id) {
+            session()->flash('open_solicitud', $notif->solicitud_id);
+
+            if (Auth::user()->rol_id === 1) {
+                return $this->redirect(route('admin.solicitudes'), navigate: true);
+            } elseif (Auth::user()->esAdminDeOrganizacion()) {
+                return $this->redirect(route('admin.solicitudes.internas'), navigate: true);
+            } else {
+                return $this->redirect(route('profile.tramites'), navigate: true);
+            }
+        }
+    }
+
+    public function goToTramite($id)
+    {
+        return $this->handleNotificationClick($id);
     }
 
     public function render()

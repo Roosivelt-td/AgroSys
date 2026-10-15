@@ -17,6 +17,7 @@ class Notificacion extends Model
     protected $fillable = [
         'usuario_id',
         'solicitud_id',
+        'sugerencia_id',
         'titulo',
         'mensaje',
         'tipo',
@@ -31,5 +32,10 @@ class Notificacion extends Model
     public function solicitud()
     {
         return $this->belongsTo(Solicitud::class, 'solicitud_id');
+    }
+
+    public function sugerencia()
+    {
+        return $this->belongsTo(SugerenciaTarea::class, 'sugerencia_id');
     }
 }

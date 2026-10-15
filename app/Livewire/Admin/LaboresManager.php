@@ -121,7 +121,8 @@ class LaboresManager extends Component
             $c = Cultivo::with('terreno', 'detalleCatalogo')->find($this->filterCropId);
             if ($c) {
                 $this->cultivo_id = $c->id;
-                $this->updatedCultivoId($c->id); // Carga datos del cultivo
+                $this->updatedCultivoId($c->id); // Carga datos del cultivo y evalúa disponibilidad
+                $this->checkLaborAvailability($c->id);
 
                 // Configurar el asistente de selección (resumen del modal)
                 $this->selStatus = $c->estado === 'En crecimiento' ? 'En proceso' : ($c->estado === 'Cosechado' ? 'Completada' : $c->estado);
@@ -145,52 +146,43 @@ class LaboresManager extends Component
         $this->strictMode = true;
         $user = Auth::user();
 
-        // 1. Definir el ámbito de cultivos (Personal u Organización)
-        $cropQuery = Cultivo::query();
-        if ($this->selectedOrgId) {
-            $cropQuery->whereHas('terreno', function($q) {
-                $q->where('organizacion_id', $this->selectedOrgId)
-                  ->orWhere('usuario_id', Auth::id());
-            });
-        } else {
-            $cropQuery->whereHas('terreno', fn($q) => $q->where('usuario_id', $user->id));
-        }
+        $targetCropId = $cropId ?: ($this->cultivo_id ?: $this->filterCropId);
 
-        if ($cropId) {
-            // Validación específica para un CULTIVO SELECCIONADO (Paso 2)
-            $tienePre = Labor::where('cultivo_id', $cropId)
-                ->whereHas('detalleCatalogo', fn($q) => $q->where('categoria', 'preparacion'))
+        if ($targetCropId) {
+            $crop = Cultivo::find($targetCropId);
+
+            // 1. ¿Tiene la labor 'Preparar Terreno' registrada?
+            $tienePre = Labor::where('cultivo_id', $targetCropId)
+                ->whereHas('detalleCatalogo', function($q) {
+                    $q->where('categoria', 'preparacion')
+                      ->orWhere('nombre', 'like', '%Preparar%');
+                })
                 ->exists();
 
-            $tieneSie = Labor::where('cultivo_id', $cropId)
-                ->whereHas('detalleCatalogo', fn($q) => $q->where('categoria', 'siembra'))
-                ->exists();
+            // 2. ¿Tiene la labor 'Siembra' registrada O el cultivo ya está en crecimiento/cosechado?
+            $tieneSie = ($crop && in_array($crop->estado, ['En crecimiento', 'Cosechado']))
+                || Labor::where('cultivo_id', $targetCropId)
+                    ->whereHas('detalleCatalogo', function($q) {
+                        $q->where('categoria', 'siembra')
+                          ->orWhere('nombre', 'like', '%Siembra%')
+                          ->orWhere('nombre', 'like', '%Sembrar%');
+                    })
+                    ->exists();
 
             $this->laborStatusMap = [
                 'preparacion' => true,
-                'siembra' => $tienePre,
-                'mantenimiento' => $tieneSie,
-                'cosecha' => $tieneSie,
-                'Otros' => true,
+                'siembra' => $tienePre, // Requiere 'Preparar Terreno' primero
+                'mantenimiento' => $tieneSie, // Requiere 'Siembra' primero
+                'cosecha' => $tieneSie, // Requiere 'Siembra' primero
+                'Otros' => true, // Siempre permitido a excepción de 'otros trabajos'
                 'OTROS' => true
             ];
         } else {
-            // Validación GLOBAL para los Iconos (Paso 1)
-            // Se activa SIEMBRA si el usuario tiene al menos un cultivo con preparación registrada
-            $anyPrepared = (clone $cropQuery)
-                ->whereHas('labores', fn($q) => $q->whereHas('detalleCatalogo', fn($sq) => $sq->where('categoria', 'preparacion')))
-                ->exists();
-
-            // Se activa MANTENIMIENTO/COSECHA si el usuario tiene al menos un cultivo con siembra registrada
-            $anySown = (clone $cropQuery)
-                ->whereHas('labores', fn($q) => $q->whereHas('detalleCatalogo', fn($sq) => $sq->where('categoria', 'siembra')))
-                ->exists();
-
             $this->laborStatusMap = [
                 'preparacion' => true,
-                'siembra' => $anyPrepared,
-                'mantenimiento' => $anySown,
-                'cosecha' => $anySown,
+                'siembra' => true,
+                'mantenimiento' => true,
+                'cosecha' => true,
                 'Otros' => true,
                 'OTROS' => true
             ];
@@ -283,7 +275,7 @@ class LaboresManager extends Component
             'costo_insumos_total' => 'nullable|numeric|min:0|max:1000000',
             'costo_total' => 'required|numeric|min:0|max:10000000',
             'observaciones' => 'nullable|string|max:1000',
-            'laborPhoto' => 'nullable|image|max:10240',
+            'laborPhoto' => 'nullable|image|max:20480',
         ];
 
         if ($this->esCosecha) {
@@ -292,7 +284,10 @@ class LaboresManager extends Component
             $rules['itemsCosecha.*.calidad'] = 'required|string|max:50';
         }
 
-        $this->validate($rules);
+        $this->validate($rules, [
+            'laborPhoto.image' => 'El archivo debe ser una imagen válida.',
+            'laborPhoto.max' => 'La imagen no puede pesar más de 20 MB.',
+        ]);
 
         try {
             DB::transaction(function() {
@@ -445,15 +440,10 @@ class LaboresManager extends Component
     {
         $user = Auth::user(); $allowedIds = [$user->id];
         if ($this->selectedOrgId) {
-            $m = $user->membresias()->where('organizacion_id', $this->selectedOrgId)->where('estado', 1)->first();
-            if ($user->rol_id === 1 || ($m && $m->roles()->whereHas('rolDetalle', fn($q)=>$q->where('nombre','Administrador'))->exists())) {
-                $baseQuery = Labor::whereHas('cultivo.terreno', function($q) use ($user) {
-                    $q->where('organizacion_id', $this->selectedOrgId)
-                      ->orWhere('usuario_id', $user->id);
-                });
-            } else {
-                $baseQuery = Labor::whereHas('cultivo.terreno', fn($q)=>$q->where('usuario_id', $user->id));
-            }
+            $baseQuery = Labor::whereHas('cultivo.terreno', function($q) use ($user) {
+                $q->where('organizacion_id', $this->selectedOrgId)
+                  ->orWhere('usuario_id', $user->id);
+            });
         } else {
             $baseQuery = Labor::whereHas('cultivo.terreno', fn($q)=>$q->whereIn('usuario_id', $allowedIds));
         }
@@ -466,7 +456,14 @@ class LaboresManager extends Component
             if ($this->fLand) $baseQuery->whereHas('cultivo.terreno', fn($q) => $q->where('nombre', 'like', '%'.$this->fLand.'%'));
             if ($this->fCat) $baseQuery->whereHas('cultivo.detalleCatalogo', fn($q) => $q->where('nombre', 'like', '%'.$this->fCat.'%'));
             if ($this->fVariety) $baseQuery->whereHas('cultivo', fn($q) => $q->where('variedad', 'like', '%'.$this->fVariety.'%'));
-            if ($this->fExactCrop) $baseQuery->whereHas('cultivo', fn($q) => $q->where('nombre_lote', 'like', '%'.$this->fExactCrop.'%'));
+            if ($this->fExactCrop) {
+                $baseQuery->whereHas('cultivo', function($q) {
+                    $val = $this->fExactCrop;
+                    $q->where('nombre_lote', 'like', "%{$val}%")
+                      ->orWhere('id', $val)
+                      ->orWhereHas('detalleCatalogo', fn($dc) => $dc->where('nombre', 'like', "%{$val}%"));
+                });
+            }
             if ($this->fLaborId) $baseQuery->where('catalogo_labor_id', $this->fLaborId);
         }
 
@@ -530,10 +527,22 @@ class LaboresManager extends Component
             : [];
         $resultsIns = $this->showIns ? \App\Models\CatalogoInsumo::where('nombre','like','%'.$this->queryIns.'%')->take(5)->get() : [];
 
+        // Conteos de ejecuciones de labores para los badges de la cuadrícula (0, 1, etc.)
+        $executedLaborCounts = [];
+        $targetCropId = $this->cultivo_id ?: $this->filterCropId;
+        if ($targetCropId) {
+            $executedLaborCounts = Labor::where('cultivo_id', $targetCropId)
+                ->select('catalogo_labor_id', DB::raw('count(*) as total'))
+                ->groupBy('catalogo_labor_id')
+                ->pluck('total', 'catalogo_labor_id')
+                ->toArray();
+        }
+
         return view('livewire.admin.labores-manager', [
-            'labores' => $labores, 'catalogoLabores' => CatalogoLabor::all(), 'manoObraTipos' => \App\Models\ManoObraTipo::all(),
+            'labores' => $labores, 'catalogoLabores' => CatalogoLabor::all(), 'manoObraTipos' => \App\Models\ManoObraTipo::garantizarTiposBase(),
             'terrenosBarra' => $terrenosBarra, 'catalogosBarra' => $catalogosBarra, 'variedadesBarra' => $variedadesBarra, 'cultivosExactosBarra' => $cultivosExactosBarra,
             'resultsLands' => $resultsLands, 'resultsCats' => $resultsCats, 'resultsVars' => $resultsVars, 'resultsCrops' => $resultsCrops, 'resultsIns' => $resultsIns,
+            'executedLaborCounts' => $executedLaborCounts,
             'stats' => ['total' => $labores->total(), 'costo_total' => $baseQuery->sum('costo_total'), 'pendientes' => (clone $baseQuery)->where('estado','Pendiente')->count(), 'avg_cost' => $labores->total() > 0 ? $baseQuery->avg('costo_total') : 0],
             'hasCultivos' => Cultivo::whereHas('terreno', function($q) use ($user) {
                 if ($this->selectedOrgId) {
@@ -652,7 +661,7 @@ class LaboresManager extends Component
     public function addItemInsumo() { $this->itemsInsumos[] = ['id' => '', 'insumo_id' => '', 'insumo_nombre' => '', 'proveedor_id' => '', 'proveedor_nombre' => '', 'cantidad' => 1, 'costo_unitario' => 0, 'costo_flete' => 0]; }
     public function addItemCosecha() { $this->itemsCosecha[] = ['id' => null, 'cantidad' => 0, 'unidad' => 'kg', 'calidad' => 'primera', 'costo_operativo' => 0]; }
     public function addItemManoObra() {
-        $defaultTipo = \App\Models\ManoObraTipo::first();
+        $defaultTipo = \App\Models\ManoObraTipo::garantizarTiposBase()->first();
         $this->itemsManoObra[] = [
             'id' => '',
             'tipo_id' => $defaultTipo ? $defaultTipo->id : '',

@@ -49,7 +49,10 @@ class CatalogoCultivosManager extends Component
         $this->validate([
             'nombre' => 'required|string|max:100|unique:catalogo_cultivos,nombre,' . $this->catId,
             'tipo_ciclo' => 'required|in:ciclo_corto,perenne',
-            'photo' => 'nullable|image|max:2048',
+            'photo' => 'nullable|image|max:20480',
+        ], [
+            'photo.image' => 'El archivo debe ser una imagen válida.',
+            'photo.max' => 'La imagen no puede pesar más de 20 MB.',
         ]);
 
         $photoPath = $this->currentPhotoPath;

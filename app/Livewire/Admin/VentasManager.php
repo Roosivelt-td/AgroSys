@@ -309,7 +309,10 @@ class VentasManager extends Component
             'comprobante_tipo' => 'required|string|max:50',
             'comprobante_numero' => 'nullable|string|max:50',
             'observaciones' => 'nullable|string|max:1000',
-            'ventaPhoto' => 'nullable|image|max:10240'
+            'ventaPhoto' => 'nullable|image|max:20480'
+        ], [
+            'ventaPhoto.image' => 'El archivo debe ser una imagen válida.',
+            'ventaPhoto.max' => 'La imagen no puede pesar más de 20 MB.',
         ]);
 
         if ($this->ventaId) {
@@ -336,14 +339,15 @@ class VentasManager extends Component
     {
         $user = Auth::user();
         $path = $this->currentPhotoPath;
+        $orgId = !empty($this->selectedOrgId) ? (int)$this->selectedOrgId : null;
 
         if ($this->ventaPhoto) {
-            $fileData = AgroStorageService::storeUserFile($this->ventaPhoto, $user, 'comercializacion', $this->selectedOrgId);
+            $fileData = AgroStorageService::storeUserFile($this->ventaPhoto, $user, 'comercializacion', $orgId);
             $path = $fileData['ruta_completa'];
 
             ArchivoMultimedia::create([
                 'usuario_id' => $user->id,
-                'organizacion_id' => $this->selectedOrgId,
+                'organizacion_id' => $orgId,
                 'nombre_original' => $fileData['nombre_original'],
                 'nombre_archivo_unique' => $fileData['nombre_archivo_unique'],
                 'ruta_completa' => $path,

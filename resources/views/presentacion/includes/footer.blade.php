@@ -39,16 +39,16 @@
             <div>
                 <h4 class="font-bold mb-5 text-agricolus">Contacto</h4>
                 <div class="space-y-3 text-sm text-white/50">
-                    <p>Via Settevalli 320</p>
-                    <p>06129 Perugia, Italia</p>
-                    <p>+39.075.99.75.503</p>
-                    <p>discover@agrosys.com</p>
+                    <p>Av. Independencia 542</p>
+                    <p>05001 Huamanga - Ayacucho, Perú</p>
+                    <p>+51 966 847 210</p>
+                    <p>contacto@agrosys.com</p>
                 </div>
             </div>
         </div>
 
         <div class="mt-14 pt-7 border-t border-white/10 flex flex-col md:flex-row justify-between gap-4 text-sm text-white/35">
-            <p>© {{ date('Y') }} AgroSys S.r.l.</p>
+            <p>© {{ date('Y') }} AgroSys S.A.C.</p>
             <div class="flex gap-6">
                 <a href="#" class="hover:text-white">Privacidad</a>
                 <a href="#" class="hover:text-white">Cookies</a>

@@ -13,26 +13,30 @@
     <link rel="apple-touch-icon" href="{{ asset('AgroSys_logo.png') }}">
 
     <!-- =====================================================
-         TAILWIND
+         TAILWIND & VITE ASSETS (COMPATIBLE CON FIREFOX Y TODOS LOS NAVEGADORES)
     ====================================================== -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- Fallback CDN para navegadores alternativos -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        agricolus: '#78B82A',
-                        agricolusDark: '#609B20',
-                        darkgreen: '#173B27',
-                        dark: '#10291C',
-                        cream: '#F7F8F2',
-                        softgreen: '#EEF6E5',
-                        textgray: '#657067'
-                    },
-                    boxShadow: {
-                        soft: '0 20px 60px rgba(23,59,39,.10)',
-                        card: '0 25px 70px rgba(23,59,39,.12)'
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            agricolus: '#78B82A',
+                            agricolusDark: '#609B20',
+                            darkgreen: '#173B27',
+                            dark: '#10291C',
+                            cream: '#F7F8F2',
+                            softgreen: '#EEF6E5',
+                            textgray: '#657067'
+                        },
+                        boxShadow: {
+                            soft: '0 20px 60px rgba(23,59,39,.10)',
+                            card: '0 25px 70px rgba(23,59,39,.12)'
+                        }
                     }
                 }
             }

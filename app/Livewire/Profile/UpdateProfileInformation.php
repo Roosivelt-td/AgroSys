@@ -63,13 +63,15 @@ class UpdateProfileInformation extends Component
             'nivel_educativo' => ['nullable', 'string', 'max:100'],
             'ubicacion' => ['nullable', 'string', 'max:255'],
             'descripcion' => ['nullable', 'string', 'max:500'],
-            'foto_perfil' => ['nullable', 'image', 'max:2048'], // 2MB
-            'foto_portada' => ['nullable', 'image', 'max:5120'], // 5MB
+            'foto_perfil' => ['nullable', 'image', 'max:20480'], // 20MB
+            'foto_portada' => ['nullable', 'image', 'max:20480'], // 20MB
         ], [
             'dni.digits' => 'El DNI debe tener exactamente 8 dígitos.',
             'experiencia_anios.numeric' => 'La experiencia debe ser un número.',
             'foto_perfil.image' => 'El archivo debe ser una imagen.',
+            'foto_perfil.max' => 'La foto de perfil no puede pesar más de 20 MB.',
             'foto_portada.image' => 'La portada debe ser una imagen válida.',
+            'foto_portada.max' => 'La foto de portada no puede pesar más de 20 MB.',
         ]);
 
         // Manejo de Foto de Perfil con AgroStorageService

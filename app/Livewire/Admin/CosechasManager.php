@@ -281,7 +281,11 @@ class CosechasManager extends Component
     }
 
     public function addItemInsumo() { $this->itemsInsumos[] = ['insumo_id' => '', 'insumo_nombre' => '', 'cantidad' => 1, 'costo_unitario' => 0, 'costo_flete' => 0]; }
-    public function addItemManoObra() { $this->itemsManoObra[] = ['tipo_id' => '', 'cantidad' => 1, 'dias' => 1, 'costo_dia' => 0]; }
+    public function addItemManoObra() {
+        $defaultTipo = \App\Models\ManoObraTipo::garantizarTiposBase()->first();
+        $this->itemsManoObra[] = ['tipo_id' => $defaultTipo ? $defaultTipo->id : '', 'cantidad' => 1, 'dias' => 1, 'costo_dia' => 0];
+        $this->calculateTotals();
+    }
     public function addItemMaquinaria() { $this->itemsMaquinaria[] = ['nombre' => '', 'labor' => 'Cosecha', 'horas' => 1, 'costo_total' => 0]; }
 
     public function removeItem($type, $index)
@@ -451,7 +455,10 @@ class CosechasManager extends Component
             'fecha_planificada' => 'required|date',
             'plantas_estimadas' => 'nullable|integer|min:0',
             'rendimiento_esperado_tn_ha' => 'nullable|numeric|min:0',
-            'cropPhoto' => 'nullable|image|max:5120',
+            'cropPhoto' => 'nullable|image|max:20480',
+        ], [
+            'cropPhoto.image' => 'El archivo debe ser una imagen válida.',
+            'cropPhoto.max' => 'La imagen no puede pesar más de 20 MB.',
         ]);
 
         $user = Auth::user();
@@ -580,41 +587,81 @@ class CosechasManager extends Component
             $query->whereHas('detalleCatalogo', fn($q) => $q->where('nombre', 'like', "%{$this->searchCultivo}%"));
         }
 
+        // Datos para el gráfico de barras de cumplimiento en % (Últimas 6 cosechas)
+        $chartQuery = clone $query;
         $cosechas = $query->with(['terreno.latestClima', 'detalleCatalogo', 'labores.cosechas'])->orderBy('updated_at', 'desc')->paginate(12);
 
-        // Datos para gráfico general de rendimiento
+        $ultimas6Cosechas = \App\Models\Cosecha::whereHas('labor.cultivo', function($q) use ($chartQuery) {
+            $q->whereIn('id', $chartQuery->pluck('id'));
+        })
+        ->with(['labor.cultivo.detalleCatalogo'])
+        ->orderBy('fecha_cosecha', 'desc')
+        ->take(6)
+        ->get()
+        ->reverse(); // Orden cronológico para el gráfico
+
         $stats = [
             'labels' => [],
-            'ganancias' => [],
-            'produccion' => []
+            'cantidades_fmt' => [],
+            'estimados_fmt' => [],
+            'cantidades_raw' => [],
+            'porcentajes_cumplimiento' => [],
+            'produccion' => [],
+            'porcentaje_global_cumplimiento' => 100,
         ];
 
-        $allCosechados = clone $query;
-        $grouped = $allCosechados->get()->groupBy('detalleCatalogo.nombre');
+        $sumCumplimiento = 0;
+        $totalCosechasCount = 0;
 
-        foreach ($grouped as $nombre => $items) {
-            $stats['labels'][] = $nombre;
-            $gananciaTotal = 0;
-            $prodTotal = 0; // Solo sumaremos Calidad Primera para el KPI de peso, evitando mezclar tipos
+        foreach ($ultimas6Cosechas as $cos) {
+            $cultivo = $cos->labor->cultivo;
+            $nombreCultivo = strtolower($cultivo->detalleCatalogo->nombre ?? 'Cultivo');
+            $kgReal = (float)$cos->cantidad_kg;
+            $unidad = strtolower(trim($cos->unidad_medida));
 
-            foreach ($items as $item) {
-                $ingresos = 0;
-                $gastos = $item->labores->sum('costo_total');
-                foreach ($item->labores as $l) {
-                    // Sumamos Primera con Primera únicamente (Normalizando para evitar fallos por mayúsculas)
-                    $prodTotal += $l->cosechas->filter(fn($cos) => strtolower($cos->calidad) === 'primera')->sum('cantidad_kg');
-
-                    foreach ($l->cosechas as $cos) {
-                        foreach ($cos->ventas as $v) {
-                            $ingresos += ($v->cantidad_vendida_kg * $v->precio_por_kg);
-                        }
-                    }
-                }
-                $gananciaTotal += ($ingresos - $gastos);
+            // Formatear cantidad de cosecha según reglas del usuario (ej. 20.52TN, 12.5TN, 250sacos):
+            if ($unidad === 'kg' && $kgReal >= 1000) {
+                $tn = round($kgReal / 1000, 3);
+                $tnStr = rtrim(rtrim(number_format($tn, 3, '.', ''), '0'), '.');
+                $cantFmt = "{$tnStr}TN";
+            } elseif ($unidad === 'sacos') {
+                $cantFmt = number_format($kgReal, 0) . "sacos";
+            } elseif ($unidad === 'tn') {
+                $tnStr = rtrim(rtrim(number_format($kgReal, 3, '.', ''), '0'), '.');
+                $cantFmt = "{$tnStr}TN";
+            } else {
+                $cantFmt = number_format($kgReal, 0) . $unidad;
             }
-            $stats['ganancias'][] = $gananciaTotal;
-            $stats['produccion'][] = $prodTotal;
+
+            // Calcular Producción Estimada Total en KG para la parcela:
+            $rendEstimadoTnHa = (float)($cultivo->rendimiento_esperado_tn_ha ?: ($cultivo->detalleCatalogo->rendimiento_min_tn_ha ?? 5.0));
+            $areaHa = max(0.01, (float)($cultivo->area_destinada ?: 1.0));
+            $estimadoTotalKg = max(1, $rendEstimadoTnHa * $areaHa * 1000);
+
+            // Formatear Estimado para Hover Tooltip
+            if ($unidad === 'kg' && $estimadoTotalKg >= 1000) {
+                $tnEst = round($estimadoTotalKg / 1000, 3);
+                $tnEstStr = rtrim(rtrim(number_format($tnEst, 3, '.', ''), '0'), '.');
+                $estFmt = "{$tnEstStr}TN";
+            } else {
+                $estFmt = number_format($estimadoTotalKg, 0) . " " . strtoupper($unidad);
+            }
+
+            // Calcular Porcentaje de Cumplimiento / Eficiencia (%):
+            $pctCumplimiento = round(($kgReal / $estimadoTotalKg) * 100, 1);
+
+            $stats['labels'][] = $nombreCultivo;
+            $stats['cantidades_fmt'][] = $cantFmt;
+            $stats['estimados_fmt'][] = $estFmt;
+            $stats['cantidades_raw'][] = round($kgReal >= 1000 ? $kgReal / 1000 : $kgReal, 3);
+            $stats['porcentajes_cumplimiento'][] = $pctCumplimiento;
+            $stats['produccion'][] = $kgReal;
+
+            $sumCumplimiento += $pctCumplimiento;
+            $totalCosechasCount++;
         }
+
+        $stats['porcentaje_global_cumplimiento'] = $totalCosechasCount > 0 ? round($sumCumplimiento / $totalCosechasCount, 1) : 100;
 
         return view('livewire.admin.cosechas-manager', [
             'cosechas' => $cosechas,
@@ -623,7 +670,7 @@ class CosechasManager extends Component
             'resultsCatalogo' => $resultsCatalogo,
             'selectedTerrenoModel' => $selTerreno,
             'selectedCultivoModel' => $selCultivo,
-            'manoObraTipos' => \App\Models\ManoObraTipo::all(),
+            'manoObraTipos' => \App\Models\ManoObraTipo::garantizarTiposBase(),
             'resultsIns' => $resultsIns,
             'hasLaboresCosecha' => Cultivo::whereHas('terreno', function($q) use ($user) {
                 if ($this->selectedOrgId) {

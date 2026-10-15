@@ -280,7 +280,7 @@
 
                     <span style="color: #0a5f18;">Agro</span><span style="color: #f54e05;">Sys</span> es una empresa innovadora que desarrolla
                     herramientas digitales para el sector agrícola.
-                    Nació en Perugia, Umbría, el «corazón verde» de Italia,
+                    Nació en Ayacucho, el «corazón de los Andes» de Perú,
                     con el objetivo de apoyar a los actores de la cadena
                     alimentaria.
 

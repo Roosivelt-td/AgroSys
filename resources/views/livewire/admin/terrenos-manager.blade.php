@@ -274,15 +274,19 @@
     </div>
 
     <!-- MODAL DE AGREGAR/EDITAR -->
-    <x-modal name="modal-add-terrain" :show="false" focusable>
+    <x-modal name="modal-add-terrain" :show="false">
         <div class="bg-white dark:bg-agri-d_bg rounded-2xl overflow-hidden shadow-2xl border border-slate-100 dark:border-white/10"
              x-init="$watch('show', value => { if(value) { setTimeout(() => window.mountAgroReact(), 500) } })"
              x-on:map-polygon-updated.window="
-                $wire.set('landLat', $event.detail.center.lat, false);
-                $wire.set('landLng', $event.detail.center.lng, false);
-                $wire.set('landArea', $event.detail.area, false);
-                $wire.landPolygon = JSON.stringify($event.detail.points);
-                if($event.detail.address) $wire.set('landLocation', $event.detail.address, false);
+                $wire.set('landLat', $event.detail.center ? $event.detail.center.lat : '', true);
+                $wire.set('landLng', $event.detail.center ? $event.detail.center.lng : '', true);
+                $wire.set('landArea', $event.detail.area || '', true);
+                $wire.set('landPolygon', JSON.stringify($event.detail.points || []), true);
+                if($event.detail.address) {
+                    $wire.set('landLocation', $event.detail.address, true);
+                    let locInput = document.getElementById('landLocationInput');
+                    if(locInput) locInput.value = $event.detail.address;
+                }
              ">
 
             <div class="bg-[#003a38] px-8 py-4 flex justify-between items-center text-white border-b border-white/5">
@@ -342,24 +346,24 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-1.5">
                             <x-input-label for="landName" :value="__('Nombre de la parcela *')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest" />
-                            <x-text-input wire:model="landName" id="landName" type="text" class="block w-full" placeholder="Ej: Fundo Los Olivos" minlength="3" maxlength="100" required />
+                            <x-text-input wire:model.blur="landName" id="landName" type="text" class="block w-full" placeholder="Ej: Fundo Los Olivos" minlength="3" maxlength="100" required />
                             <x-input-error :messages="$errors->get('landName')" class="mt-1" />
                         </div>
                         <div class="space-y-1.5">
                             <x-input-label for="landArea" :value="__('Área (Hectáreas) *')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest" />
-                            <x-text-input wire:model="landArea" id="landArea" type="number" min="0.01" max="10000" step="0.01" class="block w-full" placeholder="0.00" required />
+                            <x-text-input wire:model.blur="landArea" id="landArea" type="number" min="0.01" max="10000" step="0.01" class="block w-full" placeholder="0.00" required />
                             <x-input-error :messages="$errors->get('landArea')" class="mt-1" />
                         </div>
                         <div class="space-y-1.5 md:col-span-2">
                             <x-input-label for="landLocation" :value="__('Ubicación Detectada (Auto)')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest" />
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-agri-green"><i class="fa-solid fa-map-pin"></i></span>
-                                <input wire:model="landLocation" type="text" readonly maxlength="255" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 italic outline-none">
+                                <input wire:model.blur="landLocation" id="landLocationInput" type="text" readonly maxlength="255" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 italic outline-none">
                             </div>
                         </div>
                         <div class="space-y-1.5 md:col-span-2">
                             <x-input-label for="landDirRef" :value="__('Dirección de Referencia / Notas')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest" />
-                            <x-text-input wire:model="landDirRef" id="landDirRef" type="text" class="block w-full" placeholder="Cerca al río, portón verde..." maxlength="255" />
+                            <x-text-input wire:model.blur="landDirRef" id="landDirRef" type="text" class="block w-full" placeholder="Cerca al río, portón verde..." maxlength="255" />
                             <x-input-error :messages="$errors->get('landDirRef')" class="mt-1" />
                         </div>
                     </div>
@@ -381,7 +385,7 @@
                         @if($landTenure === 'alquilado')
                         <div class="space-y-1.5 animate-in slide-in-from-top-2">
                             <x-input-label for="landRentCost" :value="__('Costo Alquiler Anual (S/)')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest" />
-                            <x-text-input wire:model="landRentCost" id="landRentCost" type="number" class="block w-full" />
+                            <x-text-input wire:model.blur="landRentCost" id="landRentCost" type="number" class="block w-full" />
                         </div>
 
                         <div class="space-y-1.5 animate-in slide-in-from-top-2">
@@ -411,7 +415,7 @@
                         @if($landRentMod === 'global')
                         <div class="space-y-1.5 animate-in slide-in-from-top-2">
                             <x-input-label for="landRentEnd" :value="__('Fecha Vencimiento')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest" />
-                            <x-text-input wire:model="landRentEnd" id="landRentEnd" type="date" class="block w-full" :readonly="$landRentPeriod === 'anual'" />
+                            <x-text-input wire:model.blur="landRentEnd" id="landRentEnd" type="date" class="block w-full" :readonly="$landRentPeriod === 'anual'" />
                             <x-input-error :messages="$errors->get('landRentEnd')" class="mt-2" />
                         </div>
                         @endif

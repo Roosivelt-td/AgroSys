@@ -50,6 +50,9 @@ class CultivosManager extends Component
     public $area_destinada = '';
     public $plantas_estimadas = '';
     public $rendimiento_esperado_tn_ha = '';
+    public $rendimiento_min_tn = 0;
+    public $rendimiento_max_tn = 0;
+    public $rendimiento_rango_label = '';
     public $showRendimientoPerenne = false; // Nueva propiedad
     public $observaciones = '';
     public $cropPhoto;
@@ -127,7 +130,48 @@ class CultivosManager extends Component
             $this->fecha_cosecha_estimada = $baseDate->addDays($cropDetail->dias_a_cosecha_promedio)->format('Y-m-d');
         }
 
+        $this->calcularRendimientoEsperadoAuto();
         $this->generarNombreLote();
+    }
+
+    public function updatedAreaDestinada()
+    {
+        $this->calcularRendimientoEsperadoAuto();
+    }
+
+    public function updatedCatalogoCultivoId()
+    {
+        if ($this->catalogo_cultivo_id) {
+            $cropDetail = CatalogoCultivo::find($this->catalogo_cultivo_id);
+            if ($cropDetail && $cropDetail->dias_a_cosecha_promedio) {
+                $baseDate = $this->fecha_planificada ? Carbon::parse($this->fecha_planificada) : Carbon::now();
+                $this->fecha_cosecha_estimada = $baseDate->addDays($cropDetail->dias_a_cosecha_promedio)->format('Y-m-d');
+            }
+        }
+        $this->calcularRendimientoEsperadoAuto();
+        $this->generarNombreLote();
+    }
+
+    public function calcularRendimientoEsperadoAuto()
+    {
+        $ha = (float)($this->area_destinada ?: 0);
+        if ($this->catalogo_cultivo_id) {
+            $cropDetail = CatalogoCultivo::find($this->catalogo_cultivo_id);
+            if ($cropDetail) {
+                $calcHa = $ha > 0 ? $ha : 1;
+                $calc = $cropDetail->calcularRangoRendimientoHectareas($calcHa);
+
+                $this->rendimiento_min_tn = $calc['min_tn'];
+                $this->rendimiento_max_tn = $calc['max_tn'];
+                $this->rendimiento_rango_label = $ha > 0 ? $calc['label'] : $cropDetail->rango_rendimiento_formatted;
+                $this->rendimiento_esperado_tn_ha = $calc['promedio_per_ha'];
+                return;
+            }
+        }
+
+        $this->rendimiento_min_tn = 0;
+        $this->rendimiento_max_tn = 0;
+        $this->rendimiento_rango_label = '0 TN A 0 TN';
     }
 
     public function updatedFechaPlanificada($value)
@@ -174,6 +218,7 @@ class CultivosManager extends Component
         }
 
         $this->generarNombreLote();
+        $this->calcularRendimientoEsperadoAuto();
         $this->dispatch('open-modal', 'modal-crop-manager');
     }
 
@@ -183,6 +228,7 @@ class CultivosManager extends Component
             'cropId', 'terreno_id', 'catalogo_cultivo_id', 'nombre_lote', 'variedad',
             'fecha_planificada', 'fecha_siembra', 'fecha_cosecha_estimada', 'fecha_cosecha_finalizada',
             'estado', 'area_destinada', 'plantas_estimadas', 'rendimiento_esperado_tn_ha',
+            'rendimiento_min_tn', 'rendimiento_max_tn', 'rendimiento_rango_label',
             'showRendimientoPerenne', 'observaciones', 'cropPhoto', 'currentPhotoPath', 'areaDisponible',
             'terrenoNombreSelected', 'cultivoNombreSelected', 'queryTerreno', 'queryCultivo'
         ]);
@@ -234,7 +280,7 @@ class CultivosManager extends Component
             'plantas_estimadas' => 'nullable|integer|min:0|max:10000000',
             'rendimiento_esperado_tn_ha' => 'nullable|numeric|min:0|max:10000',
             'observaciones' => 'nullable|string|max:1000',
-            'cropPhoto' => 'nullable|file|mimes:jpg,jpeg,png,webp,gif|max:10240',
+            'cropPhoto' => 'nullable|file|mimes:jpg,jpeg,png,webp,gif|max:20480',
         ], [
             'terreno_id.required' => 'Debes seleccionar un terreno.',
             'catalogo_cultivo_id.required' => 'Debes seleccionar el cultivo a sembrar.',
@@ -242,7 +288,7 @@ class CultivosManager extends Component
             'area_destinada.required' => 'El área destinada es obligatoria.',
             'area_destinada.max' => 'El área no puede superar la superficie disponible del terreno.',
             'cropPhoto.mimes' => 'La imagen debe ser de formato JPG, PNG, WEBP o GIF.',
-            'cropPhoto.max' => 'La imagen no puede pesar más de 10 MB.',
+            'cropPhoto.max' => 'La imagen no puede pesar más de 20 MB.',
         ]);
 
         $user = Auth::user();
@@ -326,6 +372,7 @@ class CultivosManager extends Component
         $areaOcupada = Cultivo::where('terreno_id', $c->terreno_id)->whereIn('estado', ['Planificado', 'En crecimiento'])->where('id', '!=', $c->id)->sum('area_destinada');
         $this->areaDisponible = $t->hectareas - $areaOcupada;
 
+        $this->calcularRendimientoEsperadoAuto();
         $this->dispatch('open-modal', 'modal-crop-manager');
     }
 
@@ -509,58 +556,108 @@ class CultivosManager extends Component
 
     public function showCropReport($id)
     {
-        $crop = Cultivo::with(['labores.insumos', 'labores.cosechaResultado.ventas', 'detalleCatalogo', 'terreno'])->findOrFail($id);
+        $crop = Cultivo::with(['terreno.latestClima', 'detalleCatalogo', 'labores.insumos', 'labores.cosechas.ventas'])->findOrFail($id);
         $this->selectedCropForReport = $crop;
 
         $costoInsumos = 0;
         $costoManoObra = 0;
         $costoMaquinaria = 0;
+        $costoFletes = 0;
         $ingresosTotales = 0;
-        $cantidadCosechada = 0;
+        $cantidadTotalCosechada = 0;
+        $cantidadTotalVendida = 0;
         $unidadCosecha = 'kg';
 
-        // Búsqueda de Ventas y Fletes
-        $fletesTotales = 0;
-        foreach ($crop->labores as $labor) {
-            $cMano = (float)$labor->costo_mano_obra_total;
-            $cMaq = (float)$labor->costo_maquinaria_total;
-            $cTotal = (float)$labor->costo_total;
+        $cosechasDetalladas = [];
 
-            $costoManoObra += $cMano;
-            $costoMaquinaria += $cMaq;
-            $insumoLabor = max(0, $cTotal - ($cMano + $cMaq));
+        foreach ($crop->labores as $labor) {
+            $costoManoObra += (float)$labor->costo_mano_obra_total;
+            $costoMaquinaria += (float)$labor->costo_maquinaria_total;
+
+            $insumoLabor = max(0, (float)$labor->costo_total - ((float)$labor->costo_mano_obra_total + (float)$labor->costo_maquinaria_total));
             $costoInsumos += $insumoLabor;
 
-            if ($labor->cosechaResultado) {
-                $cantidadCosechada += (float)$labor->cosechaResultado->cantidad_kg;
-                $unidadCosecha = $labor->cosechaResultado->unidad_medida;
-                foreach ($labor->cosechaResultado->ventas as $venta) {
-                    $ingresosTotales += ((float)$venta->cantidad_vendida_kg * (float)$venta->precio_por_kg);
-                    $fletesTotales += (float)$venta->costo_flete;
-                }
+            foreach ($labor->cosechas as $cos) {
+                $cantidadTotalCosechada += (float)$cos->cantidad_kg;
+                $unidadCosecha = $cos->unidad_medida;
+
+                $ventasRel = $cos->ventas;
+                $vendidoCos = $ventasRel->sum('cantidad_vendida_kg');
+                $cantidadTotalVendida += $vendidoCos;
+
+                $ingresoCos = $ventasRel->sum(fn($v) => $v->cantidad_vendida_kg * $v->precio_por_kg);
+                $ingresosTotales += $ingresoCos;
+
+                $costoFletes += $ventasRel->sum('costo_flete');
+
+                $cosechasDetalladas[] = [
+                    'fecha' => $cos->fecha_cosecha ? $cos->fecha_cosecha->format('d/m/Y') : '---',
+                    'cantidad' => $cos->cantidad_kg,
+                    'unidad' => $cos->unidad_medida,
+                    'calidad' => $cos->calidad,
+                    'vendido' => $vendidoCos,
+                    'ingreso' => $ingresoCos,
+                    'precio_estimado' => (float)($cos->costo_operativo_cosecha ?: 0),
+                    'completado' => ($vendidoCos >= $cos->cantidad_kg && $cos->cantidad_kg > 0)
+                ];
             }
         }
 
-        $totalGastos = $costoInsumos + $costoManoObra + $costoMaquinaria + $fletesTotales;
+        $inversionTotal = $costoInsumos + $costoManoObra + $costoMaquinaria + $costoFletes;
+        $precioPromedio = $cantidadTotalVendida > 0 ? ($ingresosTotales / $cantidadTotalVendida) : 0;
 
-        // Evitar que el gráfico se rompa si todo es cero
+        $ha = max(0.01, (float)$crop->area_destinada);
+        $rendimientoRealHaVal = round($cantidadTotalCosechada / $ha, 2);
+
+        // Formatear Total Cosechado y Rendimiento Real a TN si >= 1000 kg
+        if ($cantidadTotalCosechada >= 1000) {
+            $tnCosecha = \App\Models\CatalogoCultivo::formatTnNumber($cantidadTotalCosechada / 1000);
+            $totalCosechadoFmt = "{$tnCosecha} TN";
+            $rendRealFmt = \App\Models\CatalogoCultivo::formatTnNumber($rendimientoRealHaVal / 1000) . " TN/HA";
+        } else {
+            $totalCosechadoFmt = number_format($cantidadTotalCosechada, 2) . " " . strtoupper($unidadCosecha);
+            $rendRealFmt = number_format($rendimientoRealHaVal, 2) . " " . strtoupper($unidadCosecha) . "/HA";
+        }
+
+        $produccionAgrupada = [];
+        foreach($cosechasDetalladas as $item) {
+            $key = strtolower($item['calidad']) . '_' . strtolower($item['unidad']);
+            if(!isset($produccionAgrupada[$key])) {
+                $produccionAgrupada[$key] = [
+                    'calidad' => $item['calidad'],
+                    'unidad' => $item['unidad'],
+                    'cantidad' => 0
+                ];
+            }
+            $produccionAgrupada[$key]['cantidad'] += $item['cantidad'];
+        }
+
+        $isCompletamenteVendido = ($cantidadTotalVendida >= $cantidadTotalCosechada && $cantidadTotalCosechada > 0);
+
         $chartValues = [$costoInsumos, $costoManoObra, $costoMaquinaria];
-        if ($fletesTotales > 0) $chartValues[] = $fletesTotales;
-
+        if ($costoFletes > 0) $chartValues[] = $costoFletes;
         $hasData = array_sum($chartValues) > 0;
 
         $this->reportData = [
             'costoInsumos' => $costoInsumos,
             'costoManoObra' => $costoManoObra,
             'costoMaquinaria' => $costoMaquinaria,
-            'costoFlete' => $fletesTotales,
+            'costoFletes' => $costoFletes,
+            'inversionTotal' => $inversionTotal,
             'ingresosTotales' => $ingresosTotales,
-            'cantidadCosechada' => $cantidadCosechada,
+            'totalCosechadoKg' => $cantidadTotalCosechada,
+            'totalCosechadoFmt' => $totalCosechadoFmt,
+            'precioPromedio' => $precioPromedio,
+            'rendimientoRealHa' => $rendRealFmt,
+            'gananciaFinal' => $ingresosTotales - $inversionTotal,
             'unidadCosecha' => $unidadCosecha,
-            'balance' => $ingresosTotales - $totalGastos,
+            'produccionAgrupada' => array_values($produccionAgrupada),
+            'balance' => $ingresosTotales - $inversionTotal,
+            'esReal' => $isCompletamenteVendido,
+            'cosechasDetalladas' => $cosechasDetalladas,
             'chart' => [
-                'labels' => $fletesTotales > 0 ? ['Insumos', 'Mano de Obra', 'Maquinaria', 'Fletes'] : ['Insumos', 'Mano de Obra', 'Maquinaria'],
-                'values' => $hasData ? $chartValues : [],
+                'labels' => $costoFletes > 0 ? ['Insumos', 'Mano de Obra', 'Maquinaria', 'Fletes'] : ['Insumos', 'Mano de Obra', 'Maquinaria'],
+                'values' => $hasData ? $chartValues : [0,0,0],
                 'colors' => ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
                 'unit' => 'S/'
             ]

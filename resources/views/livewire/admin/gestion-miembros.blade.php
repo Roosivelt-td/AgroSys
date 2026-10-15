@@ -177,6 +177,15 @@
                         </button>
                     @endif
 
+                    @if(!$esSupervisor && !$soyYo && (in_array('Supervisor', $miRolEnOrg) || in_array('Administrador', $miRolEnOrg)))
+                        <a href="{{ route('supervisor.agricultor.detalle', ['id' => $miembro->usuario_id]) }}"
+                           wire:navigate
+                           class="mt-3 w-full px-4 py-2 bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white border border-amber-500/20 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all italic shadow-sm flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-people-roof text-xs"></i>
+                            <span>Perfil de Supervisión</span>
+                        </a>
+                    @endif
+
                     <!-- Acciones Rápidas (Solo Admin) -->
                     @if(in_array('Administrador', $miRolEnOrg) && Auth::id() !== $miembro->usuario_id)
                     <div class="absolute top-4 right-4 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-all duration-500 scale-90 group-hover:scale-100">
@@ -242,7 +251,16 @@
                 </div>
             </div>
 
-            <div class="p-10 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5 flex justify-center">
+            <div class="p-10 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5 flex flex-col gap-3 justify-center">
+                @if((in_array('Supervisor', $miRolEnOrg) || in_array('Administrador', $miRolEnOrg)) && Auth::id() !== $selectedMember->usuario_id)
+                    <a href="{{ route('supervisor.agricultor.detalle', ['id' => $selectedMember->usuario_id]) }}"
+                       wire:navigate
+                       class="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-amber-500/20 hover:scale-105 transition-all italic flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-people-roof text-sm"></i>
+                        <span>Ver Perfil de Supervisión del Agricultor</span>
+                    </a>
+                @endif
+
                 <button wire:click="closeProfile" class="w-full py-4 bg-agri-green text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] shadow-xl shadow-agri-green/30 hover:scale-105 active:scale-95 transition-all italic">
                     Cerrar Expediente
                 </button>

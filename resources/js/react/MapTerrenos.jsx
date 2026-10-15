@@ -125,52 +125,76 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // INICIALIZACIÓN DEL MAPA
+    // INICIALIZACIÓN DEL MAPA CON REINTENTO SEGURO
     useEffect(() => {
-        if (!mapRef.current || mapInstance.current) return;
-        const L = window.L;
-        if (!L) {
-            console.error("[AgroMap] Leaflet (L) no encontrado en window.");
-            return;
-        }
+        if (mapInstance.current) return;
 
-        console.log("[AgroMap] Inicializando mapa...");
-        mapInstance.current = L.map(mapRef.current, {
-            center: [-13.1606, -74.2257],
-            zoom: 15,
-            zoomControl: true,
-            fadeAnimation: false
-        });
+        let retryCount = 0;
+        let initTimer = null;
 
-        // Capas Base
-        const satellite = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-            maxZoom: 22, subdomains:['mt0','mt1','mt2','mt3'], attribution: '&copy; Google'
-        });
+        const tryInitializeMap = () => {
+            if (!mapRef.current || mapInstance.current) return;
 
-        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19, attribution: '&copy; OpenStreetMap'
-        });
-
-        // AGROSYS: Satélite por defecto para visualización técnica de terrenos
-        satellite.addTo(mapInstance.current);
-
-        L.control.layers({ "Satélite (Google)": satellite, "Calles (OSM)": osm }, null, { position: 'bottomright' }).addTo(mapInstance.current);
-
-        markersLayerGroup.current = L.layerGroup().addTo(mapInstance.current);
-        drawingLayerGroup.current = L.layerGroup().addTo(mapInstance.current);
-
-        mapInstance.current.on('click', (e) => {
-            if (drawModeRef.current) {
-                const { lat, lng } = e.latlng;
-                if (checkCollision({ lat, lng })) return;
-
-                const updated = [...pointsRef.current, { lat, lng }];
-                const isFirstPoint = updated.length === 1;
-                pointsRef.current = updated;
-                setPoints(updated);
-                updatePolygonData(updated, isFirstPoint);
+            const L = window.L;
+            if (!L) {
+                if (retryCount < 30) {
+                    retryCount++;
+                    initTimer = setTimeout(tryInitializeMap, 100);
+                } else {
+                    console.error("[AgroMap] Leaflet (L) no se pudo cargar tras varios reintentos.");
+                }
+                return;
             }
-        });
+
+            console.log("[AgroMap] Inicializando mapa Leaflet con éxito...");
+            mapInstance.current = L.map(mapRef.current, {
+                center: [-13.1606, -74.2257],
+                zoom: 15,
+                zoomControl: true,
+                fadeAnimation: false
+            });
+
+            // Capas Base
+            const satellite = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                maxZoom: 22, subdomains:['mt0','mt1','mt2','mt3'], attribution: '&copy; Google'
+            });
+
+            const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19, attribution: '&copy; OpenStreetMap'
+            });
+
+            // AGROSYS: Satélite por defecto para visualización técnica de terrenos
+            satellite.addTo(mapInstance.current);
+
+            L.control.layers({ "Satélite (Google)": satellite, "Calles (OSM)": osm }, null, { position: 'bottomright' }).addTo(mapInstance.current);
+
+            markersLayerGroup.current = L.layerGroup().addTo(mapInstance.current);
+            drawingLayerGroup.current = L.layerGroup().addTo(mapInstance.current);
+
+            mapInstance.current.on('click', (e) => {
+                if (drawModeRef.current) {
+                    const { lat, lng } = e.latlng;
+                    if (checkCollision({ lat, lng })) return;
+
+                    const updated = [...pointsRef.current, { lat, lng }];
+                    const isFirstPoint = updated.length === 1;
+                    pointsRef.current = updated;
+                    setPoints(updated);
+                    updatePolygonData(updated, isFirstPoint);
+                }
+            });
+
+            setIsInitialized(true);
+
+            // Invalida tamaño inmediatamente
+            setTimeout(() => {
+                if (mapInstance.current) {
+                    mapInstance.current.invalidateSize();
+                }
+            }, 200);
+        };
+
+        tryInitializeMap();
 
         const flyHandler = (e) => {
             const data = Array.isArray(e.detail) ? e.detail[0] : e.detail;
@@ -180,41 +204,30 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
         };
 
         const zoomInHandler = () => {
-            console.log("[AgroMap] Zoom In event received");
-            if (mapInstance.current) {
-                mapInstance.current.zoomIn();
-            } else {
-                console.warn("[AgroMap] Zoom In failed: mapInstance not ready");
-            }
+            if (mapInstance.current) mapInstance.current.zoomIn();
         };
 
         const zoomOutHandler = () => {
-            console.log("[AgroMap] Zoom Out event received");
+            if (mapInstance.current) mapInstance.current.zoomOut();
+        };
+
+        const invalidateSizeHandler = () => {
             if (mapInstance.current) {
-                mapInstance.current.zoomOut();
-            } else {
-                console.warn("[AgroMap] Zoom Out failed: mapInstance not ready");
+                setTimeout(() => mapInstance.current?.invalidateSize(), 150);
             }
         };
 
         window.addEventListener('map-fly-to', flyHandler);
         window.addEventListener('map-zoom-in', zoomInHandler);
         window.addEventListener('map-zoom-out', zoomOutHandler);
-
-        setIsInitialized(true);
-
-        // Corrección de tamaño después del montaje
-        setTimeout(() => {
-            if (mapInstance.current) {
-                mapInstance.current.invalidateSize();
-                console.log("[AgroMap] Map instance invalidated and ready.");
-            }
-        }, 500);
+        window.addEventListener('map-invalidate-size', invalidateSizeHandler);
 
         return () => {
+            if (initTimer) clearTimeout(initTimer);
             window.removeEventListener('map-fly-to', flyHandler);
             window.removeEventListener('map-zoom-in', zoomInHandler);
             window.removeEventListener('map-zoom-out', zoomOutHandler);
+            window.removeEventListener('map-invalidate-size', invalidateSizeHandler);
         };
     }, []);
 
@@ -222,15 +235,16 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
     useEffect(() => {
         if (!isInitialized || !mapInstance.current) return;
         const resizer = new ResizeObserver(() => mapInstance.current?.invalidateSize());
-        resizer.observe(mapRef.current);
-        const timers = [100, 300, 800, 1500].map(ms => setTimeout(() => mapInstance.current?.invalidateSize(), ms));
+        if (mapRef.current) resizer.observe(mapRef.current);
+        const timers = [100, 300, 600, 1200].map(ms => setTimeout(() => mapInstance.current?.invalidateSize(), ms));
         return () => { resizer.disconnect(); timers.forEach(t => clearTimeout(t)); };
     }, [isInitialized]);
 
     // RENDERIZAR POLÍGONO Y HANDLES
     useEffect(() => {
-        if (!isInitialized) return;
+        if (!isInitialized || !mapInstance.current) return;
         const L = window.L;
+        if (!L) return;
 
         // 1. Dibujar Polígono
         if (polygonLayer.current) {
@@ -265,7 +279,7 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
         }
 
         if (!drawMode) {
-            drawingLayerGroup.current.clearLayers();
+            if (drawingLayerGroup.current) drawingLayerGroup.current.clearLayers();
             vertexMarkersRef.current = [];
             midpointMarkersRef.current = [];
             return;
@@ -286,7 +300,7 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
         });
 
         if (vertexMarkersRef.current.length !== points.length) {
-            drawingLayerGroup.current.clearLayers();
+            if (drawingLayerGroup.current) drawingLayerGroup.current.clearLayers();
             vertexMarkersRef.current = [];
             midpointMarkersRef.current = [];
 
@@ -346,13 +360,13 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
 
     // POSICIONAR MAPA INICIAL Y ACTUALIZACIONES DE CENTRO
     useEffect(() => {
-        if (!isInitialized) return;
+        if (!isInitialized || !mapInstance.current) return;
         const targetCenter = center || (points.length > 0 ? points[0] : null);
-        if (targetCenter && targetCenter.lat && targetCenter.lng && mapInstance.current) {
+        if (targetCenter && targetCenter.lat && targetCenter.lng) {
             setTimeout(() => {
                 mapInstance.current?.setView([targetCenter.lat, targetCenter.lng], zoom);
                 mapInstance.current?.invalidateSize();
-            }, 300);
+            }, 200);
         }
     }, [isInitialized, center?.lat, center?.lng, zoom, drawMode]);
 
@@ -361,6 +375,8 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
         if (!isInitialized || !markersLayerGroup.current) return;
         markersLayerGroup.current.clearLayers();
         const L = window.L;
+        if (!L) return;
+
         terrenos.forEach(t => {
             if (drawMode && editingId && t.id == editingId) return;
 
@@ -368,8 +384,6 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
             if (t.color === 'green') color = '#10b981';
             else if (t.color === 'blue') color = '#3b82f6';
             else if (t.color === 'purple') color = '#a855f7';
-
-            const isSelected = selectedId && t.id == selectedId;
 
             const popupContent = `
                 <div style="font-family: system-ui, sans-serif; padding: 6px; min-width: 190px;">
@@ -395,7 +409,6 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
                 const m = L.marker([t.lat, t.lng], { icon: locationIcon }).addTo(markersLayerGroup.current);
                 m.bindPopup(popupContent);
                 if (t.label) m.bindTooltip(t.label, { sticky: true, className: 'agro-tooltip' });
-                if (isSelected) m.openPopup();
             } else if (t.poligono && Array.isArray(t.poligono) && t.poligono.length > 0) {
                 const poly = L.polygon(t.poligono, {
                     color,
@@ -421,9 +434,6 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
                 });
                 const centerMarker = L.marker(centerPos, { icon: centerIcon, interactive: true }).addTo(markersLayerGroup.current);
                 centerMarker.bindPopup(popupContent);
-                if (isSelected) {
-                    poly.openPopup(centerPos);
-                }
             } else if (t.lat && t.lng) {
                 const locationIcon = L.divIcon({
                     className: 'custom-div-icon',
@@ -433,7 +443,6 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
                 const m = L.marker([t.lat, t.lng], { icon: locationIcon }).addTo(markersLayerGroup.current);
                 m.bindTooltip(t.label || t.nombre, { sticky: true, className: 'agro-tooltip' });
                 m.bindPopup(popupContent);
-                if (isSelected) m.openPopup();
             }
         });
     }, [terrenos, isInitialized, drawMode, editingId]);
@@ -444,10 +453,14 @@ const MapTerrenos = ({ terrenos = [], selectionMode = false, drawMode = false, i
             <div ref={mapRef} className="w-full h-full absolute inset-0" style={{ zIndex: 1 }} />
             {isGeocoding && (
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1001] bg-agri-green text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-2xl animate-pulse">
-                    <i className="fa-solid fa-magnifying-glass-location mr-2"></i> Obteniendo Ubicación...
+                    <i class="fa-solid fa-magnifying-glass-location mr-2"></i> Obteniendo Ubicación...
                 </div>
             )}
-            {!isInitialized && <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-[1000]"><i className="fa-solid fa-satellite-dish fa-spin text-agri-green text-3xl"></i></div>}
+            {!isInitialized && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-[1000]">
+                    <i class="fa-solid fa-satellite-dish fa-spin text-agri-green text-3xl"></i>
+                </div>
+            )}
         </div>
     );
 };

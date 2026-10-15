@@ -169,124 +169,150 @@
     </div>
 
     <!-- LISTADO DE TARJETAS PREMIUM (CRUD + ALTURA COMPACTA) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        @php
-            $icons = [
-                'Preparar' => 'fa-tractor',
-                'Siembra' => 'fa-seedling',
-                'Riego' => 'fa-droplet',
-                'Fumigar' => 'fa-spray-can-sparkles',
-                'Aporque' => 'fa-mountain',
-                'Desierbe' => 'fa-scissors',
-                'Deshierbe' => 'fa-scissors',
-                'Abonar' => 'fa-flask-vial',
-                'Cosechar' => 'fa-basket-shopping',
-                'Otros' => 'fa-ellipsis'
-            ];
-        @endphp
-
-        @foreach($labores as $l)
-        @php
-            $isAtrasada = $l->estado === 'Pendiente' && \Carbon\Carbon::parse($l->fecha_realizacion)->isPast();
-            // Lógica de fecha solicitada: siembra si existe, si no, fecha de la labor (preparación)
-            $fRefRaw = $l->cultivo->fecha_siembra ?: $l->fecha_realizacion;
-            $fechaRef = \Carbon\Carbon::parse($fRefRaw)->format('d/m/Y');
-            $identificador = strtoupper($l->cultivo->detalleCatalogo->nombre) . " " . strtoupper($l->cultivo->variedad ?: 'GENERICA') . " - " . $fechaRef;
-        @endphp
-        <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-xl border border-slate-100 dark:border-white/5 group relative transition-all duration-500 hover:-translate-y-1.5 h-64 cursor-pointer"
-             x-data="{ menuOpen: false }"
-             @click="if (!$event.target.closest('.no-click')) $wire.showDetails({{ $l->id }})">
-
-            <!-- IMAGEN DE FONDO CON OVERLAY PREMIUM -->
-            <div class="absolute inset-0 z-0">
-                @if($l->foto_path)
-                    <img src="{{ Storage::url($l->foto_path) }}" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105">
-                @else
-                    <div class="w-full h-full flex items-center justify-center text-slate-200 bg-slate-50 dark:bg-slate-800/50">
-                        <i class="fa-solid {{ $icons[$l->detalleCatalogo->nombre] ?? 'fa-tractor' }} text-8xl opacity-10"></i>
-                    </div>
-                @endif
-                <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/20 dark:from-slate-950 dark:via-slate-950/80 dark:to-transparent"></div>
+    @if($labores->isEmpty())
+        <div class="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-dashed border-slate-200 dark:border-white/10 shadow-sm text-center p-8 space-y-4">
+            <div class="w-20 h-20 bg-agri-green/10 text-agri-green rounded-3xl flex items-center justify-center text-3xl shadow-inner">
+                <i class="fa-solid fa-clipboard-list"></i>
             </div>
-
-            <!-- CONTENIDO ESTRUCTURADO (Z-10) -->
-            <div class="relative z-10 p-6 h-full flex flex-col justify-between">
-
-                <!-- 1. HEADER: NOMBRE LABOR (Donde iba el clima) + BADGE + CRUD -->
-                <div class="flex justify-between items-start">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-agri-green rounded-xl flex items-center justify-center border border-white/20 shadow-lg">
-                            <i class="fa-solid {{ $icons[$l->detalleCatalogo->nombre] ?? 'fa-tractor' }} text-white text-lg"></i>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-3">
-                                <h3 class="text-[17px] font-black italic uppercase tracking-tight text-white leading-none shadow-sm">{{ $l->detalleCatalogo->nombre }}</h3>
-                                <span class="px-3 py-1 bg-amber-500 text-white text-[11px] font-black uppercase rounded-xl border border-white/10 italic leading-none shadow-2xl flex items-center gap-1.5">
-                                    <i class="fa-solid fa-barcode text-[10px]"></i> {{ $l->cultivo->nombre_lote }}
-                                </span>
-                            </div>
-                            <div class="flex gap-1.5 mt-1.5">
-                                <span class="px-2 py-0.5 bg-white/10 backdrop-blur-md rounded text-[8px] font-black uppercase tracking-widest text-emerald-400 border border-white/10">{{ $l->estado }}</span>
-                                @if($isAtrasada)
-                                    <span class="px-2 py-0.5 bg-rose-500/20 backdrop-blur-md rounded text-[8px] font-black uppercase tracking-widest text-rose-400 border border-rose-500/30 animate-pulse">Atrasada</span>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="relative no-click">
-                        <button @click.stop="menuOpen = !menuOpen" @click.away="menuOpen = false"
-                                class="w-8 h-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white flex items-center justify-center shadow-lg hover:bg-white/20 transition-all">
-                            <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
-                        </button>
-                        <div x-show="menuOpen" x-transition class="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-100 dark:border-white/10 z-50 overflow-hidden" x-cloak>
-                            <button @click.stop="$wire.edit({{ $l->id }})" class="w-full px-4 py-3 text-left text-[10px] font-black uppercase text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 italic">
-                                <i class="fa-solid fa-pen-to-square text-agri-green"></i> EDITAR
-                            </button>
-                            <button @click.stop="$wire.delete({{ $l->id }})" wire:confirm="¿Eliminar registro?" class="w-full px-4 py-3 text-left text-[10px] font-black uppercase text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2 italic">
-                                <i class="fa-solid fa-trash-can"></i> BORRAR
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. DATOS TÉCNICOS CENTRALES (Lote + Fecha Ref) -->
-                <div class="space-y-2 mb-1">
-                    <div class="flex items-center gap-2.5 text-white/90">
-                        <i class="fa-solid fa-seedling text-[11px] text-agri-green shadow-sm"></i>
-                        <p class="text-[11px] font-bold uppercase italic tracking-wide truncate">
-                            <span class="text-white font-black">{{ $identificador }}</span>
-                        </p>
-                    </div>
-
-                    @if($l->observaciones)
-                    <div class="flex items-start gap-2 pt-1 border-t border-white/10 mt-1 opacity-70">
-                        <i class="fa-solid fa-note-sticky text-[9px] text-agri-green"></i>
-                        <p class="text-[10px] font-bold italic text-white line-clamp-1 truncate uppercase tracking-tighter">{{ $l->observaciones }}</p>
-                    </div>
-                    @endif
-
-                    <!-- Fila de Datos Estilo Cultivos -->
-                    <div class="grid grid-cols-3 gap-2 pt-3 border-t border-white/20">
-                        <div class="flex flex-col">
-                            <span class="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none">Inversión</span>
-                            <span class="text-[12px] font-black italic text-amber-400 mt-0.5">S/ {{ number_format($l->costo_total, 2) }}</span>
-                        </div>
-                        <div class="flex flex-col border-l border-white/10 pl-3">
-                            <span class="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none">Registro</span>
-                            <span class="text-[10px] font-bold italic text-white opacity-95 mt-0.5">{{ \Carbon\Carbon::parse($l->fecha_realizacion)->format('d/m/Y') }}</span>
-                        </div>
-                        <div class="flex flex-col border-l border-white/10 pl-3 text-right">
-                            <span class="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none">Parcela</span>
-                            <span class="text-[10px] font-bold italic opacity-95 text-white truncate mt-0.5 block">{{ $l->cultivo->terreno->nombre }}</span>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="space-y-1">
+                <h3 class="text-xl font-black text-slate-800 dark:text-white uppercase italic tracking-tight">Sin Labores Registradas para esta Campaña</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium max-w-md italic">
+                    Esta campaña aún no tiene labores operativas registradas. Haz clic en el botón <strong class="text-agri-green uppercase">"+ NUEVO REGISTRO"</strong> para iniciar la primera labor de esta parcela (Preparación de Terreno).
+                </p>
             </div>
+            <button wire:click="openCreateModal" class="px-8 py-3 bg-agri-green hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-agri-green/20 hover:scale-105 transition-all italic flex items-center gap-2">
+                <i class="fa-solid fa-plus text-sm"></i> Registrar Primera Labor
+            </button>
         </div>
-        @endforeach
-    </div>
+    @else
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            @php
+                $icons = [
+                    'Preparar Terreno' => 'fa-tractor',
+                    'Siembra Directa' => 'fa-seedling',
+                    'Riego por Goteo' => 'fa-droplet',
+                    'Fumigación Fitosanitaria' => 'fa-spray-can-sparkles',
+                    'Abonado Orgánico' => 'fa-flask',
+                    'Cosecha Manual' => 'fa-basket-shopping',
+                    'Aporque y Surcado' => 'fa-mountain-sun',
+                    'Deshierbe Manual' => 'fa-hands-holding-circle',
+                    'Otros Trabajos' => 'fa-screwdriver-wrench',
+                    'Preparar' => 'fa-tractor',
+                    'Siembra' => 'fa-seedling',
+                    'Riego' => 'fa-droplet',
+                    'Fumigar' => 'fa-spray-can-sparkles',
+                    'Aporque' => 'fa-mountain-sun',
+                    'Desierbe' => 'fa-hands-holding-circle',
+                    'Deshierbe' => 'fa-hands-holding-circle',
+                    'Abonar' => 'fa-flask',
+                    'Cosechar' => 'fa-basket-shopping',
+                    'Otros' => 'fa-screwdriver-wrench'
+                ];
+            @endphp
+
+            @foreach($labores as $l)
+            @php
+                $isAtrasada = $l->estado === 'Pendiente' && \Carbon\Carbon::parse($l->fecha_realizacion)->isPast();
+                // Lógica de fecha solicitada: siembra si existe, si no, fecha de la labor (preparación)
+                $fRefRaw = $l->cultivo->fecha_siembra ?: $l->fecha_realizacion;
+                $fechaRef = \Carbon\Carbon::parse($fRefRaw)->format('d/m/Y');
+                $identificador = strtoupper($l->cultivo->detalleCatalogo->nombre) . " " . strtoupper($l->cultivo->variedad ?: 'GENERICA') . " - " . $fechaRef;
+            @endphp
+            <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-xl border border-slate-100 dark:border-white/5 group relative transition-all duration-500 hover:-translate-y-1.5 h-64 cursor-pointer"
+                 x-data="{ menuOpen: false }"
+                 @click="if (!$event.target.closest('.no-click')) $wire.showDetails({{ $l->id }})">
+
+                <!-- IMAGEN DE FONDO CON OVERLAY PREMIUM -->
+                <div class="absolute inset-0 z-0">
+                    @if($l->foto_path)
+                        <img src="{{ Storage::url($l->foto_path) }}" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105">
+                    @else
+                        <div class="w-full h-full flex items-center justify-center text-slate-200 bg-slate-50 dark:bg-slate-800/50">
+                            <i class="fa-solid {{ $icons[$l->detalleCatalogo->nombre] ?? 'fa-tractor' }} text-8xl opacity-10"></i>
+                        </div>
+                    @endif
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/20 dark:from-slate-950 dark:via-slate-950/80 dark:to-transparent"></div>
+                </div>
+
+                <!-- CONTENIDO ESTRUCTURADO (Z-10) -->
+                <div class="relative z-10 p-6 h-full flex flex-col justify-between">
+
+                    <!-- 1. HEADER: NOMBRE LABOR (Donde iba el clima) + BADGE + CRUD -->
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-agri-green rounded-xl flex items-center justify-center border border-white/20 shadow-lg">
+                                <i class="fa-solid {{ $icons[$l->detalleCatalogo->nombre] ?? 'fa-tractor' }} text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <h3 class="text-[17px] font-black italic uppercase tracking-tight text-white leading-none shadow-sm">{{ $l->detalleCatalogo->nombre }}</h3>
+                                    <span class="px-3 py-1 bg-amber-500 text-white text-[11px] font-black uppercase rounded-xl border border-white/10 italic leading-none shadow-2xl flex items-center gap-1.5">
+                                        <i class="fa-solid fa-barcode text-[10px]"></i> {{ $l->cultivo->nombre_lote }}
+                                    </span>
+                                </div>
+                                <div class="flex gap-1.5 mt-1.5">
+                                    <span class="px-2 py-0.5 bg-white/10 backdrop-blur-md rounded text-[8px] font-black uppercase tracking-widest text-emerald-400 border border-white/10">{{ $l->estado }}</span>
+                                    @if($isAtrasada)
+                                        <span class="px-2 py-0.5 bg-rose-500/20 backdrop-blur-md rounded text-[8px] font-black uppercase tracking-widest text-rose-400 border border-rose-500/30 animate-pulse">Atrasada</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="relative no-click">
+                            <button @click.stop="menuOpen = !menuOpen" @click.away="menuOpen = false"
+                                    class="w-8 h-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white flex items-center justify-center shadow-lg hover:bg-white/20 transition-all">
+                                <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
+                            </button>
+                            <div x-show="menuOpen" x-transition class="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-100 dark:border-white/10 z-50 overflow-hidden" x-cloak>
+                                <button @click.stop="$wire.edit({{ $l->id }})" class="w-full px-4 py-3 text-left text-[10px] font-black uppercase text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 italic">
+                                    <i class="fa-solid fa-pen-to-square text-agri-green"></i> EDITAR
+                                </button>
+                                <button @click.stop="$wire.delete({{ $l->id }})" wire:confirm="¿Eliminar registro?" class="w-full px-4 py-3 text-left text-[10px] font-black uppercase text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2 italic">
+                                    <i class="fa-solid fa-trash-can"></i> BORRAR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. DATOS TÉCNICOS CENTRALES (Lote + Fecha Ref) -->
+                    <div class="space-y-2 mb-1">
+                        <div class="flex items-center gap-2.5 text-white/90">
+                            <i class="fa-solid fa-seedling text-[11px] text-agri-green shadow-sm"></i>
+                            <p class="text-[11px] font-bold uppercase italic tracking-wide truncate">
+                                <span class="text-white font-black">{{ $identificador }}</span>
+                            </p>
+                        </div>
+
+                        @if($l->observaciones)
+                        <div class="flex items-start gap-2 pt-1 border-t border-white/10 mt-1 opacity-70">
+                            <i class="fa-solid fa-note-sticky text-[9px] text-agri-green"></i>
+                            <p class="text-[10px] font-bold italic text-white line-clamp-1 truncate uppercase tracking-tighter">{{ $l->observaciones }}</p>
+                        </div>
+                        @endif
+
+                        <!-- Fila de Datos Estilo Cultivos -->
+                        <div class="grid grid-cols-3 gap-2 pt-3 border-t border-white/20">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none">Inversión</span>
+                                <span class="text-[12px] font-black italic text-amber-400 mt-0.5">S/ {{ number_format($l->costo_total, 2) }}</span>
+                            </div>
+                            <div class="flex flex-col border-l border-white/10 pl-3">
+                                <span class="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none">Registro</span>
+                                <span class="text-[10px] font-bold italic text-white opacity-95 mt-0.5">{{ \Carbon\Carbon::parse($l->fecha_realizacion)->format('d/m/Y') }}</span>
+                            </div>
+                            <div class="flex flex-col border-l border-white/10 pl-3 text-right">
+                                <span class="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none">Parcela</span>
+                                <span class="text-[10px] font-bold italic opacity-95 text-white truncate mt-0.5 block">{{ $l->cultivo->terreno->nombre }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            @endforeach
+        </div>
+    @endif
     <div class="mt-8">{{ $labores->links() }}</div>
     @endif
 
@@ -318,23 +344,52 @@
             </div>
 
             @if($step === 1)
-                <div class="p-6 animate-in zoom-in-95 duration-500 bg-slate-50/50 dark:bg-transparent">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                        @foreach($catalogoLabores as $l)
+                @php
+                    $orderMap = [1 => 1, 2 => 2, 3 => 3, 4 => 4, 7 => 5, 8 => 6, 5 => 7, 6 => 8, 9 => 9];
+                    $sortedLabores = $catalogoLabores->sortBy(fn($l) => $orderMap[$l->id] ?? 99);
+
+                    $laborConfig = [
+                        1 => ['short' => 'Preparar', 'icon' => 'fa-tractor', 'color' => 'text-lime-600 dark:text-lime-400', 'bg' => 'bg-lime-500/10'],
+                        2 => ['short' => 'Sembrar', 'icon' => 'fa-seedling', 'color' => 'text-emerald-600 dark:text-emerald-400', 'bg' => 'bg-emerald-500/10'],
+                        3 => ['short' => 'Riego', 'icon' => 'fa-droplet', 'color' => 'text-sky-600 dark:text-sky-400', 'bg' => 'bg-sky-500/10'],
+                        4 => ['short' => 'Fumigar', 'icon' => 'fa-spray-can-sparkles', 'color' => 'text-amber-600 dark:text-amber-400', 'bg' => 'bg-amber-500/10'],
+                        7 => ['short' => 'Aporque', 'icon' => 'fa-mountain-sun', 'color' => 'text-amber-800 dark:text-amber-500', 'bg' => 'bg-amber-800/10'],
+                        8 => ['short' => 'Deshierbe', 'icon' => 'fa-hands-holding-circle', 'color' => 'text-teal-600 dark:text-teal-400', 'bg' => 'bg-teal-500/10'],
+                        5 => ['short' => 'Abonar', 'icon' => 'fa-flask', 'color' => 'text-purple-600 dark:text-purple-400', 'bg' => 'bg-purple-500/10'],
+                        6 => ['short' => 'Cosechar', 'icon' => 'fa-basket-shopping', 'color' => 'text-yellow-600 dark:text-yellow-400', 'bg' => 'bg-yellow-500/10'],
+                        9 => ['short' => 'Otros', 'icon' => 'fa-list-check', 'color' => 'text-slate-600 dark:text-slate-400', 'bg' => 'bg-slate-500/10'],
+                    ];
+                @endphp
+                <div class="p-8 animate-in zoom-in-95 duration-500 bg-slate-50/50 dark:bg-transparent">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        @foreach($sortedLabores as $l)
                             @php
-                                $laborName = strtoupper($l->nombre);
+                                $cfg = $laborConfig[$l->id] ?? ['short' => $l->nombre, 'icon' => 'fa-gears', 'color' => 'text-agri-green', 'bg' => 'bg-agri-green/10'];
                                 $isDisabled = !($laborStatusMap[$l->categoria] ?? ($laborStatusMap[$l->nombre] ?? true));
-                                if ($laborName === 'OTROS') $isDisabled = false;
+                                if (strtoupper($l->nombre) === 'OTROS TRABAJOS') $isDisabled = false;
+                                $countExecuted = $executedLaborCounts[$l->id] ?? 0;
                             @endphp
                             <button wire:click="selectLaborType({{ $l->id }})" @if($isDisabled) disabled @endif
-                                    class="group flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all duration-500
-                                    {{ $isDisabled ? 'bg-slate-100/50 dark:bg-white/5 border-transparent opacity-20 cursor-not-allowed scale-95' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-white/5 hover:border-agri-green hover:shadow-xl hover:-translate-y-1' }}">
-                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all {{ $isDisabled ? 'bg-slate-300 text-slate-500' : 'bg-agri-green/10 text-agri-green group-hover:bg-agri-green group-hover:text-white shadow-inner' }}">
-                                    <i class="fa-solid {{ $icons[$l->nombre] ?? 'fa-gears' }} text-xl"></i>
+                                    class="group relative flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all duration-300
+                                    {{ $isDisabled ? 'bg-slate-100/60 dark:bg-white/5 border-transparent opacity-25 cursor-not-allowed scale-95' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-white/5 hover:border-agri-green hover:shadow-2xl hover:-translate-y-1' }}">
+
+                                <!-- Contador Top-Right en Verde (ej. 1, 0) -->
+                                <div class="absolute top-3 right-4 font-black text-xs px-2.5 py-0.5 rounded-full {{ $countExecuted > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400' }}">
+                                    {{ $countExecuted }}
                                 </div>
-                                <span class="text-[11px] font-black uppercase tracking-widest {{ $isDisabled ? 'text-slate-500' : 'text-slate-800 dark:text-slate-100' }}">{{ $l->nombre }}</span>
+
+                                <!-- Icono Centrado en Fondo de Color -->
+                                <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 transition-all {{ $cfg['bg'] }} {{ $cfg['color'] }} group-hover:scale-110 shadow-inner">
+                                    <i class="fa-solid {{ $cfg['icon'] }} text-2xl"></i>
+                                </div>
+
+                                <!-- Título de Labor Corto -->
+                                <span class="text-xs font-black uppercase tracking-wider {{ $isDisabled ? 'text-slate-500' : 'text-slate-800 dark:text-slate-100' }}">
+                                    {{ $cfg['short'] }}
+                                </span>
+
                                 @if($isDisabled)
-                                    <p class="text-[7px] font-black text-rose-500 uppercase mt-1 tracking-widest italic leading-none">FASE PREVIA REQUERIDA</p>
+                                    <span class="text-[8px] font-black text-rose-500 uppercase mt-1 tracking-widest italic leading-none">FASE PREVIA REQUERIDA</span>
                                 @endif
                             </button>
                         @endforeach

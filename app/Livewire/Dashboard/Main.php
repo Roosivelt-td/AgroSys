@@ -42,16 +42,37 @@ class Main extends Component
         $solicitudPendiente = Solicitud::where('solicitante_usuario_id', $usuario->id)
             ->where('tipo', 'creacion_organizacion')->where('estado', 0)->first();
 
-        $contexto = function($query) use ($usuario, $membresia) {
-            if ($membresia) return $query->where('organizacion_id', $membresia->organizacion_id);
+        $contextoTerreno = function($query) use ($usuario, $membresia) {
+            if ($usuario->rol_id === 1) {
+                return $query;
+            }
+
+            if ($membresia) {
+                return $query->where(function($q) use ($membresia, $usuario) {
+                    $q->where('organizacion_id', $membresia->organizacion_id)
+                      ->orWhere('usuario_id', $usuario->id);
+                });
+            }
+
             return $query->where('usuario_id', $usuario->id);
         };
 
         // 2. Consultas Maestras
-        $queryTerrenos = Terreno::query(); $contexto($queryTerrenos);
-        $queryCultivos = Cultivo::whereHas('terreno', fn($q) => $contexto($q));
-        $queryLabores = Labor::whereHas('cultivo.terreno', fn($q) => $contexto($q));
-        $queryVentas = Venta::whereHas('cosecha.labor.cultivo.terreno', fn($q) => $contexto($q));
+        $queryTerrenos = Terreno::query()->where(function($q) use ($contextoTerreno) {
+            $contextoTerreno($q);
+        });
+
+        $queryCultivos = Cultivo::whereHas('terreno', function($q) use ($contextoTerreno) {
+            $contextoTerreno($q);
+        });
+
+        $queryLabores = Labor::whereHas('cultivo.terreno', function($q) use ($contextoTerreno) {
+            $contextoTerreno($q);
+        });
+
+        $queryVentas = Venta::whereHas('cosecha.labor.cultivo.terreno', function($q) use ($contextoTerreno) {
+            $contextoTerreno($q);
+        });
 
         // 3. Lista de Cultivos para el Filtro Superior
         $listaCultivosFiltro = (clone $queryCultivos)->with('detalleCatalogo')->orderBy('fecha_siembra', 'desc')->get();
@@ -153,7 +174,7 @@ class Main extends Component
             ->get();
 
         return view('livewire.dashboard.main', [
-            'hasOrg' => ($totalTerrenosCount > 0 || $membresia),
+            'hasOrg' => ($totalTerrenosCount > 0 || $queryCultivos->count() > 0 || $membresia),
             'isWaiting' => (bool)$solicitudPendiente,
             'solicitud' => $solicitudPendiente,
             'organizacion' => $membresia ? $membresia->organizacion : (object)['nombre' => 'Mis Terrenos'],

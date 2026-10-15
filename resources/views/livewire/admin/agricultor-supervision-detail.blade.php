@@ -23,10 +23,18 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-            <button wire:click="openSugerenciaModal()"
-                    class="px-6 py-3.5 bg-amber-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-amber-500/20 hover:scale-105 transition-all flex items-center gap-2 italic">
-                <i class="fa-solid fa-lightbulb text-sm"></i> Enviar Sugerencia Técnica
-            </button>
+            @if($canSendSugerencia)
+                <button wire:click="openSugerenciaModal()"
+                        class="px-6 py-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-amber-500/20 hover:scale-105 transition-all flex items-center gap-2 italic">
+                    <i class="fa-solid fa-lightbulb text-sm"></i> Enviar Sugerencia Técnica
+                </button>
+            @else
+                <span class="px-4 py-2.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-2xl font-bold text-xs italic flex items-center gap-2 shadow-xs">
+                    <i class="fa-solid fa-eye text-sm"></i>
+                    <span>Vista de Administrador (Modo Lectura)</span>
+                </span>
+            @endif
+
             <a href="{{ route('chat.index', ['user' => $agricultor->id]) }}" wire:navigate class="px-6 py-3.5 bg-agri-green text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-agri-green/20 hover:scale-105 transition-all flex items-center gap-2 italic">
                 <i class="fa-solid fa-comments text-sm"></i> Chat con Agricultor
             </a>
@@ -300,52 +308,69 @@
                         <p class="text-[9px] opacity-60 uppercase font-black tracking-widest mt-1 italic">Instrucción directa para {{ $agricultor->nombres }}</p>
                     </div>
                 </div>
-                <button wire:click="closeSugerenciaModal" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-rose-500 transition-all">
+                <button type="button" wire:click="closeSugerenciaModal" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-rose-500 transition-all">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <div class="p-8 space-y-5">
-                <div class="space-y-1.5">
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Cultivo / Lote Destino</label>
-                    <select wire:model="selectedCultivoId" class="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-agri-green/10 transition-all cursor-pointer">
-                        <option value="">-- Toda la Finca (Instrucción General) --</option>
-                        @foreach($cultivosActivos as $c)
-                            <option value="{{ $c->id }}">🌾 Lote: {{ $c->nombre_lote }} ({{ $c->detalleCatalogo->nombre ?? 'Cultivo' }})</option>
-                        @endforeach
-                    </select>
+            <form wire:submit.prevent="enviarSugerencia">
+                <div class="p-8 space-y-5">
+                    @if($errors->any())
+                        <div class="bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 p-4 rounded-2xl text-xs font-bold space-y-1">
+                            <div class="flex items-center gap-2 font-black">
+                                <i class="fa-solid fa-circle-exclamation text-sm shrink-0"></i>
+                                <span>Por favor, corrija los campos requeridos:</span>
+                            </div>
+                            <ul class="list-disc list-inside pl-2 space-y-0.5 text-[11px]">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Cultivo / Lote Destino</label>
+                        <select wire:model="selectedCultivoId" class="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-agri-green/10 transition-all cursor-pointer">
+                            <option value="">-- Toda la Finca (Instrucción General) --</option>
+                            @foreach($cultivosActivos as $c)
+                                <option value="{{ $c->id }}">🌾 Lote: {{ $c->nombre_lote }} ({{ $c->detalleCatalogo->nombre ?? 'Cultivo' }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Título de la Sugerencia / Acción *</label>
+                        <input wire:model="tituloSugerencia" type="text" placeholder="Ej. Aplicar Riego por goteo / Posponer fumigación"
+                               class="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border @error('tituloSugerencia') border-rose-500 @else border-slate-200 dark:border-white/10 @enderror rounded-2xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-agri-green/10 transition-all italic">
+                        <x-input-error :messages="$errors->get('tituloSugerencia')" class="mt-1 text-[10px]" />
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Fecha Sugerida para la Labor *</label>
+                        <input wire:model="fechaSugerida" type="date"
+                               class="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border @error('fechaSugerida') border-rose-500 @else border-slate-200 dark:border-white/10 @enderror rounded-2xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-agri-green/10 transition-all">
+                        <x-input-error :messages="$errors->get('fechaSugerida')" class="mt-1 text-[10px]" />
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Instrucciones Detalladas para el Agricultor *</label>
+                        <textarea wire:model="descripcionSugerencia" rows="3" placeholder="Escriba aquí los detalles técnicos, dosis de insumos o recomendaciones climáticas..."
+                                  class="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border @error('descripcionSugerencia') border-rose-500 @else border-slate-200 dark:border-white/10 @enderror rounded-2xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-agri-green/10 transition-all italic"></textarea>
+                        <x-input-error :messages="$errors->get('descripcionSugerencia')" class="mt-1 text-[10px]" />
+                    </div>
                 </div>
 
-                <div class="space-y-1.5">
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Título de la Sugerencia / Acción</label>
-                    <input wire:model="tituloSugerencia" type="text" placeholder="Ej. Aplicar Riego por goteo de 2 horas / Posponer fumigación"
-                           class="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-agri-green/10 transition-all italic">
-                    @error('tituloSugerencia') <span class="text-rose-500 text-[10px] font-bold">{{ $message }}</span> @enderror
+                <div class="p-6 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5 flex gap-3">
+                    <button type="button" wire:click="closeSugerenciaModal" class="flex-1 py-3 bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-300 transition-all italic">
+                        Cancelar
+                    </button>
+                    <button type="submit" wire:loading.attr="disabled" class="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20 hover:scale-105 transition-all italic flex items-center justify-center gap-2">
+                        <span wire:loading.remove wire:target="enviarSugerencia"><i class="fa-solid fa-paper-plane mr-1"></i> Enviar Instrucción</span>
+                        <span wire:loading wire:target="enviarSugerencia"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Enviando...</span>
+                    </button>
                 </div>
-
-                <div class="space-y-1.5">
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Fecha Sugerida para la Labor</label>
-                    <input wire:model="fechaSugerida" type="date"
-                           class="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-agri-green/10 transition-all">
-                    @error('fechaSugerida') <span class="text-rose-500 text-[10px] font-bold">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="space-y-1.5">
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Instrucciones Detalladas para el Agricultor</label>
-                    <textarea wire:model="descripcionSugerencia" rows="3" placeholder="Escriba aquí los detalles técnicos, dosis de insumos o recomendaciones climáticas..."
-                              class="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-agri-green/10 transition-all italic"></textarea>
-                    @error('descripcionSugerencia') <span class="text-rose-500 text-[10px] font-bold">{{ $message }}</span> @enderror
-                </div>
-            </div>
-
-            <div class="p-6 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5 flex gap-3">
-                <button wire:click="closeSugerenciaModal" class="flex-1 py-3 bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-300 transition-all italic">
-                    Cancelar
-                </button>
-                <button wire:click="enviarSugerencia" class="flex-1 py-3 bg-amber-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20 hover:scale-105 transition-all italic">
-                    Enviar Instrucción
-                </button>
-            </div>
+            </form>
         </div>
     </div>
     @endif

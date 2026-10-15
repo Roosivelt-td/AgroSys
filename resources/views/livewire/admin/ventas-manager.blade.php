@@ -724,16 +724,19 @@
                     <div class="space-y-1">
                         <label class="text-[9px] font-black uppercase text-slate-400">DNI / RUC</label>
                         <input type="text" wire:model="newCompRucDni" placeholder="Opcional" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs font-bold uppercase text-slate-800 dark:text-white">
+                        <x-input-error :messages="$errors->get('newCompRucDni')" class="mt-1 text-xs" />
                     </div>
                     <div class="space-y-1">
                         <label class="text-[9px] font-black uppercase text-slate-400">Teléfono</label>
                         <input type="text" wire:model="newCompTelf" placeholder="Opcional" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs font-bold text-slate-800 dark:text-white">
+                        <x-input-error :messages="$errors->get('newCompTelf')" class="mt-1 text-xs" />
                     </div>
                 </div>
 
                 <div class="space-y-1">
                     <label class="text-[9px] font-black uppercase text-slate-400">Dirección / Ubicación (Para diferenciar personas con el mismo nombre)</label>
                     <input type="text" wire:model="newCompDir" placeholder="EJ. AV. PRINCIPAL 123, LIMA" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs font-bold uppercase text-slate-800 dark:text-white">
+                    <x-input-error :messages="$errors->get('newCompDir')" class="mt-1 text-xs" />
                 </div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-white/5">

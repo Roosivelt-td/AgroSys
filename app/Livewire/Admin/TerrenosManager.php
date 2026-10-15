@@ -75,6 +75,13 @@ class TerrenosManager extends Component
         }
     }
 
+    public function updatedSelectedOrgId($value)
+    {
+        if (empty($value)) {
+            $this->selectedOrgId = null;
+        }
+    }
+
     public function resetForm()
     {
         $this->reset([
@@ -88,6 +95,12 @@ class TerrenosManager extends Component
         $this->landSoil = 'franco';
         $this->landWater = 'Riego por goteo';
         $this->landStatus = 'activo';
+
+        $membresia = MiembroOrganizacion::where('usuario_id', Auth::id())
+            ->where('estado', 1)
+            ->first();
+
+        $this->selectedOrgId = $membresia ? $membresia->organizacion_id : null;
         $this->modalVersion++;
     }
 
@@ -179,7 +192,7 @@ class TerrenosManager extends Component
             'landLat' => 'required|numeric|between:-90,90',
             'landLng' => 'required|numeric|between:-180,180',
             'landPolygon' => 'required',
-            'landPhoto' => 'nullable|image|max:10240',
+            'landPhoto' => 'nullable|image|max:20480',
             'landRentStart' => 'required_if:landTenure,alquilado',
             'landRentEnd' => [
                 'nullable',
@@ -205,13 +218,17 @@ class TerrenosManager extends Component
                     }
                 }
             ],
+        ], [
+            'landPhoto.image' => 'El archivo debe ser una imagen válida.',
+            'landPhoto.max' => 'La imagen no puede pesar más de 20 MB.',
         ]);
 
         $user = Auth::user();
         $photoPath = $this->currentPhotoPath;
+        $orgId = !empty($this->selectedOrgId) ? (int)$this->selectedOrgId : null;
 
         if ($this->landPhoto) {
-            $fileData = AgroStorageService::storeUserFile($this->landPhoto, $user, 'terreno', $this->selectedOrgId);
+            $fileData = AgroStorageService::storeUserFile($this->landPhoto, $user, 'terreno', $orgId);
             $photoPath = $fileData['ruta_completa'];
             ArchivoMultimedia::create($fileData);
         }
@@ -235,12 +252,14 @@ class TerrenosManager extends Component
             'estado_terreno' => $this->landStatus,
             'foto_path' => $photoPath,
             'usuario_id' => $user->id,
-            'organizacion_id' => $this->selectedOrgId,
+            'organizacion_id' => $orgId,
             'estado' => 1
         ];
 
         if ($this->landId) {
-            $terreno = Terreno::where('usuario_id', $user->id)->orWhere('organizacion_id', $this->selectedOrgId)->findOrFail($this->landId);
+            $terreno = Terreno::where('usuario_id', $user->id)
+                ->when($orgId, fn($q) => $q->orWhere('organizacion_id', $orgId))
+                ->findOrFail($this->landId);
             $terreno->update($data);
             $msg = "Terreno actualizado.";
         } else {

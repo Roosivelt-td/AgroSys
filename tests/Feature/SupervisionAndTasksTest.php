@@ -153,7 +153,7 @@ class SupervisionAndTasksTest extends TestCase
         ]);
 
         Livewire::actingAs($agriUser)
-            ->test(\App\Livewire\Ia\Alertas::class)
+            ->test(\App\Livewire\Supervisor\TareasSugerenciasManager::class)
             ->assertStatus(200)
             ->call('verSugerencia', $sugerencia->id)
             ->set('comentarioRespuesta', 'Fertilización aplicada a las 7 AM.')
@@ -179,5 +179,36 @@ class SupervisionAndTasksTest extends TestCase
             ->withQueryParams(['user' => $agriUser->id])
             ->test(\App\Livewire\Chat\ChatManager::class)
             ->assertStatus(200);
+    }
+
+    /**
+     * Test 5: Verificar que el Supervisor puede crear una nueva tarea directamente desde el módulo Alertas.
+     */
+    public function test_supervisor_can_create_task_directly_from_alertas_screen(): void
+    {
+        $org = Organizacion::create(['nombre' => 'Org TaskDirect ' . rand(100, 999), 'ruc' => '20' . rand(100000000, 999999999), 'estado' => 1]);
+
+        $supUser = User::create(['nombres' => 'Supervisor', 'apellidos' => 'Cinco', 'dni' => (string)rand(10000000, 99999999), 'email' => 'sup5.' . rand(100,999) . '@agrosys.com', 'password' => bcrypt('password'), 'rol_id' => $this->rolAgricultor->id]);
+        $agriUser = User::create(['nombres' => 'Agricultor', 'apellidos' => 'Cinco', 'dni' => (string)rand(10000000, 99999999), 'email' => 'agri5.' . rand(100,999) . '@agrosys.com', 'password' => bcrypt('password'), 'rol_id' => $this->rolAgricultor->id]);
+
+        $supMiembro = MiembroOrganizacion::create(['usuario_id' => $supUser->id, 'organizacion_id' => $org->id, 'es_propietario' => 0, 'estado' => 1]);
+        MiembroRol::create(['miembro_id' => $supMiembro->id, 'rol_id' => $this->rolSupervisorOrg->id, 'estado' => 1]);
+
+        Livewire::actingAs($supUser)
+            ->test(\App\Livewire\Supervisor\TareasSugerenciasManager::class)
+            ->assertStatus(200)
+            ->call('openCreateSugerenciaModal')
+            ->set('newAgricultorId', $agriUser->id)
+            ->set('newTitulo', 'Poda de Formación Lote B')
+            ->set('newDescripcion', 'Realizar corte de ramas bajas.')
+            ->set('newFechaSugerida', now()->addDay()->format('Y-m-d'))
+            ->call('crearSugerencia')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('sugerencias_tareas', [
+            'supervisor_usuario_id' => $supUser->id,
+            'agricultor_usuario_id' => $agriUser->id,
+            'titulo' => 'Poda de Formación Lote B',
+        ]);
     }
 }

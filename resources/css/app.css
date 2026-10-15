@@ -1,3 +1,72 @@
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+[x-cloak] { display: none !important; }
+
+/* Landing Page Styles & Firefox Cross-Browser Compatibility */
+.grid-bg {
+    background-image:
+        linear-gradient(rgba(23, 59, 39, .045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 59, 39, .045) 1px, transparent 1px);
+    background-size: 48px 48px;
+}
+.hero-image {
+    border-radius: 180px 35px 35px 35px;
+}
+.reveal {
+    opacity: 0;
+    transform: translateY(35px);
+    transition: opacity .8s ease, transform .8s ease;
+}
+.reveal.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.float {
+    animation: float 5s ease-in-out infinite;
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+.solution-card {
+    transition: transform .35s ease, box-shadow .35s ease;
+}
+.solution-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 60px rgba(23, 59, 39, .11);
+}
+.solution-card img {
+    transition: transform .7s ease;
+}
+.solution-card:hover img {
+    transform: scale(1.06);
+}
+.marquee {
+    overflow: hidden;
+    white-space: nowrap;
+}
+.marquee-track {
+    display: inline-flex;
+    animation: marquee 32s linear infinite;
+}
+@keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+.green-line {
+    position: relative;
+}
+.green-line::before {
+    content: "";
+    position: absolute;
+    width: 55px;
+    height: 4px;
+    background: #78B82A;
+    border-radius: 20px;
+    top: -15px;
+    left: 0;
+}

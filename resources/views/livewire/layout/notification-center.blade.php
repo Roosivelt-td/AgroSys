@@ -18,11 +18,15 @@
 
         <div class="max-h-96 overflow-y-auto custom-scrollbar">
             @forelse($notificaciones as $notif)
-                <div wire:click="goToTramite({{ $notif->id }})"
+                <div wire:click="handleNotificationClick({{ $notif->id }})"
                      class="p-4 border-b border-slate-50 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer {{ !$notif->leido ? 'bg-blue-50/30 dark:bg-agri-green/5' : '' }}">
                     <div class="flex items-start space-x-3">
                         <div class="mt-1">
-                            @if($notif->tipo === 'exito')
+                            @if($notif->tipo === 'evento')
+                                <i class="fa-solid fa-calendar-days text-agri-green text-sm"></i>
+                            @elseif($notif->tipo === 'sugerencia' || $notif->sugerencia_id || str_contains(mb_strtolower($notif->titulo), 'sugerencia') || str_contains(mb_strtolower($notif->titulo), 'tarea') || str_contains(mb_strtolower($notif->titulo), 'instrucción'))
+                                <i class="fa-solid fa-lightbulb text-amber-500 text-sm"></i>
+                            @elseif($notif->tipo === 'exito')
                                 <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
                             @elseif($notif->tipo === 'error')
                                 <i class="fa-solid fa-circle-xmark text-rose-500 text-sm"></i>

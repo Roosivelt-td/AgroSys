@@ -3,18 +3,37 @@
       x-data="{
           sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
           mobileOpen: false,
-          darkMode: localStorage.getItem('darkMode') === 'true',
+          darkMode: localStorage.getItem('darkMode') === 'true', // Por defecto es false (Modo Claro) si no se ha guardado
           notificationsOpen: false,
           messagesOpen: false,
-          profileOpen: false
+          profileOpen: false,
+          toggleDarkMode() {
+              this.darkMode = !this.darkMode;
+              localStorage.setItem('darkMode', this.darkMode ? 'true' : 'false');
+              if (this.darkMode) {
+                  document.documentElement.classList.add('dark');
+              } else {
+                  document.documentElement.classList.remove('dark');
+              }
+          }
       }"
       x-init="
           $watch('sidebarCollapsed', value => localStorage.setItem('sidebarCollapsed', value));
           $watch('darkMode', value => {
-              localStorage.setItem('darkMode', value);
-              if (value) document.documentElement.classList.add('dark');
-              else document.documentElement.classList.remove('dark');
+              localStorage.setItem('darkMode', value ? 'true' : 'false');
+              if (value) {
+                  document.documentElement.classList.add('dark');
+              } else {
+                  document.documentElement.classList.remove('dark');
+              }
           });
+
+          // Asegurar MODO CLARO por defecto en inicio de sesión si no hay selección previa
+          if (localStorage.getItem('darkMode') === 'true') {
+              document.documentElement.classList.add('dark');
+          } else {
+              document.documentElement.classList.remove('dark');
+          }
       "
       :class="{ 'dark': darkMode }">
     <head>
@@ -26,14 +45,24 @@
 
         <link rel="icon" type="image/png" href="{{ asset('AgroSys_logo.png') }}">
 
+        <!-- Por Defecto en Inicio de Sesión: MODO CLARO (Sol ☀️), solo pasa a Oscuro cuando el usuario lo presiona -->
         <script>
-            if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
-            else document.documentElement.classList.remove('dark');
+            function syncDarkMode() {
+                const savedTheme = localStorage.getItem('darkMode');
+                const isDark = (savedTheme === 'true'); // Por defecto false (Modo Claro)
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+            syncDarkMode();
+            document.addEventListener('livewire:navigated', syncDarkMode);
+            document.addEventListener('DOMContentLoaded', syncDarkMode);
         </script>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -44,9 +73,22 @@
             [x-cloak] { display: none !important; }
             body { font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; }
             .sidebar-transition { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
+            /* Soporte de Scrollbar Multi-navegador (Firefox & Webkit) */
+            * {
+                scrollbar-width: thin;
+                scrollbar-color: rgba(0, 186, 46, 0.3) transparent;
+            }
             .custom-scrollbar::-webkit-scrollbar { width: 5px; }
             .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
             .custom-scrollbar::-webkit-scrollbar-thumb { background: #00ba2e44; border-radius: 10px; }
+
+            /* Fallback de Glassmorphism para Firefox */
+            @supports (-moz-appearance: none) {
+                .backdrop-blur-md, .backdrop-blur-xs, .backdrop-blur-xl {
+                    background-color: rgba(15, 23, 42, 0.85) !important;
+                }
+            }
 
             @keyframes focus-pulse {
                 0%, 100% { border-color: transparent; background-color: transparent; }
@@ -108,7 +150,7 @@
                     </div>
 
                     <div class="flex items-center space-x-4">
-                        <button @click="darkMode = !darkMode" class="w-10 h-10 flex items-center justify-center text-slate-400 dark:text-white/80 hover:text-agri-green transition-all">
+                        <button @click="toggleDarkMode()" class="w-10 h-10 flex items-center justify-center text-slate-400 dark:text-white/80 hover:text-agri-green transition-all" aria-label="Cambiar Modo Oscuro/Claro">
                             <i class="fa-solid" :class="darkMode ? 'fa-sun text-amber-400' : 'fa-moon'"></i>
                         </button>
                         <livewire:layout.message-center />

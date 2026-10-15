@@ -8,7 +8,7 @@
         <div class="h-[82px] flex items-center justify-between">
             <!-- LOGO -->
             <a href="/" class="flex items-center gap-2 group">
-                <img src="{{ asset('AgroSys_completo.png') }}" alt="AgroSys Logo" class="h-14 md:h-16 w-auto object-contain group-hover:scale-105 transition-transform">
+                <img src="{{ asset('AgroSys_completo.png') }}" alt="AgroSys Logo" class="h-14 md:h-16 w-auto object-contain group-hover:scale-105 transition-transform" style="max-height: 64px; width: auto; max-width: 260px;">
             </a>
 
             <!-- DESKTOP NAV -->

@@ -16,78 +16,150 @@
             </a>
         </div>
     @else
-        <!-- Header con Estadísticas Generales -->
-    <div class="relative overflow-hidden bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-100 dark:border-white/5 p-4 md:p-6">
+        <!-- Header con Estadísticas Generales y Gráfico de Barras Cosechas -->
+    <div class="relative overflow-hidden bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl border border-slate-100 dark:border-white/5 p-6 md:p-8">
         <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-agri-green/5 rounded-full blur-3xl"></div>
 
-        <div class="relative grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+        <div class="relative grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div class="space-y-5">
                 <div>
-                    <span class="px-3 py-1 bg-agri-green/10 text-agri-green text-[8px] font-black uppercase tracking-widest rounded border border-agri-green/20 italic">
+                    <span class="px-3.5 py-1 bg-agri-green/10 text-agri-green text-[9px] font-black uppercase tracking-widest rounded-lg border border-agri-green/20 italic">
                         {{ auth()->user()->rol_id === 1 ? __('Inteligencia de Ecosistema') : __('Análisis de Producción') }}
                     </span>
-                    <h1 class="text-xl md:text-2xl font-black text-slate-800 dark:text-white italic tracking-tighter mt-1.5 leading-tight uppercase">
-                        {{ auth()->user()->rol_id === 1 ? __('Producción') : __('Mis') }}<br><span class="text-agri-green">{{ auth()->user()->rol_id === 1 ? __('Global') : __('Cosechas') }}</span>
+                    <h1 class="text-2xl md:text-3xl font-black text-slate-800 dark:text-white italic tracking-tighter mt-2 leading-none uppercase">
+                        {{ auth()->user()->rol_id === 1 ? __('Producción') : __('Mis') }} <span class="text-agri-green">{{ auth()->user()->rol_id === 1 ? __('Global') : __('Cosechas') }}</span>
                     </h1>
                 </div>
-                <p class="text-slate-400 dark:text-slate-500 text-xs font-medium italic max-w-xs leading-relaxed">
+                <p class="text-slate-400 dark:text-slate-500 text-xs font-semibold italic max-w-md leading-relaxed">
                     {{ auth()->user()->rol_id === 1 ? __('Resumen generalizado de rendimientos biológicos en toda la plataforma.') : __('Historial consolidado de rendimiento y balance económico de campañas finalizadas.') }}
                 </p>
-                <div class="flex flex-wrap gap-3">
-                    <div class="bg-slate-50 dark:bg-white/5 px-5 py-2.5 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm">
+                <div class="flex flex-wrap gap-3 pt-1">
+                    <div class="bg-slate-50 dark:bg-white/5 px-5 py-3 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
                         <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{{ auth()->user()->rol_id === 1 ? __('Campañas Totales') : __('Total Campañas') }}</p>
-                        <p class="text-lg font-black text-slate-800 dark:text-white italic">{{ $cosechas->total() }}</p>
+                        <p class="text-xl font-black text-slate-800 dark:text-white italic">{{ $cosechas->total() }}</p>
                     </div>
-                    <div class="bg-slate-50 dark:bg-white/5 px-5 py-2.5 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm">
-                        <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Producción (1ra)</p>
-                        <p class="text-lg font-black text-agri-green italic">{{ number_format(array_sum($stats['produccion']), 0) }} KG</p>
+                    <div class="bg-slate-50 dark:bg-white/5 px-5 py-3 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
+                        <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Producción Estimada Obtenida (%)</p>
+                        <p class="text-xl font-black text-agri-green italic">{{ $stats['porcentaje_global_cumplimiento'] ?? 100 }}%</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Gráfico General -->
-            <div class="relative bg-white dark:bg-slate-800/20 p-6 rounded-xl shadow-lg border border-slate-100 dark:border-white/5" wire:ignore>
-                <div class="h-48 sm:h-56">
-                    <canvas id="mainCosechaChart"></canvas>
-                </div>
-                <script>
-                    document.addEventListener('livewire:initialized', () => {
-                        const ctx = document.getElementById('mainCosechaChart');
-                        const labels = @js($stats['labels']);
-                        const data = @js($stats['ganancias']);
-
-                        new Chart(ctx, {
-                            type: 'bar',
-                            data: {
-                                labels: labels,
-                                datasets: [{
-                                    label: 'Balance Neto (S/)',
-                                    data: data,
-                                    backgroundColor: data.map(v => v >= 0 ? '#00ba2e' : '#f43f5e'),
-                                    borderRadius: 6,
-                                    barThickness: 20,
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: { display: false },
-                                    tooltip: {
-                                        backgroundColor: 'rgba(0,0,0,0.9)',
-                                        padding: 10,
-                                        titleFont: { size: 9 },
-                                        bodyFont: { size: 11, weight: '900' }
-                                    }
-                                },
-                                scales: {
-                                    y: { grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { weight: 'bold', size: 8 } } },
-                                    x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 8 } } }
-                                }
+            <!-- Gráfico de las Últimas 6 Cosechas (Eje Y en % Dinámico sin franjas vacías superiores, Tooltip Hover con Estimado vs Logrado) -->
+            <div class="relative bg-slate-50/80 dark:bg-slate-800/40 p-5 rounded-3xl shadow-md border border-slate-100 dark:border-white/10 flex flex-col h-60 sm:h-64"
+                 x-data="{
+                    chart: null,
+                    retryCount: 0,
+                    initCosechasChart() {
+                        const ChartConstructor = window.Chart || (typeof Chart !== 'undefined' ? Chart : null);
+                        if (!ChartConstructor) {
+                            if (this.retryCount < 20) {
+                                this.retryCount++;
+                                setTimeout(() => this.initCosechasChart(), 100);
                             }
+                            return;
+                        }
+
+                        this.$nextTick(() => {
+                            const canvas = this.$refs.canvas;
+                            if (!canvas) return;
+
+                            if (this.chart) {
+                                this.chart.destroy();
+                            }
+
+                            const labels = @js($stats['labels'] ?? []);
+                            const cantidadesFmt = @js($stats['cantidades_fmt'] ?? []);
+                            const estimadosFmt = @js($stats['estimados_fmt'] ?? []);
+                            const porcentajes = @js($stats['porcentajes_cumplimiento'] ?? []);
+
+                            if (!labels || labels.length === 0) return;
+
+                            this.chart = new ChartConstructor(canvas, {
+                                type: 'bar',
+                                data: {
+                                    labels: labels,
+                                    datasets: [
+                                        {
+                                            label: 'Eficiencia / Cumplimiento (%)',
+                                            data: porcentajes,
+                                            backgroundColor: '#00ba2e',
+                                            hoverBackgroundColor: '#009e27',
+                                            borderRadius: 8,
+                                            barThickness: 28,
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { display: false },
+                                        tooltip: {
+                                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                                            padding: 14,
+                                            titleFont: { size: 12, weight: 'bold' },
+                                            bodyFont: { size: 11, weight: '600' },
+                                            borderColor: 'rgba(0, 186, 46, 0.4)',
+                                            borderWidth: 1,
+                                            callbacks: {
+                                                title: (items) => '🌱 ' + labels[items[0].dataIndex].toUpperCase(),
+                                                label: function(item) {
+                                                    const idx = item.dataIndex;
+                                                    const est = estimadosFmt[idx] || 'S/D';
+                                                    const real = cantidadesFmt[idx] || 'S/D';
+                                                    const pct = item.raw + '%';
+                                                    return [
+                                                        '🎯 Estimado: ' + est,
+                                                        '✅ Cosechado Logrado: ' + real,
+                                                        '📊 Efectividad Obtenida: ' + pct
+                                                    ];
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        y: {
+                                            display: true, // Eje Y en % ajustado dinámicamente
+                                            beginAtZero: true,
+                                            suggestedMax: 100,
+                                            ticks: {
+                                                font: { weight: 'bold', size: 9 },
+                                                color: '#10b981',
+                                                callback: (v) => v + '%'
+                                            },
+                                            grid: { color: 'rgba(0,0,0,0.05)' }
+                                        },
+                                        x: {
+                                            grid: { display: false },
+                                            ticks: {
+                                                font: { weight: 'bold', size: 10 },
+                                                color: '#334155',
+                                                callback: function(val, index) {
+                                                    return [labels[index], cantidadesFmt[index]];
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
                         });
-                    });
-                </script>
+                    }
+                 }"
+                 x-init="initCosechasChart()"
+                 wire:ignore
+            >
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-column text-agri-green"></i> Producción Estimada Obtenida (%)
+                    </span>
+                    <span class="text-[9px] font-bold uppercase text-agri-green bg-agri-green/10 px-2.5 py-0.5 rounded-md border border-agri-green/20">
+                        Eje Y en % · Eje X en TN/Unidad
+                    </span>
+                </div>
+                <div class="flex-1 relative">
+                    <canvas x-ref="canvas"></canvas>
+                </div>
             </div>
         </div>
     </div>

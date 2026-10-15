@@ -23,6 +23,7 @@ class EventoOrganizacion extends Model
         'duracion_minutos',
         'lugar',
         'enlace_virtual',
+        'destinatario_tipo',
     ];
 
     public function organizacion()

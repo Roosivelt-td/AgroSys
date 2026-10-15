@@ -1,11 +1,16 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { Chart, registerables } from 'chart.js';
 import MapTerrenos from './react/MapTerrenos';
 import BarChart from './react/BarChart';
 import PieChart from './react/PieChart';
 import LandLineChart from './react/LandLineChart';
 import ClimateTrendChart from './react/ClimateTrendChart';
 import AgroLogoPremium from './react/AgroLogoPremium';
+
+// Registrar Chart.js globalmente
+Chart.register(...registerables);
+window.Chart = Chart;
 
 const components = {
     'agro-map-terrenos': MapTerrenos,
@@ -17,6 +22,7 @@ const components = {
 };
 
 const mountedRoots = new WeakMap();
+const mountedProps = new WeakMap();
 
 function mountReactComponents() {
     const elements = document.querySelectorAll('[data-react-component]');
@@ -27,7 +33,15 @@ function mountReactComponents() {
 
         if (Component) {
             try {
-                const props = JSON.parse(el.getAttribute('data-props') || '{}');
+                const propsRaw = el.getAttribute('data-props') || '{}';
+                const lastProps = mountedProps.get(el);
+
+                // Evitar re-renders infinitos si el elemento ya está montado con las mismas props
+                if (lastProps === propsRaw && mountedRoots.has(el)) {
+                    return;
+                }
+
+                const props = JSON.parse(propsRaw);
                 const key = el.getAttribute('wire:key') || el.getAttribute('data-key') || 'default';
 
                 let root = mountedRoots.get(el);
@@ -36,6 +50,7 @@ function mountReactComponents() {
                     mountedRoots.set(el, root);
                 }
 
+                mountedProps.set(el, propsRaw);
                 root.render(React.createElement(Component, { ...props, key }));
             } catch (e) {
                 console.error(`[AgroReact] Error montando ${componentName}:`, e);
@@ -49,6 +64,18 @@ document.addEventListener('livewire:navigated', () => mountReactComponents());
 document.addEventListener('DOMContentLoaded', () => mountReactComponents());
 window.mountAgroReact = () => mountReactComponents();
 
-// Observer para cambios dinámicos (cuando se abren modales)
-const observer = new MutationObserver(() => mountReactComponents());
-observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-props'] });
+// MutationObserver con debouncing seguro
+let isMounting = false;
+let timeoutId = null;
+
+const observer = new MutationObserver(() => {
+    if (isMounting) return;
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+        isMounting = true;
+        mountReactComponents();
+        isMounting = false;
+    }, 50);
+});
+
+observer.observe(document.body, { childList: true, subtree: true });

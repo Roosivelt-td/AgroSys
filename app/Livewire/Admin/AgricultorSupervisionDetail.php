@@ -34,29 +34,62 @@ class AgricultorSupervisionDetail extends Component
 
     public function mount($id)
     {
+        $user = Auth::user();
+
         // 1. Cargar datos del agricultor
         $this->agricultor = User::findOrFail($id);
 
-        // 2. Verificar que el supervisor autenticado tenga asignado a este agricultor en la organización
-        $misMembresiasSup = MiembroOrganizacion::where('usuario_id', Auth::id())
-            ->whereHas('roles.rolDetalle', fn($q) => $q->where('nombre', 'Supervisor'))
-            ->pluck('id');
+        // 2. Verificar que el supervisor/admin tenga acceso a las organizaciones del agricultor
+        $misOrgsSup = MiembroOrganizacion::where('usuario_id', $user->id)
+            ->where('estado', 1)
+            ->where(function($q) use ($user) {
+                if ($user->rol_id === 1) return;
+                $q->whereHas('roles.rolDetalle', fn($rq) => $rq->whereIn('nombre', ['Supervisor', 'Administrador']))
+                  ->orWhere('es_propietario', 1);
+            })
+            ->pluck('organizacion_id');
 
-        $asignacion = AsignacionSupervisor::whereIn('supervisor_miembro_id', $misMembresiasSup)
-            ->where('agricultor_usuario_id', $id)
+        $agriMembresia = MiembroOrganizacion::where('usuario_id', $id)
+            ->where('estado', 1)
+            ->when($user->rol_id !== 1, fn($q) => $q->whereIn('organizacion_id', $misOrgsSup))
             ->with('organizacion')
             ->first();
 
-        if (!$asignacion) {
+        if (!$agriMembresia && $user->rol_id !== 1) {
             abort(403, 'No tienes permisos para supervisar a este agricultor.');
         }
 
-        $this->organizacion = $asignacion->organizacion;
+        $this->organizacion = $agriMembresia ? $agriMembresia->organizacion : (\App\Models\Organizacion::first() ?: new \App\Models\Organizacion(['id' => 1, 'nombre' => 'Organización']));
         $this->fechaSugerida = now()->format('Y-m-d');
+    }
+
+    /**
+     * Evalúa si el usuario autenticado tiene el cargo/rol activo de Supervisor.
+     * Los Administradores pueden ingresar y ver los datos pero no enviar sugerencias técnicas.
+     */
+    public function getCanSendSugerenciaProperty()
+    {
+        $user = Auth::user();
+        if (!$user || !$this->organizacion) return false;
+
+        // Si es SuperAdmin (rol_id === 1), puede enviar
+        if ($user->rol_id === 1) return true;
+
+        // Verificar si tiene el cargo activo de Supervisor en la organización
+        return MiembroOrganizacion::where('usuario_id', $user->id)
+            ->where('organizacion_id', $this->organizacion->id)
+            ->where('estado', 1)
+            ->whereHas('roles.rolDetalle', fn($q) => $q->where('nombre', 'Supervisor'))
+            ->exists();
     }
 
     public function openSugerenciaModal($cultivoId = null)
     {
+        if (!$this->canSendSugerencia) {
+            session()->flash('error', 'Solo los usuarios con cargo de Supervisor pueden enviar sugerencias e instrucciones técnicas.');
+            return;
+        }
+
         $this->selectedCultivoId = $cultivoId;
         $this->tituloSugerencia = '';
         $this->descripcionSugerencia = '';
@@ -74,19 +107,31 @@ class AgricultorSupervisionDetail extends Component
 
     public function enviarSugerencia()
     {
+        if (!$this->canSendSugerencia) {
+            session()->flash('error', 'Solo los usuarios con cargo de Supervisor pueden enviar sugerencias e instrucciones técnicas.');
+            return;
+        }
+
         $this->validate([
-            'tituloSugerencia' => 'required|string|max:100',
-            'descripcionSugerencia' => 'required|string',
+            'tituloSugerencia' => 'required|string|min:3|max:100',
+            'descripcionSugerencia' => 'required|string|min:3|max:2000',
             'fechaSugerida' => 'required|date',
+            'selectedCultivoId' => 'nullable|exists:cultivos,id',
+        ], [
+            'tituloSugerencia.required' => 'El título de la sugerencia o acción es obligatorio.',
+            'tituloSugerencia.min' => 'El título debe tener al menos 3 caracteres.',
+            'descripcionSugerencia.required' => 'Ingrese las instrucciones detalladas para el agricultor.',
+            'descripcionSugerencia.min' => 'Las instrucciones deben contener al menos 3 caracteres.',
+            'fechaSugerida.required' => 'Seleccione la fecha sugerida para la labor.',
         ]);
 
-        SugerenciaTarea::create([
+        $sug = SugerenciaTarea::create([
             'organizacion_id' => $this->organizacion->id,
             'supervisor_usuario_id' => Auth::id(),
             'agricultor_usuario_id' => $this->agricultor->id,
-            'cultivo_id' => $this->selectedCultivoId,
-            'titulo' => $this->tituloSugerencia,
-            'descripcion' => $this->descripcionSugerencia,
+            'cultivo_id' => $this->selectedCultivoId ?: null,
+            'titulo' => trim($this->tituloSugerencia),
+            'descripcion' => trim($this->descripcionSugerencia),
             'fecha_sugerida' => $this->fechaSugerida,
             'estado' => 0, // 0 = Pendiente
         ]);
@@ -94,9 +139,11 @@ class AgricultorSupervisionDetail extends Component
         // Crear notificación para el agricultor
         Notificacion::create([
             'usuario_id' => $this->agricultor->id,
+            'sugerencia_id' => $sug->id,
             'titulo' => '💡 Nueva Sugerencia Técnica',
-            'mensaje' => 'El Supervisor ' . Auth::user()->nombres . ' te envió una instrucción: ' . $this->tituloSugerencia,
-            'tipo' => 'informativa',
+            'mensaje' => 'El Supervisor ' . Auth::user()->nombres . ' te envió una instrucción: ' . $sug->titulo,
+            'tipo' => 'sugerencia',
+            'leido' => 0,
         ]);
 
         session()->flash('status', 'Sugerencia técnica enviada con éxito al agricultor.');
@@ -174,6 +221,7 @@ class AgricultorSupervisionDetail extends Component
             'totalCosechadoKg' => $totalCosechadoKg,
             'totalVentasMonto' => $totalVentasMonto,
             'sugerenciasEnviadas' => $sugerenciasEnviadas,
+            'canSendSugerencia' => $this->canSendSugerencia,
         ]);
     }
 }
