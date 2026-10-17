@@ -51,11 +51,14 @@ RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
 # 5. Configurar Supervisor para correr Nginx y PHP-FPM al mismo tiempo
 RUN echo '[supervisord]\nnodaemon=true\n\n[program:php-fpm]\ncommand=php-fpm\nautostart=true\nautorestart=true\n\n[program:nginx]\ncommand=nginx -g "daemon off;"\nautostart=true\nautorestart=true' > /etc/supervisor/conf.d/supervisord.conf
 
-# Crear el script de despliegue (por si acaso no lo tienes)
+# 6. Crear el script de despliegue con LIMPIEZA DE CACHÉ incluida
 RUN echo '#!/usr/bin/env bash\n\
+echo "Clearing old config cache..."\n\
+php artisan config:clear\n\
+php artisan cache:clear\n\
 echo "Running migrations..."\n\
 php artisan migrate --force\n\
-echo "Caching config..."\n\
+echo "Caching config for production..."\n\
 php artisan config:cache\n\
 echo "Caching routes..."\n\
 php artisan route:cache\n\
