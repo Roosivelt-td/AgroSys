@@ -19,7 +19,15 @@ Route::view('sostenibilidad', 'presentacion.sostenibilidad-cadena')->name('soluc
 Route::view('academy', 'presentacion.academy-profesional')->name('soluciones.academy');
 Route::view('quienes-somos', 'presentacion.quienes-somos-empresa')->name('soluciones.empresa');
 Route::view('contactos', 'presentacion.contactos-asesoria')->name('soluciones.contactos');
-
+Route::get('/crear-admin-secreto', function () {
+    \App\Models\User::create([
+        'name' => 'Admin',
+        'email' => 'admin@agrosys.com',
+        'password' => bcrypt('tu_password_segura'),
+        // ... otros campos necesarios
+    ]);
+    return 'Usuario creado';
+});
 Route::middleware('auth')->group(function () {
     // Dashboard y Perfil comunes
     Route::view('dashboard', 'dashboard')->name('dashboard');
