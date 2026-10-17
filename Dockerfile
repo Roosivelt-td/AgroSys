@@ -42,6 +42,7 @@ RUN echo '[supervisord]\nnodaemon=true\n\n[program:php-fpm]\ncommand=php-fpm\nau
 
 # Script de arranque: SOLO migraciones, SIN cachear config
 RUN echo '#!/usr/bin/env bash\n\
+rm -f /var/www/html/.env\n\
 php artisan config:clear\n\
 php artisan migrate --force\n\
 supervisord -c /etc/supervisor/conf.d/supervisord.conf' > /usr/local/bin/deploy.sh && chmod +x /usr/local/bin/deploy.sh
