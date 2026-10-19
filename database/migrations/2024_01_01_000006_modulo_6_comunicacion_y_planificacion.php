@@ -59,6 +59,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('usuario_id')->constrained('usuarios');
             $table->unsignedBigInteger('solicitud_id')->nullable(); // Relacion con solicitudes
+            $table->unsignedBigInteger('sugerencia_id')->nullable();
             $table->string('titulo', 100);
             $table->text('mensaje');
             $table->string('tipo', 50);
@@ -73,11 +74,11 @@ return new class extends Migration
             $table->foreignId('creado_por_usuario_id')->constrained('usuarios');
             $table->string('titulo', 150);
             $table->text('descripcion')->nullable();
+            $table->string('enlace_virtual', 500)->nullable();
             $table->string('destinatario_tipo', 50)->default('organizacion_completa')->nullable();
             $table->datetime('fecha_evento');
             $table->integer('duracion_minutos')->default(60);
             $table->string('lugar', 255)->nullable();
-            $table->string('enlace_virtual', 500)->nullable();
             $table->timestamps();
         });
 

@@ -65,16 +65,16 @@ class OrganizacionControllerTest extends TestCase
         $resReg = $this->controller->registrar([
             'nombre' => 'Empresa Test Controller ' . rand(100, 999),
             'ruc' => '20' . rand(100000000, 999999999),
-            'descripcion' => 'Empresa de prueba para controlador'
+            'descripcion' => 'Empresa de prueba para controlador',
+            'anios_suscripcion' => 2,
+            'transaccion_id' => 'TXN-TEST-12345',
         ]);
 
         $this->assertTrue($resReg['success']);
 
         $solicitud = Solicitud::where('solicitante_usuario_id', $this->userAdmin->id)->latest()->first();
         $this->assertNotNull($solicitud);
-
-        $resAprobar = $this->controller->aprobarSolicitud($solicitud->id);
-        $this->assertTrue($resAprobar['success']);
+        $this->assertEquals(1, $solicitud->estado);
 
         $this->assertDatabaseHas('organizaciones', ['nombre' => $solicitud->datos_extra['nombre']]);
     }

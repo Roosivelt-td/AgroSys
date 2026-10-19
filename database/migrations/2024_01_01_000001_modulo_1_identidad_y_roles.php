@@ -62,6 +62,11 @@ return new class extends Migration
             $table->string('email', 255)->nullable();
             $table->text('direccion')->nullable();
             $table->tinyInteger('estado')->default(1);
+            // Datos de suscripción y pago
+            $table->date('fecha_adquisicion')->nullable();
+            $table->date('fecha_vencimiento')->nullable();
+            $table->integer('anios_suscripcion')->default(1);
+            $table->decimal('monto_pago', 12, 2)->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

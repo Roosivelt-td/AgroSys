@@ -23,6 +23,7 @@ class OrganizacionController extends Controller
             'ruc' => 'required|string|digits:11',
             'descripcion' => 'nullable|string|max:500',
             'email' => 'nullable|email|max:150',
+            'anios_suscripcion' => 'nullable|integer|min:1|max:10',
         ], [
             'nombre.required' => 'El nombre de la empresa es obligatorio.',
             'nombre.min' => 'El nombre de la empresa debe tener al menos 3 caracteres.',
@@ -36,16 +37,88 @@ class OrganizacionController extends Controller
         }
 
         $usuario = Auth::user();
-        $destinatarioId = User::where('rol_id', 1)->value('id') ?? User::value('id') ?? $usuario->id;
+        $anios = isset($datos['anios_suscripcion']) ? (int)$datos['anios_suscripcion'] : 1;
+        $tarifaAnual = 350.00;
+        $montoTotal = $anios * $tarifaAnual;
 
-        return DB::transaction(function () use ($datos, $usuario, $destinatarioId) {
-            $solicitud = Solicitud::create(['tipo' => 'creacion_organizacion', 'estado' => 0, 'solicitante_usuario_id' => $usuario->id, 'destinatario_usuario_id' => $destinatarioId, 'datos_extra' => $datos, 'fecha_solicitud' => now()]);
+        $fechaAdquisicion = now();
+        $fechaVencimiento = now()->addYears($anios);
+        $txnCode = $datos['transaccion_id'] ?? ('TXN-AGRO-' . strtoupper(\Illuminate\Support\Str::random(8)));
+
+        return DB::transaction(function () use ($datos, $usuario, $anios, $montoTotal, $fechaAdquisicion, $fechaVencimiento, $txnCode) {
+            // 1. Crear la Organización activa automáticamente
+            $organizacion = Organizacion::create([
+                'nombre' => trim($datos['nombre']),
+                'ruc' => trim($datos['ruc']),
+                'descripcion' => trim($datos['descripcion'] ?? '') ?: null,
+                'email' => trim($datos['email'] ?? '') ?: null,
+                'telefono' => trim($datos['telefono'] ?? '') ?: null,
+                'direccion' => trim($datos['direccion'] ?? '') ?: null,
+                'estado' => 1,
+                'fecha_adquisicion' => $fechaAdquisicion,
+                'fecha_vencimiento' => $fechaVencimiento,
+                'anios_suscripcion' => $anios,
+                'monto_pago' => $montoTotal,
+            ]);
+
+            // 2. Vincular al usuario como Propietario y Administrador de la Organización
+            $adminRol = RolesOrganizacion::firstOrCreate(['id' => 1], ['nombre' => 'Administrador', 'descripcion' => 'Admin de Org']);
+            $agriRol = RolesOrganizacion::firstOrCreate(['id' => 3], ['nombre' => 'Agricultor', 'descripcion' => 'Agricultor de Org']);
+
+            $miembro = MiembroOrganizacion::create([
+                'usuario_id' => $usuario->id,
+                'organizacion_id' => $organizacion->id,
+                'es_propietario' => 1,
+                'estado' => 1,
+                'fecha_ingreso' => $fechaAdquisicion,
+            ]);
+
+            MiembroRol::create(['miembro_id' => $miembro->id, 'rol_id' => $adminRol->id, 'estado' => 1]);
+            MiembroRol::create(['miembro_id' => $miembro->id, 'rol_id' => $agriRol->id, 'estado' => 1]);
+
+            // 3. Crear registro de transacción y solicitud aprobada
+            $solicitud = Solicitud::create([
+                'tipo' => 'creacion_organizacion',
+                'estado' => 1, // Aprobada automáticamente tras pago con tarjeta
+                'solicitante_usuario_id' => $usuario->id,
+                'organizacion_id' => $organizacion->id,
+                'datos_extra' => array_merge($datos, [
+                    'monto_pago' => $montoTotal,
+                    'transaccion_id' => $txnCode,
+                    'tarjeta_resumen' => $datos['tarjeta_resumen'] ?? 'Tarjeta Creada',
+                    'fecha_adquisicion' => $fechaAdquisicion->toDateTimeString(),
+                    'fecha_vencimiento' => $fechaVencimiento->toDateTimeString(),
+                ]),
+                'fecha_solicitud' => $fechaAdquisicion,
+                'fecha_respuesta' => $fechaAdquisicion,
+            ]);
+
+            // 4. Notificar al usuario solicitante
+            Notificacion::create([
+                'usuario_id' => $usuario->id,
+                'solicitud_id' => $solicitud->id,
+                'titulo' => '💳 ¡Pago Aprobado y Empresa Activada!',
+                'mensaje' => "Suscripción por {$anios} año(s) procesada con éxito (Cod: {$txnCode}). Vence el: {$fechaVencimiento->format('d/m/Y')}.",
+                'tipo' => 'exito',
+                'leido' => 0,
+            ]);
+
+            // 5. Notificar a los SuperAdmins sobre el cobro de la suscripción
             $superAdmins = User::where('rol_id', 1)->get();
             foreach ($superAdmins as $admin) {
-                Notificacion::create(['usuario_id' => $admin->id, 'solicitud_id' => $solicitud->id, 'titulo' => 'Nueva Solicitud de Organización', 'mensaje' => 'El usuario ' . $usuario->nombres . ' solicita registrar la empresa: ' . $datos['nombre'], 'tipo' => 'solicitud_pendiente']);
+                Notificacion::create([
+                    'usuario_id' => $admin->id,
+                    'solicitud_id' => $solicitud->id,
+                    'titulo' => '💰 Cobro de Suscripción Aprobado',
+                    'mensaje' => "El usuario {$usuario->nombres} pagó S/ {$montoTotal} por la empresa '{$organizacion->nombre}' (TXN: {$txnCode}).",
+                    'tipo' => 'exito',
+                    'leido' => 0,
+                ]);
             }
-            $this->registrarHistorial($usuario->id, null, 'solicitudes', $solicitud->id, 'SOLICITUD', 'Solicitud formal de creación: ' . $datos['nombre']);
-            return ['success' => true, 'mensaje' => 'Solicitud enviada correctamente.'];
+
+            $this->registrarHistorial($usuario->id, $organizacion->id, 'organizaciones', $organizacion->id, 'PAGO_SUSCRIPCIÓN', "Pago aprobado S/ {$montoTotal} [{$txnCode}] por {$anios} año(s) para {$organizacion->nombre}", $datos);
+
+            return ['success' => true, 'mensaje' => "¡Pago procesado con éxito! Su empresa '{$organizacion->nombre}' ha sido activada hasta el " . $fechaVencimiento->format('d/m/Y') . " (Cod: {$txnCode})."];
         });
     }
 

@@ -46,6 +46,35 @@ class AppServiceProvider extends ServiceProvider
         MiembroOrganizacion::observe(AgroAuditObserver::class);
         Organizacion::observe(AgroAuditObserver::class);
 
+        // Registro de Replicación Dual en Tiempo Real (MySQL + PostgreSQL)
+        $modelsToReplicate = [
+            \App\Models\User::class,
+            \App\Models\Organizacion::class,
+            \App\Models\MiembroOrganizacion::class,
+            \App\Models\MiembroRol::class,
+            \App\Models\Terreno::class,
+            \App\Models\Cultivo::class,
+            \App\Models\Labor::class,
+            \App\Models\Cosecha::class,
+            \App\Models\Venta::class,
+            \App\Models\Comprador::class,
+            \App\Models\EventoOrganizacion::class,
+            \App\Models\SugerenciaTarea::class,
+            \App\Models\Notificacion::class,
+            \App\Models\MensajeChat::class,
+            \App\Models\Conversacion::class,
+            \App\Models\ConversacionParticipante::class,
+            \App\Models\HistorialProceso::class,
+            \App\Models\EventoUsuarioOculto::class,
+            \App\Models\Solicitud::class,
+            \App\Models\AsignacionSupervisor::class,
+            \App\Models\ArchivoMultimedia::class,
+        ];
+
+        foreach ($modelsToReplicate as $modelClass) {
+            $modelClass::observe(\App\Observers\DualDatabaseReplicationObserver::class);
+        }
+
         \Illuminate\Support\Facades\Gate::define('superadmin-only', function ($user) {
             return $user->rol_id === 1; // Solo el rol con ID 1 (Super Admin)
         });

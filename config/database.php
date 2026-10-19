@@ -86,12 +86,12 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DATABASE_URL'), // <-- AQUÍ ESTÁ LA MAGIA
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'agrosys'),
-            'username' => env('DB_USERNAME', 'agrosys'),
-            'password' => env('DB_PASSWORD', ''),
+            'url' => env('DB_PGSQL_URL', env('DATABASE_URL')),
+            'host' => env('DB_PGSQL_HOST', 'postgres'),
+            'port' => env('DB_PGSQL_PORT', '5432'),
+            'database' => env('DB_PGSQL_DATABASE', env('DB_DATABASE', 'agrosys')),
+            'username' => env('DB_PGSQL_USERNAME', env('DB_USERNAME', 'agrosys')),
+            'password' => env('DB_PGSQL_PASSWORD', env('DB_PASSWORD', 'agrosys123')),
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,

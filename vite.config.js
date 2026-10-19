@@ -16,7 +16,8 @@ export default defineConfig({
         //strictPort: true, // con dev
         hmr: {
             //host: 'localhost', // El navegador buscará a Vite en localhost
-            host: '192.168.137.98', // El navegador buscará a Vite en del pc para red glogal a localhost
+            host: '172.21.76.45', // El navegador buscará a Vite en del pc para red glogal a localhost
+            //host: '192.168.137.98', // El navegador buscará a Vite en del pc para red glogal a localhost
             port: 5173,
         },
         watch: {

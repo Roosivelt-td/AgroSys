@@ -35,7 +35,7 @@ class DualDatabaseReplicationObserver
             return;
         }
 
-        // Verificar rápido disponibilidad de la conexión pgsql para no ralentizar el flujo si el servidor secundario no responde
+        // Verificar disponibilidad de la conexión pgsql
         try {
             DB::connection('pgsql')->getPdo();
         } catch (\Throwable $e) {
@@ -54,10 +54,12 @@ class DualDatabaseReplicationObserver
             if ($action === 'created' || $action === 'updated') {
                 $attributes = $model->getAttributes();
 
-                // Convertir booleanos de enteros a booleanos nativos para PostgreSQL
+                // Convertir tipos de datos para compatibilidad nativa con PostgreSQL
                 foreach ($attributes as $key => $value) {
-                    if (is_bool($value)) {
-                        $attributes[$key] = $value ? true : false;
+                    if (is_bool($value) || in_array($key, ['is_activo', 'es_personalizado', 'es_alquilado', 'es_finalizada', 'es_pagado', 'es_ia', 'eliminado_todos'])) {
+                        $attributes[$key] = (bool)$value;
+                    } elseif (is_array($value) || is_object($value)) {
+                        $attributes[$key] = json_encode($value, JSON_UNESCAPED_UNICODE);
                     }
                 }
 
@@ -74,7 +76,7 @@ class DualDatabaseReplicationObserver
                 DB::connection('pgsql')->table($table)->where($keyName, $keyValue)->delete();
             }
         } catch (\Throwable $e) {
-            Log::warning("Replicación Dual PGSQL [{$model->getTable()}]: " . $e->getMessage());
+            Log::error("Error Replicación Dual PGSQL [{$model->getTable()}]: " . $e->getMessage());
         }
     }
 }
